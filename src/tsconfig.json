@@ -3,6 +3,7 @@
 		"module": "commonjs",
 		"target": "es6",
 
+		"allowJs": true,
 		"noImplicitAny": false,
 		"removeComments": false,
 		"noUnusedLocals": true,

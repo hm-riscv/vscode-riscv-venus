@@ -4,6 +4,8 @@
 
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
+const simulator = require('./runtime/riscvSimulator');
+console.log(simulator)
 
 export interface MockBreakpoint {
 	id: number;

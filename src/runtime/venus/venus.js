@@ -1,3 +1,9 @@
+// TODO this might be required when Driver is exposed in riscvSimulator
+// const window = global
+// const load_update_message = (msg) => console.log(msg)
+// const {LocalStorageManager} = require('./helpers')
+
+module.exports = function(kotlin) {
 if (typeof kotlin === 'undefined') {
   throw new Error("Error loading module 'venus'. Its dependency 'kotlin' was not found. Please, check whether 'kotlin' is loaded prior to 'venus'.");
 }
@@ -23410,5 +23416,7 @@ var venus = function (_, Kotlin) {
   Kotlin.defineModule('venus', _);
   return _;
 }(typeof venus === 'undefined' ? {} : venus, kotlin);
+return venus
+}
 
 //# sourceMappingURL=venus.js.map
