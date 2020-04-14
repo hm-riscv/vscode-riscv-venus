@@ -48,4 +48,6 @@ module.exports = `<div>Active File: <span id="activeFileInEditor">null</span> <a
 </div>
 <button id="ecallExit" class="button" onclick="toggleThis(this);driver.setOnlyEcallExit(this.value === 'true');" value="false" style="text-align: center;">Only Ecall Exit</button>
 <button id="setRegsOnInit" class="button is-primary" onclick="toggleThis(this);driver.setSetRegsOnInit(this.value === 'true');" value="true" style="text-align: center;">Default Reg States</button>
+<input id="tmaxsteps-val" type="number" class="input is-small" style="width:180px;" onblur="" value=-1 spellcheck="false" onkeyup="driver.updateMaxSteps()">
+<textarea class="textarea is-primary is-medium" placeholder="type RISC-V assembly here" id="asm-editor"></textarea>
 `
