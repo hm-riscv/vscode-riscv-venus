@@ -32,21 +32,7 @@ const venus_main = venus;
 const driver = venus_main.venus.Driver;
 venus.api = venus_main.venus.api.API;
 const simulatorAPI = venus_main.venus.api.venusbackend.simulator.Simulator;
-/*
-// TODO what are we using this for? (copy&paste from main.js)
-editor = document.getElementById("asm-editor");
-codeMirror = CodeMirror.fromTextArea(editor,
-	{
-		lineNumbers: true,
-		mode: "riscv",
-		indentUnit: 4,
-		autofocus: true,
-		lint: true
-	}
-);
-codeMirror.setSize("100%", "88vh");
-codeMirror.refresh()
-*/
+
 export = {
 	venus_main,
 	driver,
