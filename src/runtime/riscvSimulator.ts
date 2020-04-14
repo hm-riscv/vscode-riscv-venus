@@ -6,11 +6,7 @@ if (typeof kotlin !== "undefined" && typeof kotlin.kotlin !== "undefined" && typ
 }
 
 const {LocalStorageManager} = require('./helpers')
-const {JSDOM} = require("jsdom");
-const fakeDOM = new JSDOM(`<!DOCTYPE html>`);
-const html = require("./fake.index.html")
-const document = fakeDOM.window.document
-document.body.innerHTML = html
+const {fakeDOM, document} = require('./fakeDOM')
 const {HTMLButtonElement, HTMLInputElement, HTMLSelectElement, HTMLElement, HTMLTextAreaElement} = fakeDOM.window
 const htmlClasses = [HTMLButtonElement, HTMLInputElement, HTMLSelectElement, HTMLElement, HTMLTextAreaElement]
 htmlClasses.forEach(htmlClass => {
@@ -60,10 +56,13 @@ Object.assign(global, {
 	driver
 })
 
+import frontendAPI = require("./frontendAPI")
+
 export = {
 	venus_main,
 	driver,
 	venus,
-	simulatorAPI
+	simulatorAPI,
+	frontendAPI
 }
 

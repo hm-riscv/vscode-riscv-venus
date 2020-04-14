@@ -4,8 +4,15 @@
 
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
-const simulator = require('./runtime/riscvSimulator');
+import simulator = require('./runtime/riscvSimulator');
 console.log(simulator)
+const validInstructions = "addi x9,x9,1\n"
+const malformedInstructions = "addi x9,1,1\n"
+setTimeout(() => {
+simulator.frontendAPI.setText(validInstructions)
+simulator.driver.assembleSimulator() // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
+simulator.driver.run()
+},3000)
 
 export interface MockBreakpoint {
 	id: number;
