@@ -61,15 +61,21 @@
 	"contributes": {
 		"breakpoints": [
 			{
-				"language": "markdown"
+				"language": "riscv"
 			}
 		],
 		"debuggers": [
 			{
-				"type": "mock",
-				"label": "Mock Debug",
+				"type": "venus",
+				"label": "Venus Debug",
 				"program": "./out/debugAdapter.js",
 				"runtime": "node",
+				"languages": [
+					"assembler",
+					"assembly",
+					"riscv",
+					"asm"
+				],
 				"configurationAttributes": {
 					"launch": {
 						"required": [
@@ -96,7 +102,7 @@
 				},
 				"initialConfigurations": [
 					{
-						"type": "mock",
+						"type": "venus",
 						"request": "launch",
 						"name": "Ask for file name",
 						"program": "${workspaceFolder}/${command:AskForProgramName}",
@@ -105,10 +111,10 @@
 				],
 				"configurationSnippets": [
 					{
-						"label": "Mock Debug: Launch",
-						"description": "A new configuration for 'debugging' a user selected markdown file.",
+						"label": "Venus Debug: Launch",
+						"description": "A new configuration for 'debugging' a user selected assembler file.",
 						"body": {
-							"type": "mock",
+							"type": "venus",
 							"request": "launch",
 							"name": "Ask for file name",
 							"program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",

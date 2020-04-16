@@ -7,11 +7,11 @@ import {
 	LoggingDebugSession,
 	InitializedEvent, TerminatedEvent, StoppedEvent, BreakpointEvent, OutputEvent,
 	ProgressStartEvent, ProgressUpdateEvent, ProgressEndEvent,
-	Thread, StackFrame, Scope, Source, Handles, Breakpoint
+	Thread, StackFrame, Scope, Source, Handles, Breakpoint, DebugSession
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
-import { MockRuntime, MockBreakpoint } from './mockRuntime';
+import { MockRuntime, MockBreakpoint, VenusRuntime } from './mockRuntime';
 const { Subject } = require('await-notify');
 
 function timeout(ms: number) {
@@ -31,6 +31,108 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	stopOnEntry?: boolean;
 	/** enable logging the Debug Adapter Protocol */
 	trace?: boolean;
+}
+
+export class VenusDebugSession extends DebugSession {
+
+	private _configurationDone = new Subject();
+	private _runtime: VenusRuntime;
+
+	public constructor () {
+		super();
+		this._runtime = new VenusRuntime();
+	}
+	/**
+	 * The 'initialize' request is the first request called by the frontend
+	 * to interrogate the features the debug adapter provides.
+	 */
+	protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
+
+		// build and return the capabilities of this debug adapter:
+		response.body = response.body || {};
+
+		// the adapter implements the configurationDoneRequest.
+		response.body.supportsConfigurationDoneRequest = true;
+
+		// make VS Code to use 'evaluate' when hovering over source
+		response.body.supportsEvaluateForHovers = true;
+
+		// make VS Code to show a 'step back' button
+		response.body.supportsStepBack = true;
+
+		// make VS Code to support data breakpoints
+		response.body.supportsDataBreakpoints = true;
+
+		// make VS Code to support completion in REPL
+		response.body.supportsCompletionsRequest = true;
+		response.body.completionTriggerCharacters = [ ".", "[" ];
+
+		// make VS Code to send cancelRequests
+		response.body.supportsCancelRequest = true;
+
+		// make VS Code send the breakpointLocations request
+		response.body.supportsBreakpointLocationsRequest = true;
+
+		this.sendResponse(response);
+
+		// since this debug adapter can accept configuration requests like 'setBreakpoint' at any time,
+		// we request them early by sending an 'initializeRequest' to the frontend.
+		// The frontend will end the configuration sequence by calling 'configurationDone' request.
+		this.sendEvent(new InitializedEvent());
+	}
+
+	/**
+	 * Called at the end of the configuration sequence.
+	 * Indicates that all breakpoints etc. have been sent to the DA and that the 'launch' can start.
+	 */
+	protected configurationDoneRequest(response: DebugProtocol.ConfigurationDoneResponse, args: DebugProtocol.ConfigurationDoneArguments): void {
+		super.configurationDoneRequest(response, args);
+
+		// notify the launchRequest that configuration has finished
+		this._configurationDone.notify();
+	}
+
+	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
+
+		// make sure to 'Stop' the buffered logging if 'trace' is not set
+		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
+
+		// wait until configuration has finished (and configurationDoneRequest has been called)
+		await this._configurationDone.wait(1000);
+
+		// start the program in the runtime
+		this._runtime.start(args.program, !!args.stopOnEntry);
+
+		this.sendResponse(response);
+	}
+
+	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
+
+		const clientLines = args.lines || [];
+
+		// set and verify breakpoint locations
+		const actualBreakpoints = clientLines.map(l => {
+			this._runtime.addBreakpoint(l);
+			const bp = <DebugProtocol.Breakpoint> new Breakpoint(true, l);
+			bp.id= l;
+			bp.message = "so ein schmarn";
+			return bp;
+		});
+
+		// send back the actual breakpoint positions
+		response.body = {
+			breakpoints: actualBreakpoints
+		};
+		this.sendResponse(response);
+	}
+
+	protected breakpointLocationsRequest(response: DebugProtocol.BreakpointLocationsResponse, args: DebugProtocol.BreakpointLocationsArguments, request?: DebugProtocol.Request): void {
+
+		response.body = {
+			breakpoints: [{line:20, column: 5}]
+		};
+		this.sendResponse(response);
+	}
 }
 
 export class MockDebugSession extends LoggingDebugSession {

@@ -5,14 +5,50 @@
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 import simulator = require('./runtime/riscvSimulator');
-console.log(simulator)
-const validInstructions = "addi x9,x9,1\n"
-const malformedInstructions = "addi x9,1,1\n"
-setTimeout(() => {
-simulator.frontendAPI.setText(validInstructions)
-simulator.driver.assembleSimulator() // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
-simulator.driver.run()
-},3000)
+// import { SnippetString } from 'vscode';
+// const validInstructions = "addi x9,x9,1\n"
+// const malformedInstructions = "addi x9,1,1\n"
+// setTimeout(() => {
+// simulator.frontendAPI.setText(validInstructions)
+// simulator.driver.assembleSimulator() // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
+// simulator.driver.run()
+// },3000)
+
+export class VenusRuntime extends EventEmitter {
+
+	private line_to_pc: Map<number, number> = new Map<number, number>();
+	private pc_to_line: Map<number, number> = new Map<number, number>();
+
+	/**
+	 * Start executing the given program.
+	 */
+	public start(program: string, stopOnEntry: boolean) {
+		let text: string = readFileSync(program).toString();
+		simulator.frontendAPI.setText(text);
+		simulator.driver.assembleSimulator(); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
+
+		this.line_to_pc.clear();
+		this.pc_to_line.clear();
+		for (let i = 0; i < simulator.driver.sim.linkedProgram.prog.insts.size; i++) {
+			let programDebug = simulator.driver.sim.linkedProgram.dbg.toArray()[i];
+			// val programName: String, val dbg: DebugInfo
+			let dbg = programDebug.dbg;
+			// val lineNo: Int, val line: String, val address: Int, val prog: Program
+			let line = dbg.lineNo;
+			//let mcode = simulator.driver.sim.linkedProgram.prog.insts.toArray()[i];
+			let pc = simulator.driver.sim.instOrderMapping.get_11rb$(i);
+			this.line_to_pc.set(line, pc);
+			this.pc_to_line.set(pc, line);
+		}
+
+		simulator.driver.step();
+	}
+
+	public addBreakpoint(line: number) {
+		simulator.driver.toggleBreakpoint(this.line_to_pc.get(line));
+	}
+
+}
 
 export interface MockBreakpoint {
 	id: number;

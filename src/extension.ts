@@ -6,7 +6,7 @@
 
 import * as vscode from 'vscode';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
-import { MockDebugSession } from './mockDebug';
+import { VenusDebugSession } from './mockDebug';
 import * as Net from 'net';
 
 /*
@@ -19,14 +19,16 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.mock-debug.getProgramName', config => {
 		return vscode.window.showInputBox({
-			placeHolder: "Please enter the name of a markdown file in the workspace folder",
-			value: "readme.md"
+			placeHolder: "Please enter the name of a assembler file in the workspace folder",
+			value: ""
 		});
 	}));
 
-	// register a configuration provider for 'mock' debug type
-	const provider = new MockConfigurationProvider();
-	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('mock', provider));
+	// register a configuration provider for 'venus' debug type
+	const venusProvider = new VenusConfigurationProvider();
+	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('venus', venusProvider));
+
+
 
 	// debug adapters can be run in different ways by using a vscode.DebugAdapterDescriptorFactory:
 	let factory: vscode.DebugAdapterDescriptorFactory;
@@ -47,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
 			break;
 		}
 
-	context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('mock', factory));
+	context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('venus', factory));
 	if ('dispose' in factory) {
 		context.subscriptions.push(factory);
 	}
@@ -67,8 +69,7 @@ export function deactivate() {
 	// nothing to do
 }
 
-class MockConfigurationProvider implements vscode.DebugConfigurationProvider {
-
+class VenusConfigurationProvider implements vscode.DebugConfigurationProvider {
 	/**
 	 * Massage a debug configuration just before a debug session is being launched,
 	 * e.g. add all missing attributes to the debug configuration.
@@ -78,8 +79,8 @@ class MockConfigurationProvider implements vscode.DebugConfigurationProvider {
 		// if launch.json is missing or empty
 		if (!config.type && !config.request && !config.name) {
 			const editor = vscode.window.activeTextEditor;
-			if (editor && editor.document.languageId === 'markdown') {
-				config.type = 'mock';
+			if (editor && editor.document.languageId === 'riscv') {
+				config.type = 'venus';
 				config.name = 'Launch';
 				config.request = 'launch';
 				config.program = '${file}';
@@ -133,7 +134,7 @@ class MockDebugAdapterDescriptorFactory implements vscode.DebugAdapterDescriptor
 		if (!this.server) {
 			// start listening on a random port
 			this.server = Net.createServer(socket => {
-				const session = new MockDebugSession();
+				const session = new VenusDebugSession();
 				session.setRunAsServer(true);
 				session.start(<NodeJS.ReadableStream>socket, socket);
 			}).listen(0);
@@ -153,6 +154,6 @@ class MockDebugAdapterDescriptorFactory implements vscode.DebugAdapterDescriptor
 class InlineDebugAdapterFactory implements vscode.DebugAdapterDescriptorFactory {
 
 	createDebugAdapterDescriptor(_session: vscode.DebugSession): ProviderResult<vscode.DebugAdapterDescriptor> {
-		return new vscode.DebugAdapterInlineImplementation(new MockDebugSession());
+		return new vscode.DebugAdapterInlineImplementation(new VenusDebugSession());
 	}
 }
