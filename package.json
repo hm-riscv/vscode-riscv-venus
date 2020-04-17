@@ -59,6 +59,14 @@
 		"onCommand:extension.mock-debug.getProgramName"
 	],
 	"contributes": {
+		"languages": [
+			{
+				"id": "riscv",
+				"extensions": [".s", ".S"],
+				"aliases": ["RISC-V"],
+				"filenames": []
+			}
+		],
 		"breakpoints": [
 			{
 				"language": "riscv"
