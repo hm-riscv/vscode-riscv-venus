@@ -5,50 +5,6 @@
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 import simulator = require('./runtime/riscvSimulator');
-// import { SnippetString } from 'vscode';
-// const validInstructions = "addi x9,x9,1\n"
-// const malformedInstructions = "addi x9,1,1\n"
-// setTimeout(() => {
-// simulator.frontendAPI.setText(validInstructions)
-// simulator.driver.assembleSimulator() // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
-// simulator.driver.run()
-// },3000)
-
-export class VenusRuntime extends EventEmitter {
-
-	private line_to_pc: Map<number, number> = new Map<number, number>();
-	private pc_to_line: Map<number, number> = new Map<number, number>();
-
-	/**
-	 * Start executing the given program.
-	 */
-	public start(program: string, stopOnEntry: boolean) {
-		let text: string = readFileSync(program).toString();
-		simulator.frontendAPI.setText(text);
-		simulator.driver.assembleSimulator(); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
-
-		this.line_to_pc.clear();
-		this.pc_to_line.clear();
-		for (let i = 0; i < simulator.driver.sim.linkedProgram.prog.insts.size; i++) {
-			let programDebug = simulator.driver.sim.linkedProgram.dbg.toArray()[i];
-			// val programName: String, val dbg: DebugInfo
-			let dbg = programDebug.dbg;
-			// val lineNo: Int, val line: String, val address: Int, val prog: Program
-			let line = dbg.lineNo;
-			//let mcode = simulator.driver.sim.linkedProgram.prog.insts.toArray()[i];
-			let pc = simulator.driver.sim.instOrderMapping.get_11rb$(i);
-			this.line_to_pc.set(line, pc);
-			this.pc_to_line.set(pc, line);
-		}
-
-		simulator.driver.step();
-	}
-
-	public addBreakpoint(line: number) {
-		simulator.driver.toggleBreakpoint(this.line_to_pc.get(line));
-	}
-
-}
 
 export interface MockBreakpoint {
 	id: number;
@@ -59,7 +15,7 @@ export interface MockBreakpoint {
 /**
  * A Mock runtime with minimal debugger functionality.
  */
-export class MockRuntime extends EventEmitter {
+export class VenusRuntime extends EventEmitter {
 
 	// the initial (and one and only) file we are 'debugging'
 	private _sourceFile: string;
@@ -86,18 +42,32 @@ export class MockRuntime extends EventEmitter {
 		super();
 	}
 
+	private line_to_pc: Map<number, number> = new Map<number, number>();
+	private pc_to_line: Map<number, number> = new Map<number, number>();
+
 	/**
 	 * Start executing the given program.
 	 */
 	public start(program: string, stopOnEntry: boolean) {
+		let text: string = readFileSync(program).toString();
+		simulator.frontendAPI.setText(text);
+		simulator.driver.assembleSimulator(); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
 
-		this.loadSource(program);
-		this._currentLine = -1;
-
-		this.verifyBreakpoints(this._sourceFile);
+		this.line_to_pc.clear();
+		this.pc_to_line.clear();
+		for (let i = 0; i < simulator.driver.sim.linkedProgram.prog.insts.size; i++) {
+			let programDebug = simulator.driver.sim.linkedProgram.dbg.toArray()[i];
+			// val programName: String, val dbg: DebugInfo
+			let dbg = programDebug.dbg;
+			// val lineNo: Int, val line: String, val address: Int, val prog: Program
+			let line = dbg.lineNo;
+			//let mcode = simulator.driver.sim.linkedProgram.prog.insts.toArray()[i];
+			let pc = simulator.driver.sim.instOrderMapping.get_11rb$(i);
+			this.line_to_pc.set(line, pc);
+			this.pc_to_line.set(pc, line);
+		}
 
 		if (stopOnEntry) {
-			// we step once
 			this.step(false, 'stopOnEntry');
 		} else {
 			// we just start to run until we hit a breakpoint or an exception
@@ -105,18 +75,25 @@ export class MockRuntime extends EventEmitter {
 		}
 	}
 
-	/**
-	 * Continue execution to the end/beginning.
-	 */
-	public continue(reverse = false) {
-		this.run(reverse, undefined);
+	public addBreakpoint(line: number) {
+		simulator.driver.toggleBreakpoint(this.line_to_pc.get(line));
 	}
+
+	// MOCK RUNTIME DEFINED METHODS
+
 
 	/**
 	 * Step to the next/previous non empty line.
 	 */
 	public step(reverse = false, event = 'stopOnStep') {
 		this.run(reverse, event);
+	}
+
+	/**
+	 * Continue execution to the end/beginning.
+	 */
+	public continue(reverse = false) {
+		this.run(reverse, undefined);
 	}
 
 	/**
