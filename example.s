@@ -1,29 +1,25 @@
-#include "riscv_test.h"
+addi x31, x0, 4
+addi x30, x0, 2
 
-RVTEST_RV64U        # Define TVM used by program.
+addi x2, x0, 1600
+jal x1, rec_func
+beq x0, x0, end
 
-# Test code region.
-RVTEST_CODE_BEGIN   # Start of test code.
-        lw      x2, testdata
-        addi    x2, 1         # Should be 42 into $2.
-        sw      x2, result    # Store result into memory overwriting 1s.
-        li      x3, 42        # Desired result.
-        bne     x2, x3, fail  # Fail out if doesn't match.
-        RVTEST_PASS           # Signal success.
-fail:
-        RVTEST_FAIL
-RVTEST_CODE_END     # End of test code.
+rec_func:
+    addi x2, x2, -8
+    sd x1, 0(x2)
+    bge x5, x31, true
+    ld x1, 0(x2)
+    addi x10, x0, 1
+    addi x2, x2, 8
+    jalr x0, x1, 0
+true:
+    addi x5, x5, -2
+    jal x1, rec_func
+    ld x1, 0(x2)
+    addi x2, x2, 8
+    mul x10, x10, x30
+    addi x10, x10, 1
+    jalr x0, x0, 0
 
-# Input data section.
-# This section is optional, and this data is NOT saved in the output.
-.data
-        .align 3
-testdata:
-        .dword 41
-
-# Output data section.
-RVTEST_DATA_BEGIN   # Start of test output data region.
-        .align 3
-result:
-        .dword -1
-RVTEST_DATA_END     # End of test output data region.
+end:
