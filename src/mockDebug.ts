@@ -10,6 +10,7 @@ import {
 	Thread, StackFrame, Scope, Source, Handles, Breakpoint, DebugSession
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { VenusRenderer } from './venusRenderer';
 import { basename } from 'path';
 import { MockRuntime, MockBreakpoint, VenusRuntime } from './mockRuntime';
 const { Subject } = require('await-notify');
@@ -37,10 +38,12 @@ export class VenusDebugSession extends DebugSession {
 
 	private _configurationDone = new Subject();
 	private _runtime: VenusRuntime;
+	private _renderer: VenusRenderer;
 
 	public constructor () {
 		super();
 		this._runtime = new VenusRuntime();
+		this._renderer = new VenusRenderer();
 	}
 	/**
 	 * The 'initialize' request is the first request called by the frontend
