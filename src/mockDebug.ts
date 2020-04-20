@@ -10,6 +10,7 @@ import {
 	Thread, StackFrame, Scope, Source, Handles, Breakpoint, DebugSession
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import { VenusRenderer } from './venusRenderer';
 import { basename } from 'path';
 import { MockRuntime, MockBreakpoint, VenusRuntime } from './mockRuntime';
 const { Subject } = require('await-notify');
@@ -40,6 +41,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	// a Mock runtime (or debugger)
 	private _runtime: VenusRuntime;
+	private _renderer: VenusRenderer;
 
 	private _variableHandles = new Handles<string>();
 
@@ -65,6 +67,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.setDebuggerColumnsStartAt1(false);
 
 		this._runtime = new VenusRuntime();
+		this._renderer = new VenusRenderer();
 
 		// setup event handlers
 		this._runtime.on('stopOnEntry', () => {
