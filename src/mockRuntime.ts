@@ -94,8 +94,9 @@ export class VenusRuntime extends EventEmitter {
 	/**
 	 * Continue execution to the end/beginning.
 	 */
-	public continue(reverse = false) {
-		this.run(reverse, undefined);
+	public continue() {
+		simulator.driver.run()
+		this.sendEvent('stopOnBreakpoint')
 	}
 
 	/**

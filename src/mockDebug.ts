@@ -335,8 +335,13 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
+	/*
+		Not yet supported
+		see: https://gitlab.lrz.de/riscv/debugger/-/issues/9
+	*/
 	protected reverseContinueRequest(response: DebugProtocol.ReverseContinueResponse, args: DebugProtocol.ReverseContinueArguments) : void {
-		this._runtime.continue(true);
+		console.warn("ReverseContinue is not supported yet (=> Continue)")
+		this._runtime.continue();
 		this.sendResponse(response);
  	}
 
