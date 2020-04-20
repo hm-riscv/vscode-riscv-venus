@@ -5,6 +5,7 @@
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 import simulator = require('./runtime/riscvSimulator');
+import { CommentThreadCollapsibleState } from 'vscode';
 
 export interface MockBreakpoint {
 	id: number;
@@ -47,6 +48,15 @@ export class VenusRuntime extends EventEmitter {
 	 * Start executing the given program.
 	 */
 	public start(program: string, stopOnEntry: boolean) {
+		if (stopOnEntry) {
+			this.sendEvent('stopOnEntry');
+		} else {
+			// we just start to run until we hit a breakpoint or an exception
+			this.continue();
+		}
+	}
+
+	public assemble(program: string) {
 		let text: string = readFileSync(program).toString();
 		simulator.frontendAPI.setText(text);
 		simulator.driver.assembleSimulator(); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
@@ -64,17 +74,6 @@ export class VenusRuntime extends EventEmitter {
 			this.line_to_pc.set(line, pc);
 			this.pc_to_line.set(pc, line);
 		}
-
-		if (stopOnEntry) {
-			this.sendEvent('stopOnEntry');
-		} else {
-			// we just start to run until we hit a breakpoint or an exception
-			this.continue();
-		}
-	}
-
-	public addBreakpoint(line: number) {
-		simulator.driver.toggleBreakpoint(this.line_to_pc.get(line));
 	}
 
 	// MOCK RUNTIME DEFINED METHODS
@@ -154,6 +153,8 @@ export class VenusRuntime extends EventEmitter {
 
 		this.verifyBreakpoints(path);
 
+		this.toggleBreakpoint(bp.line)
+
 		return bp;
 	}
 
@@ -177,6 +178,10 @@ export class VenusRuntime extends EventEmitter {
 	 * Clear all breakpoints for file.
 	 */
 	public clearBreakpoints(path: string): void {
+		const bps = this._breakPoints.get(path);
+		if (bps) {
+			bps.forEach(bp => this.toggleBreakpoint(bp.line));
+		}
 		this._breakPoints.delete(path);
 	}
 
@@ -317,6 +322,10 @@ export class VenusRuntime extends EventEmitter {
 
 		// nothing interesting found -> continue
 		return false;
+	}
+
+	private toggleBreakpoint(line: number) {
+		simulator.driver.toggleBreakpoint(this.line_to_pc.get(line));
 	}
 
 	/**
