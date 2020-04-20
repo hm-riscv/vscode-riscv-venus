@@ -285,31 +285,17 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 			const id = this._variableHandles.get(args.variablesReference);
 
+			const registers = this._runtime.getRegisters()
+
 			if (id) {
-				variables.push({
-					name: id + "_i",
-					type: "integer",
-					value: "123",
-					variablesReference: 0
-				});
-				variables.push({
-					name: id + "_f",
-					type: "float",
-					value: "3.14",
-					variablesReference: 0
-				});
-				variables.push({
-					name: id + "_s",
-					type: "string",
-					value: "hello world",
-					variablesReference: 0
-				});
-				variables.push({
-					name: id + "_o",
-					type: "object",
-					value: "Object",
-					variablesReference: this._variableHandles.create(id + "_o")
-				});
+				registers.forEach(reg => {
+					variables.push({
+						name: "x" + reg.id.toString(),
+						type: "hex",
+						value: "0x" + reg.value.toString(16),
+						variablesReference: 0
+					})
+				})
 
 				// cancelation support for long running requests
 				const nm = id + "_long_running";

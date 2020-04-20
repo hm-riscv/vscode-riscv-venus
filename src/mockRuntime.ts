@@ -5,12 +5,18 @@
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 import simulator = require('./runtime/riscvSimulator');
+import range from 'lodash/range';
 import { CommentThreadCollapsibleState } from 'vscode';
 
 export interface MockBreakpoint {
 	id: number;
 	line: number;
 	verified: boolean;
+}
+
+export interface Register {
+	id: number;
+	value: number;
 }
 
 /**
@@ -74,6 +80,31 @@ export class VenusRuntime extends EventEmitter {
 			this.line_to_pc.set(line, pc);
 			this.pc_to_line.set(pc, line);
 		}
+	}
+
+	/**
+	 * Returns the common registers
+	 * No float registeres included
+	 */
+	public getRegisters(): Register[] {
+		return range(0,32).map(id => {
+			return {
+				id,
+				value: simulator.driver.sim.getReg_za3lpa$(id)
+			}
+		})
+	}
+
+	/**
+	 * Returns the float registers
+	 */
+	public getFRegisters() {
+		return range(0,32).map(id => {
+			return {
+				id,
+				value: simulator.driver.sim.getFReg_za3lpa$(id)
+			}
+		})
 	}
 
 	// MOCK RUNTIME DEFINED METHODS
