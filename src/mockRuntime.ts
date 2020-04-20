@@ -5,11 +5,18 @@
 import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 import simulator = require('./runtime/riscvSimulator');
+import range from 'lodash/range';
+import { CommentThreadCollapsibleState } from 'vscode';
 
 export interface MockBreakpoint {
 	id: number;
 	line: number;
 	verified: boolean;
+}
+
+export interface Register {
+	id: number;
+	value: number;
 }
 
 /**
@@ -26,8 +33,6 @@ export class VenusRuntime extends EventEmitter {
 	// the contents (= lines) of the one and only file
 	private _sourceLines: string[];
 
-	// This is the next line that will be 'executed'
-	private _currentLine = 0;
 
 	// maps from sourceFile to array of Mock breakpoints
 	private _breakPoints = new Map<string, MockBreakpoint[]>();
@@ -49,6 +54,15 @@ export class VenusRuntime extends EventEmitter {
 	 * Start executing the given program.
 	 */
 	public start(program: string, stopOnEntry: boolean) {
+		if (stopOnEntry) {
+			this.sendEvent('stopOnEntry');
+		} else {
+			// we just start to run until we hit a breakpoint or an exception
+			this.continue();
+		}
+	}
+
+	public assemble(program: string) {
 		let text: string = readFileSync(program).toString();
 		simulator.frontendAPI.setText(text);
 		simulator.driver.assembleSimulator(); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
@@ -66,17 +80,31 @@ export class VenusRuntime extends EventEmitter {
 			this.line_to_pc.set(line, pc);
 			this.pc_to_line.set(pc, line);
 		}
-
-		if (stopOnEntry) {
-			this.step(false, 'stopOnEntry');
-		} else {
-			// we just start to run until we hit a breakpoint or an exception
-			this.continue();
-		}
 	}
 
-	public addBreakpoint(line: number) {
-		simulator.driver.toggleBreakpoint(this.line_to_pc.get(line));
+	/**
+	 * Returns the common registers
+	 * No float registeres included
+	 */
+	public getRegisters(): Register[] {
+		return range(0,32).map(id => {
+			return {
+				id,
+				value: simulator.driver.sim.getReg_za3lpa$(id)
+			}
+		})
+	}
+
+	/**
+	 * Returns the float registers
+	 */
+	public getFRegisters() {
+		return range(0,32).map(id => {
+			return {
+				id,
+				value: simulator.driver.sim.getFReg_za3lpa$(id)
+			}
+		})
 	}
 
 	// MOCK RUNTIME DEFINED METHODS
@@ -85,15 +113,21 @@ export class VenusRuntime extends EventEmitter {
 	/**
 	 * Step to the next/previous non empty line.
 	 */
-	public step(reverse = false, event = 'stopOnStep') {
-		this.run(reverse, event);
+	public step(reverse = false) {
+		if (reverse) {
+			simulator.driver.undo()
+		} else {
+			simulator.driver.step()
+		}
+		this.sendEvent('stopOnStep')
 	}
 
 	/**
 	 * Continue execution to the end/beginning.
 	 */
-	public continue(reverse = false) {
-		this.run(reverse, undefined);
+	public continue() {
+		simulator.driver.run()
+		this.sendEvent('stopOnBreakpoint')
 	}
 
 	/**
@@ -101,22 +135,18 @@ export class VenusRuntime extends EventEmitter {
 	 */
 	public stack(startFrame: number, endFrame: number): any {
 
-		const words = this._sourceLines[this._currentLine].trim().split(/\s+/);
+		const lineContent = this._sourceLines[this.getCurrentLine()];
 
 		const frames = new Array<any>();
-		// every word of the current line becomes a stack frame.
-		for (let i = startFrame; i < Math.min(endFrame, words.length); i++) {
-			const name = words[i];	// use a word of the line as the stackframe name
-			frames.push({
-				index: i,
-				name: `${name}(${i})`,
-				file: this._sourceFile,
-				line: this._currentLine
-			});
-		}
+		frames.push({
+			index: null,
+			name: lineContent,
+			file: this._sourceFile,
+			line: this.getCurrentLine() // the top element on the stack defines the highlighted line in the editor!!!
+		});
 		return {
 			frames: frames,
-			count: words.length
+			count: frames.length
 		};
 	}
 
@@ -155,6 +185,8 @@ export class VenusRuntime extends EventEmitter {
 
 		this.verifyBreakpoints(path);
 
+		this.toggleBreakpoint(bp.line)
+
 		return bp;
 	}
 
@@ -178,6 +210,10 @@ export class VenusRuntime extends EventEmitter {
 	 * Clear all breakpoints for file.
 	 */
 	public clearBreakpoints(path: string): void {
+		const bps = this._breakPoints.get(path);
+		if (bps) {
+			bps.forEach(bp => this.toggleBreakpoint(bp.line));
+		}
 		this._breakPoints.delete(path);
 	}
 
@@ -214,19 +250,19 @@ export class VenusRuntime extends EventEmitter {
 	 */
 	private run(reverse = false, stepEvent?: string) {
 		if (reverse) {
-			for (let ln = this._currentLine-1; ln >= 0; ln--) {
+			for (let ln = this.getCurrentLine()-1; ln >= 0; ln--) {
 				if (this.fireEventsForLine(ln, stepEvent)) {
-					this._currentLine = ln;
+					// this.getCurrentLine() = ln;
 					return;
 				}
 			}
 			// no more lines: stop at first line
-			this._currentLine = 0;
+			// this.getCurrentLine() = 0;
 			this.sendEvent('stopOnEntry');
 		} else {
-			for (let ln = this._currentLine+1; ln < this._sourceLines.length; ln++) {
+			for (let ln = this.getCurrentLine()+1; ln < this._sourceLines.length; ln++) {
 				if (this.fireEventsForLine(ln, stepEvent)) {
-					this._currentLine = ln;
+					//this.getCurrentLine() = ln;
 					return true;
 				}
 			}
@@ -318,6 +354,24 @@ export class VenusRuntime extends EventEmitter {
 
 		// nothing interesting found -> continue
 		return false;
+	}
+
+	private toggleBreakpoint(line: number) {
+		simulator.driver.toggleBreakpoint(this.line_to_pc.get(line));
+	}
+
+	/**
+	 * Current line
+	 * Starts with 0, this means: Editor line 1 == Current line 0
+	 */
+	private getCurrentLine(): number {
+		const pc: number = simulator.driver.sim.getPC()
+		let line = this.pc_to_line.get(pc)
+		if (!line) {
+			console.warn("Cannot get current line. Unknown program counter.")
+			line = 1
+		}
+		return line - 1
 	}
 
 	private sendEvent(event: string, ... args: any[]) {

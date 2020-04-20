@@ -4,6 +4,7 @@
 		"target": "es6",
 
 		"allowJs": true,
+		"esModuleInterop": true,
 		"noImplicitAny": false,
 		"removeComments": false,
 		"noUnusedLocals": true,
