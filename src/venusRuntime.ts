@@ -6,7 +6,7 @@ import { readFileSync } from 'fs';
 import { EventEmitter } from 'events';
 import simulator = require('./runtime/riscvSimulator');
 import range from 'lodash/range';
-import { CommentThreadCollapsibleState } from 'vscode';
+import { VenusRenderer } from './venusRenderer';
 
 export interface MockBreakpoint {
 	id: number;
@@ -33,7 +33,7 @@ export class VenusRuntime extends EventEmitter {
 	// the contents (= lines) of the one and only file
 	private _sourceLines: string[];
 
-
+	private _renderer: VenusRenderer = new VenusRenderer();
 	// maps from sourceFile to array of Mock breakpoints
 	private _breakPoints = new Map<string, MockBreakpoint[]>();
 
@@ -62,11 +62,15 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
-	public assemble(program: string) {
-		let text: string = readFileSync(program).toString();
+	public assemble(fpath: string) {
+		let text: string = readFileSync(fpath).toString();
 		simulator.frontendAPI.setText(text);
-		simulator.driver.assembleSimulator(); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
-
+		var[success, errs, warnings] = simulator.driver.externalAssemble(text, fpath); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
+		if (!success) {
+			this._renderer.showErrorWithPopup(errs);
+			this.sendEvent("end");
+			return;
+		}
 		this.line_to_pc.clear();
 		this.pc_to_line.clear();
 		for (let i = 0; i < simulator.driver.sim.linkedProgram.prog.insts.size; i++) {

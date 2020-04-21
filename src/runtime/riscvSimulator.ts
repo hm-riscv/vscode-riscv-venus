@@ -63,6 +63,6 @@ export = {
 	driver,
 	venus,
 	simulatorAPI,
-	frontendAPI
+	frontendAPI,
 }
 
