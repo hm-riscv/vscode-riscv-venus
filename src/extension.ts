@@ -6,7 +6,7 @@
 
 import * as vscode from 'vscode';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
-import { VenusDebugSession } from './mockDebug';
+import { VenusDebugSession } from './venusDebug';
 import * as Net from 'net';
 
 /*
