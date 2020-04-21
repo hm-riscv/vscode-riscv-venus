@@ -1,13 +1,4 @@
-// TODO this might be required when Driver is exposed in riscvSimulator
-// const window = global
-// const load_update_message = (msg) => console.log(msg)
-// const {LocalStorageManager} = require('./helpers')
-
-module.exports = function(kotlin) {
-if (typeof kotlin === 'undefined') {
-  throw new Error("Error loading module 'venus'. Its dependency 'kotlin' was not found. Please, check whether 'kotlin' is loaded prior to 'venus'.");
-}
-var venus = function (_, Kotlin) {
+(function (_, Kotlin) {
   'use strict';
   var $$importsForInline$$ = _.$$importsForInline$$ || (_.$$importsForInline$$ = {});
   var Unit = Kotlin.kotlin.Unit;
@@ -29,8 +20,6 @@ var venus = function (_, Kotlin) {
   var HashSet_init = Kotlin.kotlin.collections.HashSet_init_287e2$;
   var listOf = Kotlin.kotlin.collections.listOf_mh5how$;
   var Throwable = Error;
-  var Regex_init = Kotlin.kotlin.text.Regex_init_61zpoe$;
-  var Exception = Kotlin.kotlin.Exception;
   var replace = Kotlin.kotlin.text.replace_680rmw$;
   var first = Kotlin.kotlin.collections.first_2p1efm$;
   var toInt = Kotlin.kotlin.text.toInt_pdl1vz$;
@@ -44,16 +33,17 @@ var venus = function (_, Kotlin) {
   var substring = Kotlin.kotlin.text.substring_fc3b62$;
   var throwUPAE = Kotlin.throwUPAE;
   var arrayListOf = Kotlin.kotlin.collections.arrayListOf_i5x0yv$;
-  var println = Kotlin.kotlin.io.println_s8jyv4$;
-  var toString_0 = Kotlin.kotlin.text.toString_dqglrj$;
-  var isNaN_0 = Kotlin.kotlin.isNaN_yrwdxr$;
-  var asList = Kotlin.org.w3c.dom.asList_kt9thq$;
   var unboxChar = Kotlin.unboxChar;
   var toByte = Kotlin.toByte;
   var L15 = Kotlin.Long.fromInt(15);
   var L4294967296 = new Kotlin.Long(0, 1);
   var toChar = Kotlin.toChar;
+  var Kind_INTERFACE = Kotlin.Kind.INTERFACE;
   var toBoxedChar = Kotlin.toBoxedChar;
+  var println = Kotlin.kotlin.io.println_s8jyv4$;
+  var toString_0 = Kotlin.kotlin.text.toString_dqglrj$;
+  var isNaN_0 = Kotlin.kotlin.isNaN_yrwdxr$;
+  var asList = Kotlin.org.w3c.dom.asList_kt9thq$;
   var trimMargin = Kotlin.kotlin.text.trimMargin_rjktp$;
   var joinToString = Kotlin.kotlin.collections.joinToString_fmv235$;
   var startsWith = Kotlin.kotlin.text.startsWith_7epoxm$;
@@ -64,7 +54,7 @@ var venus = function (_, Kotlin) {
   var union = Kotlin.kotlin.collections.union_q4559j$;
   var List = Kotlin.kotlin.collections.List;
   var Any = Object;
-  var Kind_INTERFACE = Kotlin.Kind.INTERFACE;
+  var Regex_init = Kotlin.kotlin.text.Regex_init_61zpoe$;
   var Enum = Kotlin.kotlin.Enum;
   var throwISE = Kotlin.throwISE;
   var split = Kotlin.kotlin.text.split_ip8yn$;
@@ -117,6 +107,7 @@ var venus = function (_, Kotlin) {
   var L1 = Kotlin.Long.ONE;
   var firstOrNull = Kotlin.kotlin.collections.firstOrNull_2p1efm$;
   var Exception_init = Kotlin.kotlin.Exception_init_pdl1vj$;
+  var Exception = Kotlin.kotlin.Exception;
   var Long$Companion$MIN_VALUE = Kotlin.Long.MIN_VALUE;
   var Math_0 = Math;
   var toString_1 = Kotlin.kotlin.text.toString_if0zpk$;
@@ -1229,7 +1220,7 @@ var venus = function (_, Kotlin) {
     this.mainCache.attach_6taknv$(false);
     this.useLS = equals(this.LS.get('venus'), 'true');
     Renderer_getInstance().renderButton_ypl1d1$(Kotlin.isType(tmp$ = document.getElementById('sv'), HTMLButtonElement) ? tmp$ : throwCCE(), this.useLS);
-    window.setTimeout(getCallableRef('initTimeout', function ($receiver) {
+    setTimeout(getCallableRef('initTimeout', function ($receiver) {
       return $receiver.initTimeout(), Unit;
     }.bind(null, Driver_getInstance())), 5);
     console.log('Finished loading driver!');
@@ -1249,7 +1240,7 @@ var venus = function (_, Kotlin) {
     load_update_message('Initializing Venus: Renderer');
     Renderer_getInstance().loadSimulator_pivkot$(this.sim);
     Renderer_getInstance().renderAssembleButtons();
-    this.saveInterval_0 = window.setInterval(getCallableRef('saveIntervalFn', function ($receiver) {
+    this.saveInterval_0 = setInterval(getCallableRef('saveIntervalFn', function ($receiver) {
       return $receiver.saveIntervalFn(), Unit;
     }.bind(null, Driver_getInstance())), 10000);
     Driver_getInstance().ready_0 = true;
@@ -1267,7 +1258,7 @@ var venus = function (_, Kotlin) {
       window.driver_load_done();
     }
      else {
-      window.setInterval(getCallableRef('initFinish', function ($receiver) {
+      setInterval(getCallableRef('initFinish', function ($receiver) {
         return $receiver.initFinish(), Unit;
       }.bind(null, Driver_getInstance())), 100);
     }
@@ -1330,101 +1321,14 @@ var venus = function (_, Kotlin) {
       }
     }
      else {
-      window.setTimeout(getCallableRef('openSimulator', function ($receiver) {
+      setTimeout(getCallableRef('openSimulator', function ($receiver) {
         return $receiver.openSimulator(), Unit;
       }.bind(null, Driver_getInstance())), 100);
     }
   };
   Driver.prototype.checkURLParams = function () {
-    var tmp$, tmp$_0, tmp$_1, tmp$_2;
-    var clearparams = true;
-    var currentURL = new URL(window.location.href);
-    var s = currentURL.searchParams.get('code');
-    if (s != null) {
-      s = this.parseString_61zpoe$(s);
-      codeMirror.save();
-      if (!equals(this.getText(), '')) {
-        if (!equals(this.getText(), s)) {
-          var override = currentURL.searchParams.get('override');
-          var tmp$_3 = override != null;
-          if (tmp$_3) {
-            tmp$_3 = equals(override.toLowerCase(), 'true');
-          }
-          var overrideb = tmp$_3;
-          if (overrideb) {
-            tmp$ = true;
-          }
-           else {
-            tmp$ = window.confirm('You have some saved code already in venus! Do you want to override it with the code in your url?');
-          }
-          var choice = tmp$;
-          if (choice) {
-            codeMirror.setValue(s);
-          }
-           else {
-            clearparams = false;
-          }
-        }
-      }
-       else {
-        codeMirror.setValue(s);
-      }
-    }
-    s = currentURL.searchParams.get('tab');
-    if (s != null) {
-      s = this.parseString_61zpoe$(s.toString());
-      if (Renderer_getInstance().mainTabs.contains_11rb$(s)) {
-        Renderer_getInstance().renderTab(s, Renderer_getInstance().mainTabs);
-      }
-       else {
-        console.log('Unknown Tag!');
-      }
-    }
-    s = currentURL.searchParams.get('target');
-    if (s != null) {
-      s = this.parseString_61zpoe$(s);
-      loadfromtarget(s);
-    }
-    s = currentURL.searchParams.get('save');
-    if (!equals(typeof s, undefined)) {
-      s = this.parseString_61zpoe$(toString(s));
-      if (equals(s.toLowerCase(), 'true')) {
-        this.persistentStorage(true);
-        Renderer_getInstance().renderButton_ypl1d1$(Kotlin.isType(tmp$_0 = document.getElementById('sv'), HTMLButtonElement) ? tmp$_0 : throwCCE(), true);
-      }
-      if (equals(s.toLowerCase(), 'false')) {
-        this.persistentStorage(false);
-        Renderer_getInstance().renderButton_ypl1d1$(Kotlin.isType(tmp$_1 = document.getElementById('sv'), HTMLButtonElement) ? tmp$_1 : throwCCE(), false);
-      }
-    }
-    try {
-      s = currentURL.searchParams.get('packages');
-      if (s != null) {
-        s = this.parseString_61zpoe$(s.toString());
-        var $receiver = s;
-        var l = Regex_init(',').split_905azu$($receiver, 0);
-        tmp$_2 = l.iterator();
-        while (tmp$_2.hasNext()) {
-          var pack = tmp$_2.next();
-          this.ScriptManager.addPackage_o0ij6q$(pack);
-        }
-      }
-    }
-     catch (e) {
-      if (Kotlin.isType(e, Exception)) {
-        console.warn('An error occurred when parsing the packages!');
-        console.warn(e);
-      }
-       else
-        throw e;
-    }
-    if (clearparams) {
-      this.clearURLParams();
-    }
   };
   Driver.prototype.clearURLParams = function () {
-    var location = window.location.origin + window.location.pathname;
-    window.history.replaceState({}, document.title, location);
   };
   Driver.prototype.parseString_61zpoe$ = function (s) {
     var ps = replace(replace(s, '\\n', '\n'), '\\t', '\t');
@@ -1513,23 +1417,23 @@ var venus = function (_, Kotlin) {
     if (this.sim.exitcode != null) {
       var msg = 'Exited with error code ' + toString(this.sim.exitcode);
       if (((tmp$ = this.sim.exitcode) != null ? tmp$ : 0) === 0) {
-        window.alertify.message(msg);
+        console.log(msg);
       }
        else {
-        window.alertify.error(msg);
+        console.warn(msg);
       }
     }
   };
   Driver.prototype.externalAssemble = function (text, absPath) {
     if (absPath === void 0)
       absPath = '';
+    var tmp$;
     var success = true;
     var errs = '';
-    var sim = undefined;
-    var tmp$ = Assembler_getInstance().assemble_6hosri$(text, void 0, absPath);
-    var prog = tmp$.component1()
-    , errors = tmp$.component2()
-    , warnings = tmp$.component3();
+    var tmp$_0 = Assembler_getInstance().assemble_6hosri$(text, void 0, absPath);
+    var prog = tmp$_0.component1()
+    , errors = tmp$_0.component2()
+    , warnings = tmp$_0.component3();
     if (!errors.isEmpty()) {
       errs = first(errors).toString();
       success = false;
@@ -1538,7 +1442,14 @@ var venus = function (_, Kotlin) {
       try {
         var PandL = new ProgramAndLibraries(listOf(prog), this.VFS);
         var linked = Linker_getInstance().link_lpgfe$(PandL);
-        sim = new Simulator_0(linked, this.VFS, this.simSettings);
+        this.sim = new Simulator_0(linked, this.VFS, this.simSettings);
+        var args = Lexer_getInstance().lex_61zpoe$(this.getDefaultArgs());
+        tmp$ = args.iterator();
+        while (tmp$.hasNext()) {
+          var arg = tmp$.next();
+          this.sim.addArg_61zpoe$(arg);
+        }
+        this.setCacheSettings();
       }
        catch (e) {
         if (Kotlin.isType(e, AssemblerError)) {
@@ -1549,7 +1460,7 @@ var venus = function (_, Kotlin) {
           throw e;
       }
     }
-    return [success, sim, errs, warnings];
+    return [success, errs, warnings];
   };
   Driver.prototype.run = function () {
     if (this.currentlyRunning()) {
@@ -1558,7 +1469,7 @@ var venus = function (_, Kotlin) {
      else {
       try {
         Renderer_getInstance().setRunButtonSpinning_6taknv$(true);
-        this.timer_0 = window.setTimeout(getCallableRef('runStart', function ($receiver, useBreakPoints) {
+        this.timer_0 = setTimeout(getCallableRef('runStart', function ($receiver, useBreakPoints) {
           return $receiver.runStart_vft4zs$(useBreakPoints), Unit;
         }.bind(null, Driver_getInstance())), 10, true);
         this.sim.step();
@@ -1618,7 +1529,7 @@ var venus = function (_, Kotlin) {
         Renderer_getInstance().updateCache_e3g4se$(new Address(0, MemSize$WORD_getInstance()));
         cycles = cycles + 1 | 0;
       }
-      this.timer_0 = window.setTimeout(getCallableRef('runStart', function ($receiver, useBreakPoints) {
+      this.timer_0 = setTimeout(getCallableRef('runStart', function ($receiver, useBreakPoints) {
         return $receiver.runStart_vft4zs$(useBreakPoints), Unit;
       }.bind(null, Driver_getInstance())), 10, useBreakPoints);
     }
@@ -1638,9 +1549,7 @@ var venus = function (_, Kotlin) {
     Renderer_getInstance().updateAll();
     Renderer_getInstance().setRunButtonSpinning_6taknv$(false);
     if ((tmp$ = this.timer_0) != null) {
-      getCallableRef('clearTimeout', function ($receiver, handle) {
-        return $receiver.clearTimeout(handle), Unit;
-      }.bind(null, window))(tmp$);
+      clearTimeout(tmp$);
     }
     this.timer_0 = null;
   };
@@ -1803,24 +1712,6 @@ var venus = function (_, Kotlin) {
     return sb.toString();
   };
   Driver.prototype.dump = function () {
-    var tmp$;
-    try {
-      Renderer_getInstance().clearConsole();
-      Renderer_getInstance().printConsole_kcmwxo$(this.getInstructionDump());
-      var ta = Kotlin.isType(tmp$ = document.getElementById('console-output'), HTMLTextAreaElement) ? tmp$ : throwCCE();
-      ta.select();
-      var success = document.execCommand('copy');
-      if (success) {
-        console.log('Successfully copied machine code to clipboard');
-      }
-    }
-     catch (e) {
-      if (Kotlin.isType(e, Throwable)) {
-        handleError('dump', e);
-      }
-       else
-        throw e;
-    }
   };
   Driver.prototype.setOnlyEcallExit = function (b) {
     this.simSettings.ecallOnlyExit = b;
@@ -1832,17 +1723,13 @@ var venus = function (_, Kotlin) {
     this.simSettings.setRegesOnInit = b;
   };
   Driver.prototype.verifyText = function (input) {
-    var tmp$;
     try {
       if (!this.currentlyRunning()) {
         try {
           var i = userStringToInt(input.value);
           try {
             MemorySegments_getInstance().setTextBegin_za3lpa$(i);
-            var tabDisplay = Kotlin.isType(tmp$ = document.getElementById('simulator-tab'), HTMLElement) ? tmp$ : throwCCE();
-            if (tabDisplay.classList.contains('is-active')) {
-              this.openSimulator();
-            }
+            this.openSimulator();
           }
            catch (e) {
             if (Kotlin.isType(e, SimulatorError)) {
@@ -1948,7 +1835,7 @@ var venus = function (_, Kotlin) {
      catch (er) {
       if (Kotlin.isType(er, CacheError)) {
         Renderer_getInstance().clearConsole();
-        Renderer_getInstance().printConsole_kcmwxo$(er.toString());
+        Renderer_getInstance().printConsole_za3rmp$(er.toString());
       }
        else
         throw er;
@@ -1964,7 +1851,7 @@ var venus = function (_, Kotlin) {
      catch (er) {
       if (Kotlin.isType(er, CacheError)) {
         Renderer_getInstance().clearConsole();
-        Renderer_getInstance().printConsole_kcmwxo$(er.toString());
+        Renderer_getInstance().printConsole_za3rmp$(er.toString());
       }
        else
         throw er;
@@ -1980,7 +1867,7 @@ var venus = function (_, Kotlin) {
      catch (er) {
       if (Kotlin.isType(er, CacheError)) {
         Renderer_getInstance().clearConsole();
-        Renderer_getInstance().printConsole_kcmwxo$(er.toString());
+        Renderer_getInstance().printConsole_za3rmp$(er.toString());
       }
        else
         throw er;
@@ -2060,7 +1947,7 @@ var venus = function (_, Kotlin) {
       var purlinput = Kotlin.isType(tmp$ = document.getElementById('package-url-val'), HTMLInputElement) ? tmp$ : throwCCE();
       var url = purlinput.value;
       this.ScriptManager.addPackage_o0ij6q$(url);
-      window.setTimeout(getCallableRef('packageLoaded', function ($receiver, b) {
+      setTimeout(getCallableRef('packageLoaded', function ($receiver, b) {
         return $receiver.packageLoaded_cqtaea$(b), Unit;
       }.bind(null, Driver_getInstance())), 100, button);
     }
@@ -2069,12 +1956,12 @@ var venus = function (_, Kotlin) {
     }
   };
   Driver.prototype.togglePackage = function (packageID) {
-    window.setTimeout(getCallableRef('togglePackage', function ($receiver, id) {
+    setTimeout(getCallableRef('togglePackage', function ($receiver, id) {
       return $receiver.togglePackage_61zpoe$(id), Unit;
     }.bind(null, this.ScriptManager)), 10, packageID);
   };
   Driver.prototype.removePackage = function (packageID) {
-    window.setTimeout(getCallableRef('removePackage', function ($receiver, id) {
+    setTimeout(getCallableRef('removePackage', function ($receiver, id) {
       return $receiver.removePackage_61zpoe$(id), Unit;
     }.bind(null, this.ScriptManager)), 10, packageID);
   };
@@ -2083,7 +1970,7 @@ var venus = function (_, Kotlin) {
       removeClass(b, ['is-loading']);
       return;
     }
-    window.setTimeout(getCallableRef('packageLoaded', function ($receiver, b) {
+    setTimeout(getCallableRef('packageLoaded', function ($receiver, b) {
       return $receiver.packageLoaded_cqtaea$(b), Unit;
     }.bind(null, Driver_getInstance())), 100, b);
   };
@@ -2092,9 +1979,7 @@ var venus = function (_, Kotlin) {
     if (this.trTimer != null) {
       Renderer_getInstance().setNameButtonSpinning_ivxn3r$('simulator-trace', false);
       if ((tmp$ = this.trTimer) != null) {
-        getCallableRef('clearTimeout', function ($receiver, handle) {
-          return $receiver.clearTimeout(handle), Unit;
-        }.bind(null, window))(tmp$);
+        clearTimeout(tmp$);
       }
       this.trTimer = null;
       this.tr.traceFullReset();
@@ -2105,7 +1990,7 @@ var venus = function (_, Kotlin) {
     Renderer_getInstance().setNameButtonSpinning_ivxn3r$('simulator-trace', true);
     Renderer_getInstance().clearConsole();
     this.loadTraceSettings_0();
-    this.trTimer = window.setTimeout(getCallableRef('traceSt', function ($receiver) {
+    this.trTimer = setTimeout(getCallableRef('traceSt', function ($receiver) {
       return $receiver.traceSt_8be2vx$(), Unit;
     }.bind(null, Driver_getInstance())), 10);
   };
@@ -2130,9 +2015,7 @@ var venus = function (_, Kotlin) {
         handleError('Trace tr Start', e, Kotlin.isType(e, AlignmentError) || Kotlin.isType(e, StoreError) || Kotlin.isType(e, ExceededAllowedCyclesError));
         Renderer_getInstance().setNameButtonSpinning_ivxn3r$('simulator-trace', false);
         if ((tmp$ = this.trTimer) != null) {
-          getCallableRef('clearTimeout', function ($receiver, handle) {
-            return $receiver.clearTimeout(handle), Unit;
-          }.bind(null, window))(tmp$);
+          clearTimeout(tmp$);
         }
         this.trTimer = null;
       }
@@ -2146,7 +2029,7 @@ var venus = function (_, Kotlin) {
       var cycles = 0;
       while (cycles < 100) {
         if (this.sim.isDone()) {
-          this.trTimer = window.setTimeout(getCallableRef('runTrEnd', function ($receiver, err) {
+          this.trTimer = setTimeout(getCallableRef('runTrEnd', function ($receiver, err) {
             return $receiver.runTrEnd_r53ojt$(err), Unit;
           }.bind(null, Driver_getInstance())), 10);
           return;
@@ -2156,7 +2039,7 @@ var venus = function (_, Kotlin) {
         }
          catch (err) {
           if (Kotlin.isType(err, SimulatorError)) {
-            this.trTimer = window.setTimeout(getCallableRef('runTrEnd', function ($receiver, err) {
+            this.trTimer = setTimeout(getCallableRef('runTrEnd', function ($receiver, err) {
               return $receiver.runTrEnd_r53ojt$(err), Unit;
             }.bind(null, Driver_getInstance())), 10, err);
             return;
@@ -2166,7 +2049,7 @@ var venus = function (_, Kotlin) {
         }
         cycles = cycles + 1 | 0;
       }
-      this.trTimer = window.setTimeout(getCallableRef('traceLoop', function ($receiver) {
+      this.trTimer = setTimeout(getCallableRef('traceLoop', function ($receiver) {
         return $receiver.traceLoop_8be2vx$(), Unit;
       }.bind(null, Driver_getInstance())), 10);
     }
@@ -2175,9 +2058,7 @@ var venus = function (_, Kotlin) {
         handleError('Trace tr Loop', e, Kotlin.isType(e, AlignmentError) || Kotlin.isType(e, StoreError) || Kotlin.isType(e, ExceededAllowedCyclesError));
         Renderer_getInstance().setNameButtonSpinning_ivxn3r$('simulator-trace', false);
         if ((tmp$ = this.trTimer) != null) {
-          getCallableRef('clearTimeout', function ($receiver, handle) {
-            return $receiver.clearTimeout(handle), Unit;
-          }.bind(null, window))(tmp$);
+          clearTimeout(tmp$);
         }
         this.trTimer = null;
       }
@@ -2195,7 +2076,7 @@ var venus = function (_, Kotlin) {
         this.tr.traceAddError_pdchbv$(err);
       }
       this.tr.traceStringStart();
-      this.trTimer = window.setTimeout(getCallableRef('traceStringLoop', function ($receiver) {
+      this.trTimer = setTimeout(getCallableRef('traceStringLoop', function ($receiver) {
         return $receiver.traceStringLoop_8be2vx$(), Unit;
       }.bind(null, Driver_getInstance())), 10);
     }
@@ -2204,9 +2085,7 @@ var venus = function (_, Kotlin) {
         handleError('Trace Tr End', e, Kotlin.isType(e, AlignmentError) || Kotlin.isType(e, StoreError) || Kotlin.isType(e, ExceededAllowedCyclesError));
         Renderer_getInstance().setNameButtonSpinning_ivxn3r$('simulator-trace', false);
         if ((tmp$ = this.trTimer) != null) {
-          getCallableRef('clearTimeout', function ($receiver, handle) {
-            return $receiver.clearTimeout(handle), Unit;
-          }.bind(null, window))(tmp$);
+          clearTimeout(tmp$);
         }
         this.trTimer = null;
       }
@@ -2220,13 +2099,13 @@ var venus = function (_, Kotlin) {
       var cycles = 0;
       while (cycles < 100) {
         if (!this.tr.traceStringStep()) {
-          this.trTimer = window.setTimeout(getCallableRef('traceStringEnd', function ($receiver) {
+          this.trTimer = setTimeout(getCallableRef('traceStringEnd', function ($receiver) {
             return $receiver.traceStringEnd_8be2vx$(), Unit;
           }.bind(null, Driver_getInstance())), 10);
           return;
         }
       }
-      this.trTimer = window.setTimeout(getCallableRef('traceStringLoop', function ($receiver) {
+      this.trTimer = setTimeout(getCallableRef('traceStringLoop', function ($receiver) {
         return $receiver.traceStringLoop_8be2vx$(), Unit;
       }.bind(null, Driver_getInstance())), 10);
     }
@@ -2235,9 +2114,7 @@ var venus = function (_, Kotlin) {
         handleError('Trace String Loop', e, Kotlin.isType(e, AlignmentError) || Kotlin.isType(e, StoreError) || Kotlin.isType(e, ExceededAllowedCyclesError));
         Renderer_getInstance().setNameButtonSpinning_ivxn3r$('simulator-trace', false);
         if ((tmp$ = this.trTimer) != null) {
-          getCallableRef('clearTimeout', function ($receiver, handle) {
-            return $receiver.clearTimeout(handle), Unit;
-          }.bind(null, window))(tmp$);
+          clearTimeout(tmp$);
         }
         this.trTimer = null;
       }
@@ -2250,7 +2127,7 @@ var venus = function (_, Kotlin) {
     try {
       this.tr.traceStringEnd();
       Renderer_getInstance().clearConsole();
-      Renderer_getInstance().printConsole_kcmwxo$(this.tr.getString());
+      Renderer_getInstance().printConsole_za3rmp$(this.tr.getString());
     }
      catch (e) {
       if (Kotlin.isType(e, Throwable)) {
@@ -2261,16 +2138,14 @@ var venus = function (_, Kotlin) {
     }
     Renderer_getInstance().setNameButtonSpinning_ivxn3r$('simulator-trace', false);
     if ((tmp$ = this.trTimer) != null) {
-      getCallableRef('clearTimeout', function ($receiver, handle) {
-        return $receiver.clearTimeout(handle), Unit;
-      }.bind(null, window))(tmp$);
+      clearTimeout(tmp$);
     }
     this.trTimer = null;
   };
   Driver.prototype.traceStart_8be2vx$ = function () {
     try {
       this.tr.trace();
-      window.setTimeout(getCallableRef('traceString', function ($receiver) {
+      setTimeout(getCallableRef('traceString', function ($receiver) {
         return $receiver.traceString_8be2vx$(), Unit;
       }.bind(null, Driver_getInstance())), 10);
     }
@@ -2287,7 +2162,7 @@ var venus = function (_, Kotlin) {
     try {
       this.tr.traceString();
       Renderer_getInstance().clearConsole();
-      Renderer_getInstance().printConsole_kcmwxo$(this.tr.getString());
+      Renderer_getInstance().printConsole_za3rmp$(this.tr.getString());
     }
      catch (e) {
       if (Kotlin.isType(e, Throwable)) {
@@ -2317,7 +2192,7 @@ var venus = function (_, Kotlin) {
   Driver.prototype.saveIntervalFn = function () {
     if (this.useLS) {
       this.blinkSave_6taknv$(true);
-      window.setTimeout(getCallableRef('blinkSave', function ($receiver, b) {
+      setTimeout(getCallableRef('blinkSave', function ($receiver, b) {
         return $receiver.blinkSave_6taknv$(b), Unit;
       }.bind(null, Driver_getInstance())), 500, false);
       this.saveAll_6taknv$();
@@ -2416,7 +2291,7 @@ var venus = function (_, Kotlin) {
         this$Driver.driver_complete_loading = true;
         return;
       }
-      window.setTimeout(Driver$loadAll$checkToSetTab$lambda(closure$checkToSetTab), 10);
+      setTimeout(Driver$loadAll$checkToSetTab$lambda(closure$checkToSetTab), 10);
     };
   }
   function Driver$loadAll$lambda(closure$checkToSetTab) {
@@ -2561,7 +2436,7 @@ var venus = function (_, Kotlin) {
     this.ScriptManager.loadPackages();
     this.checkURLParams();
     var checkToSetTab = Driver$loadAll$checkToSetTab(this, defaultTab);
-    window.setTimeout(Driver$loadAll$lambda(checkToSetTab), 10);
+    setTimeout(Driver$loadAll$lambda(checkToSetTab), 10);
     codeMirror.refresh();
   };
   Object.defineProperty(Driver.prototype, 'fileExplorerCurrentLocation', {
@@ -2611,7 +2486,7 @@ var venus = function (_, Kotlin) {
   Driver.prototype.editVFObjectfromObj_hijjve$ = function (obj) {
     var tmp$;
     if (obj.type !== VFSType$File_getInstance()) {
-      window.alert('Only files can be loaded into the editor.');
+      console.warn('Only files can be loaded into the editor.');
       return;
     }
     try {
@@ -2626,7 +2501,7 @@ var venus = function (_, Kotlin) {
      catch (e) {
       if (Kotlin.isType(e, Throwable)) {
         console.error(e);
-        window.alert('Could not load file to the editor!');
+        console.warn('Could not load file to the editor!');
       }
        else
         throw e;
@@ -2653,7 +2528,7 @@ var venus = function (_, Kotlin) {
      catch (e) {
       if (Kotlin.isType(e, Throwable)) {
         console.error(e);
-        window.alert('Could not save file!');
+        console.warn('Could not save file!');
         return;
       }
        else
@@ -2661,7 +2536,7 @@ var venus = function (_, Kotlin) {
     }
     if (save) {
       if (obj.type !== VFSType$File_getInstance()) {
-        window.alert('You can (currently) only save to files!');
+        console.warn('You can (currently) only save to files!');
         return;
       }
       var file = Kotlin.isType(tmp$ = obj, VFSFile) ? tmp$ : throwCCE();
@@ -2764,6 +2639,278 @@ var venus = function (_, Kotlin) {
         throw t;
     }
   }
+  function IRenderer() {
+  }
+  IRenderer.prototype.renderTab = function (tab, tabs) {
+  };
+  IRenderer.prototype.addTab = function (tabName, tabList) {
+    return true;
+  };
+  IRenderer.prototype.removeTab = function (tabName, tabList) {
+    return true;
+  };
+  IRenderer.prototype.renderSimulator = function () {
+  };
+  IRenderer.prototype.loadSimulator_pivkot$ = function (displaySim) {
+    this.sim = displaySim;
+    this.setRunButtonSpinning_6taknv$(false);
+    this.renderProgramListing_vy1pvz$_0();
+    this.clearConsole();
+    this.updateAll();
+    this.renderSimButtons();
+  };
+  IRenderer.prototype.renderSimButtons = function () {
+  };
+  IRenderer.prototype.renderAssembleButtons = function () {
+  };
+  IRenderer.prototype.renderEditor = function () {
+  };
+  IRenderer.prototype.renderVenus = function () {
+  };
+  IRenderer.prototype.renderURLMaker = function () {
+  };
+  IRenderer.prototype.tabSetVisibility = function (tab, display) {
+  };
+  IRenderer.prototype.displayWarning_61zpoe$ = function (w) {
+  };
+  IRenderer.prototype.displayError_za3rmp$ = function (thing) {
+  };
+  IRenderer.prototype.stdout_za3rmp$ = function (thing) {
+  };
+  IRenderer.prototype.stderr_za3rmp$ = function (thing) {
+    this.displayError_za3rmp$(thing);
+  };
+  IRenderer.prototype.displayAssemblerError_9fh0nh$ = function (e) {
+    alert('[ERROR]\n' + e.message);
+  };
+  IRenderer.prototype.renderProgramListing_vy1pvz$_0 = function () {
+  };
+  IRenderer.prototype.updateAll = function () {
+  };
+  IRenderer.prototype.updateFromDiffs_lk28az$ = function (diffs) {
+  };
+  IRenderer.prototype.clearProgramListing = function () {
+  };
+  IRenderer.prototype.addToProgramListing_oi48jx$$default = function (pcx, mcode, progLine, invalidInst) {
+  };
+  IRenderer.prototype.addToProgramListing_oi48jx$ = function (pcx, mcode, progLine, invalidInst, callback$default) {
+    if (invalidInst === void 0)
+      invalidInst = false;
+    callback$default ? callback$default(pcx, mcode, progLine, invalidInst) : this.addToProgramListing_oi48jx$$default(pcx, mcode, progLine, invalidInst);
+  };
+  IRenderer.prototype.updateProgramListing_fttt2j$$default = function (idx, inst, orig) {
+    return new InstructionDiff(0, 0, '');
+  };
+  IRenderer.prototype.updateProgramListing_fttt2j$ = function (idx, inst, orig, callback$default) {
+    if (orig === void 0)
+      orig = null;
+    return callback$default ? callback$default(idx, inst, orig) : this.updateProgramListing_fttt2j$$default(idx, inst, orig);
+  };
+  IRenderer.prototype.getElement_61zpoe$ = function (id) {
+    var tmp$;
+    return Kotlin.isType(tmp$ = HTMLDivElement, HTMLElement) ? tmp$ : throwCCE();
+  };
+  IRenderer.prototype.updateRegister_lirtej$$default = function (id, value, setActive) {
+  };
+  IRenderer.prototype.updateRegister_lirtej$ = function (id, value, setActive, callback$default) {
+    if (setActive === void 0)
+      setActive = false;
+    callback$default ? callback$default(id, value, setActive) : this.updateRegister_lirtej$$default(id, value, setActive);
+  };
+  IRenderer.prototype.updateFRegister_zc64of$$default = function (id, v, setActive) {
+  };
+  IRenderer.prototype.updateFRegister_zc64of$ = function (id, v, setActive, callback$default) {
+    if (setActive === void 0)
+      setActive = false;
+    callback$default ? callback$default(id, v, setActive) : this.updateFRegister_zc64of$$default(id, v, setActive);
+  };
+  IRenderer.prototype.intToString_za3lpa$ = function (value) {
+    var tmp$;
+    switch (this.displayType) {
+      case 'Hex':
+        tmp$ = this.toHex_ydzd23$(value);
+        break;
+      case 'Decimal':
+        tmp$ = value.toString();
+        break;
+      case 'Unsigned':
+        tmp$ = this.toUnsigned_cnezon$_0(value);
+        break;
+      case 'ASCII':
+        tmp$ = this.toAscii_4fre7f$_0(value);
+        break;
+      default:tmp$ = this.toHex_ydzd23$(value);
+        break;
+    }
+    var v = tmp$;
+    return v;
+  };
+  IRenderer.prototype.updateCache_e3g4se$ = function (a) {
+  };
+  IRenderer.prototype.renderSetCacheLevel_za3lpa$ = function (i) {
+  };
+  IRenderer.prototype.renderAddCacheLevel = function () {
+  };
+  IRenderer.prototype.renderRemoveCacheLevel = function () {
+  };
+  IRenderer.prototype.makeCacheBlocks = function () {
+  };
+  IRenderer.prototype.updateCacheBlocks_xfjuj9$$default = function (b) {
+  };
+  IRenderer.prototype.updateCacheBlocks_xfjuj9$ = function (b, callback$default) {
+    if (b === void 0)
+      b = new ChangedBlockState(0, BlockState$MISS_getInstance());
+    callback$default ? callback$default(b) : this.updateCacheBlocks_xfjuj9$$default(b);
+  };
+  IRenderer.prototype.updateAllCacheBlocks = function () {
+  };
+  IRenderer.prototype.updatePC_3p81yu$ = function (pc) {
+  };
+  IRenderer.prototype.printConsole_za3rmp$ = function (thing) {
+  };
+  IRenderer.prototype.clearConsole = function () {
+  };
+  IRenderer.prototype.setRunButtonSpinning_6taknv$ = function (spinning) {
+  };
+  IRenderer.prototype.setNameButtonSpinning_ivxn3r$ = function (name, spinning) {
+  };
+  IRenderer.prototype.setButtonDisabled_qjzzba$_0 = function (id, disabled) {
+  };
+  IRenderer.prototype.updateControlButtons = function () {
+  };
+  IRenderer.prototype.disableControlButtons = function () {
+  };
+  IRenderer.prototype.renderBreakpointAt_fzusl$ = function (idx, state) {
+  };
+  IRenderer.prototype.renderMemoryTab = function () {
+  };
+  IRenderer.prototype.renderRegisterTab = function () {
+  };
+  IRenderer.prototype.renderCacheTab = function () {
+  };
+  IRenderer.prototype.renderSettingsTab = function () {
+  };
+  IRenderer.prototype.renderGeneralSettingsTab = function () {
+  };
+  IRenderer.prototype.renderTracerSettingsTab = function () {
+  };
+  IRenderer.prototype.renderPackagesTab = function () {
+  };
+  IRenderer.prototype.renderRegsTab = function () {
+  };
+  IRenderer.prototype.renderFRegsTab = function () {
+  };
+  IRenderer.prototype.rendererAddPackage_o0ij6q$$default = function (pid, enabled, removable) {
+  };
+  IRenderer.prototype.rendererAddPackage_o0ij6q$ = function (pid, enabled, removable, callback$default) {
+    if (removable === void 0)
+      removable = true;
+    callback$default ? callback$default(pid, enabled, removable) : this.rendererAddPackage_o0ij6q$$default(pid, enabled, removable);
+  };
+  IRenderer.prototype.rendererRemovePackage_61zpoe$ = function (pid) {
+  };
+  IRenderer.prototype.rendererUpdatePackage_ivxn3r$ = function (pid, state) {
+  };
+  IRenderer.prototype.pkgMsg_61zpoe$ = function (m) {
+  };
+  IRenderer.prototype.clearPkgMsg = function () {
+  };
+  IRenderer.prototype.updateMemory_za3lpa$ = function (addr) {
+  };
+  IRenderer.prototype.mustMoveMemoryDisplay_vhhmw8$_0 = function (wordAddress) {
+    return true;
+  };
+  IRenderer.prototype.renderMemoryRow_5nlvj0$_0 = function (urow, rowAddr) {
+  };
+  IRenderer.prototype.cleanTableRow_87o258$_0 = function (row) {
+    return row;
+  };
+  IRenderer.prototype.byteToHex_lt7bd5$_0 = function (b) {
+    var leftNibble = unboxChar(this.hexMap.get_za3lpa$(b >>> 4));
+    var rightNibble = unboxChar(this.hexMap.get_za3lpa$(b & 15));
+    return String.fromCharCode(leftNibble) + String.fromCharCode(rightNibble);
+  };
+  IRenderer.prototype.byteToDec_x74bdc$_0 = function (b) {
+    return toByte(b).toString();
+  };
+  IRenderer.prototype.byteToUnsign_thi4og$_0 = function (b) {
+    return b.toString();
+  };
+  IRenderer.prototype.toHex_ydzd23$$default = function (value, num_nibbles, add_prefix) {
+    var remainder = {v: Kotlin.Long.fromInt(value)};
+    var suffix = {v: ''};
+    for (var index = 0; index < num_nibbles; index++) {
+      var hexDigit = unboxChar(this.hexMap.get_za3lpa$(remainder.v.and(L15).toInt()));
+      var other = suffix.v;
+      suffix.v = String.fromCharCode(hexDigit) + other;
+      remainder.v = remainder.v.shiftRightUnsigned(4);
+    }
+    if (add_prefix) {
+      suffix.v = '0x' + suffix.v;
+    }
+    return suffix.v;
+  };
+  IRenderer.prototype.toHex_ydzd23$ = function (value, num_nibbles, add_prefix, callback$default) {
+    if (num_nibbles === void 0)
+      num_nibbles = 8;
+    if (add_prefix === void 0)
+      add_prefix = true;
+    return callback$default ? callback$default(value, num_nibbles, add_prefix) : this.toHex_ydzd23$$default(value, num_nibbles, add_prefix);
+  };
+  IRenderer.prototype.toHex_3p81yu$ = function (value) {
+    return this.toHex_ydzd23$(numberToInt(value));
+  };
+  IRenderer.prototype.toUnsigned_cnezon$_0 = function (value) {
+    return value >= 0 ? value.toString() : Kotlin.Long.fromInt(value).add(L4294967296).toString();
+  };
+  IRenderer.prototype.toAscii_4fre7f$_0 = function (value, num_nibbles) {
+    if (num_nibbles === void 0)
+      num_nibbles = 8;
+    var tmp$, tmp$_0;
+    var s = '';
+    var v = value;
+    tmp$_0 = s;
+    if (v < 0 || v > 255)
+      tmp$ = this.toHex_ydzd23$(v, num_nibbles);
+    else if (v < 32 || v > 126)
+      tmp$ = this.toHex_ydzd23$(v, num_nibbles);
+    else
+      tmp$ = String.fromCharCode(toChar(v));
+    s = tmp$_0 + tmp$;
+    return s;
+  };
+  IRenderer.prototype.updateRegMemDisplay = function () {
+  };
+  IRenderer.prototype.moveMemoryJump = function () {
+  };
+  IRenderer.prototype.moveMemoryBy_f1ht28$_0 = function (rows) {
+  };
+  IRenderer.prototype.moveMemoryUp = function () {
+    this.moveMemoryBy_f1ht28$_0(this.MEMORY_CONTEXT);
+  };
+  IRenderer.prototype.moveMemoryDown = function () {
+    this.moveMemoryBy_f1ht28$_0(-this.MEMORY_CONTEXT | 0);
+  };
+  IRenderer.prototype.updateText = function () {
+  };
+  IRenderer.prototype.renderButton_ypl1d1$ = function (e, b) {
+  };
+  IRenderer.prototype.addObjectToDisplay_hhgamg$$default = function (obj, special) {
+  };
+  IRenderer.prototype.addObjectToDisplay_hhgamg$ = function (obj, special, callback$default) {
+    if (special === void 0)
+      special = '';
+    callback$default ? callback$default(obj, special) : this.addObjectToDisplay_hhgamg$$default(obj, special);
+  };
+  IRenderer.prototype.addFilePWD_hijjve$ = function (obj) {
+  };
+  IRenderer.prototype.clearObjectsFromDisplay = function () {
+  };
+  IRenderer.$metadata$ = {
+    kind: Kind_INTERFACE,
+    simpleName: 'IRenderer',
+    interfaces: []
+  };
   function LocalStorage() {
     this.lsm_8be2vx$ = new LocalStorageManager('venus');
   }
@@ -2793,6 +2940,122 @@ var venus = function (_, Kotlin) {
   };
   function Renderer() {
     Renderer_instance = this;
+    this.emitter = null;
+    this.MEMORY_CONTEXT_j2dmj3$_0 = 6;
+    this.pkgmsgTimeout_479m7s$_0 = 0;
+    this.hexMap_ckk9sx$_0 = listOf_0([toBoxedChar(48), toBoxedChar(49), toBoxedChar(50), toBoxedChar(51), toBoxedChar(52), toBoxedChar(53), toBoxedChar(54), toBoxedChar(55), toBoxedChar(56), toBoxedChar(57), toBoxedChar(65), toBoxedChar(66), toBoxedChar(67), toBoxedChar(68), toBoxedChar(69), toBoxedChar(70)]);
+    this.activeRegister_mxqazt$_0 = null;
+    this.activeInstruction_s0tnqs$_0 = null;
+    this.activeMemoryAddress_7jhlvr$_0 = 0;
+    this.sim_kerb25$_0 = new Simulator_0(new LinkedProgram(), new VirtualFileSystem('dummy'));
+    this.displayType_igp2i0$_0 = 'hex';
+    this.mainTabs_m1va4p$_0 = arrayListOf(['simulator', 'editor', 'venus']);
+  }
+  Object.defineProperty(Renderer.prototype, 'MEMORY_CONTEXT', {
+    get: function () {
+      return this.MEMORY_CONTEXT_j2dmj3$_0;
+    }
+  });
+  Object.defineProperty(Renderer.prototype, 'pkgmsgTimeout', {
+    get: function () {
+      return this.pkgmsgTimeout_479m7s$_0;
+    },
+    set: function (pkgmsgTimeout) {
+      this.pkgmsgTimeout_479m7s$_0 = pkgmsgTimeout;
+    }
+  });
+  Object.defineProperty(Renderer.prototype, 'hexMap', {
+    get: function () {
+      return this.hexMap_ckk9sx$_0;
+    }
+  });
+  Object.defineProperty(Renderer.prototype, 'activeRegister', {
+    get: function () {
+      return this.activeRegister_mxqazt$_0;
+    },
+    set: function (activeRegister) {
+      this.activeRegister_mxqazt$_0 = activeRegister;
+    }
+  });
+  Object.defineProperty(Renderer.prototype, 'activeInstruction', {
+    get: function () {
+      return this.activeInstruction_s0tnqs$_0;
+    },
+    set: function (activeInstruction) {
+      this.activeInstruction_s0tnqs$_0 = activeInstruction;
+    }
+  });
+  Object.defineProperty(Renderer.prototype, 'activeMemoryAddress', {
+    get: function () {
+      return this.activeMemoryAddress_7jhlvr$_0;
+    },
+    set: function (activeMemoryAddress) {
+      this.activeMemoryAddress_7jhlvr$_0 = activeMemoryAddress;
+    }
+  });
+  Object.defineProperty(Renderer.prototype, 'sim', {
+    get: function () {
+      return this.sim_kerb25$_0;
+    },
+    set: function (sim) {
+      this.sim_kerb25$_0 = sim;
+    }
+  });
+  Object.defineProperty(Renderer.prototype, 'displayType', {
+    get: function () {
+      return this.displayType_igp2i0$_0;
+    },
+    set: function (displayType) {
+      this.displayType_igp2i0$_0 = displayType;
+    }
+  });
+  Object.defineProperty(Renderer.prototype, 'mainTabs', {
+    get: function () {
+      return this.mainTabs_m1va4p$_0;
+    },
+    set: function (mainTabs) {
+      this.mainTabs_m1va4p$_0 = mainTabs;
+    }
+  });
+  Renderer.prototype.setEmitter = function (emitter) {
+    if (this.emitter == null) {
+      this.emitter = emitter;
+    }
+    return this.emitter;
+  };
+  Renderer.prototype.displayWarning_61zpoe$ = function (w) {
+    var tmp$;
+    (tmp$ = this.emitter) != null ? tmp$.emit('warning', w) : null;
+  };
+  Renderer.prototype.displayError_za3rmp$ = function (thing) {
+    var tmp$;
+    (tmp$ = this.emitter) != null ? tmp$.emit('error', thing) : null;
+  };
+  Renderer.prototype.displayAssemblerError_9fh0nh$ = function (e) {
+    var tmp$;
+    (tmp$ = this.emitter) != null ? tmp$.emit('assembler_error', e) : null;
+  };
+  Renderer.prototype.stdout_za3rmp$ = function (thing) {
+    var tmp$;
+    (tmp$ = this.emitter) != null ? tmp$.emit('stdout', thing) : null;
+  };
+  Renderer.prototype.printConsole_za3rmp$ = function (thing) {
+    this.emitter.emit('console', thing);
+  };
+  Renderer.$metadata$ = {
+    kind: Kind_OBJECT,
+    simpleName: 'Renderer',
+    interfaces: [IRenderer]
+  };
+  var Renderer_instance = null;
+  function Renderer_getInstance() {
+    if (Renderer_instance === null) {
+      new Renderer();
+    }
+    return Renderer_instance;
+  }
+  function RendererOriginal() {
+    RendererOriginal_instance = this;
     this.activeRegister_0 = null;
     this.activeInstruction_0 = null;
     this.activeMemoryAddress = 0;
@@ -2803,7 +3066,7 @@ var venus = function (_, Kotlin) {
     this.pkgmsgTimeout = null;
     this.hexMap_0 = listOf_0([toBoxedChar(48), toBoxedChar(49), toBoxedChar(50), toBoxedChar(51), toBoxedChar(52), toBoxedChar(53), toBoxedChar(54), toBoxedChar(55), toBoxedChar(56), toBoxedChar(57), toBoxedChar(65), toBoxedChar(66), toBoxedChar(67), toBoxedChar(68), toBoxedChar(69), toBoxedChar(70)]);
   }
-  Renderer.prototype.renderTab = function (tab, tabs) {
+  RendererOriginal.prototype.renderTab = function (tab, tabs) {
     var tmp$;
     if (!tabs.contains_11rb$(tab)) {
       return;
@@ -2818,24 +3081,24 @@ var venus = function (_, Kotlin) {
       this.tabSetVisibility(t, disp);
     }
   };
-  Renderer.prototype.addTab = function (tabName, tabList) {
+  RendererOriginal.prototype.addTab = function (tabName, tabList) {
     if (!tabList.contains_11rb$(tabName)) {
       tabList.add_11rb$(tabName);
       return true;
     }
     return false;
   };
-  Renderer.prototype.removeTab = function (tabName, tabList) {
+  RendererOriginal.prototype.removeTab = function (tabName, tabList) {
     if (tabList.contains_11rb$(tabName)) {
       tabList.remove_11rb$(tabName);
       return true;
     }
     return false;
   };
-  Renderer.prototype.renderSimulator = function () {
+  RendererOriginal.prototype.renderSimulator = function () {
     this.renderTab('simulator', this.mainTabs);
   };
-  Renderer.prototype.loadSimulator_pivkot$ = function (displaySim) {
+  RendererOriginal.prototype.loadSimulator_pivkot$ = function (displaySim) {
     this.sim_0 = displaySim;
     this.setRunButtonSpinning_6taknv$(false);
     this.renderProgramListing_0();
@@ -2843,31 +3106,31 @@ var venus = function (_, Kotlin) {
     this.updateAll();
     this.renderSimButtons();
   };
-  Renderer.prototype.renderSimButtons = function () {
+  RendererOriginal.prototype.renderSimButtons = function () {
     var tmp$, tmp$_0;
     var simbtns = Kotlin.isType(tmp$ = document.getElementById('simulator-buttons'), HTMLDivElement) ? tmp$ : throwCCE();
     var simassmbbtns = Kotlin.isType(tmp$_0 = document.getElementById('simulator-assemble-buttons'), HTMLDivElement) ? tmp$_0 : throwCCE();
     simassmbbtns.style.display = 'none';
     simbtns.style.display = '';
   };
-  Renderer.prototype.renderAssembleButtons = function () {
+  RendererOriginal.prototype.renderAssembleButtons = function () {
     var tmp$, tmp$_0;
     var simbtns = Kotlin.isType(tmp$ = document.getElementById('simulator-buttons'), HTMLDivElement) ? tmp$ : throwCCE();
     var simassmbbtns = Kotlin.isType(tmp$_0 = document.getElementById('simulator-assemble-buttons'), HTMLDivElement) ? tmp$_0 : throwCCE();
     simassmbbtns.style.display = '';
     simbtns.style.display = 'none';
   };
-  Renderer.prototype.renderEditor = function () {
+  RendererOriginal.prototype.renderEditor = function () {
     this.renderTab('editor', this.mainTabs);
     this.renderAssembleButtons();
   };
-  Renderer.prototype.renderVenus = function () {
+  RendererOriginal.prototype.renderVenus = function () {
     this.renderTab('venus', this.mainTabs);
   };
-  Renderer.prototype.renderURLMaker = function () {
+  RendererOriginal.prototype.renderURLMaker = function () {
     this.renderTab('urlmaker', this.mainTabs);
   };
-  Renderer.prototype.tabSetVisibility = function (tab, display) {
+  RendererOriginal.prototype.tabSetVisibility = function (tab, display) {
     var tmp$, tmp$_0;
     var tabView = Kotlin.isType(tmp$ = document.getElementById(tab + '-tab-view'), HTMLElement) ? tmp$ : throwCCE();
     var tabDisplay = Kotlin.isType(tmp$_0 = document.getElementById(tab + '-tab'), HTMLElement) ? tmp$_0 : throwCCE();
@@ -2879,24 +3142,24 @@ var venus = function (_, Kotlin) {
       tabDisplay.classList.add('is-active');
     }
   };
-  Renderer.prototype.displayWarning_61zpoe$ = function (w) {
+  RendererOriginal.prototype.displayWarning_61zpoe$ = function (w) {
     this.printConsole_kcmwxo$(w);
   };
-  Renderer.prototype.displayError_za3rmp$ = function (thing) {
+  RendererOriginal.prototype.displayError_za3rmp$ = function (thing) {
     this.printConsole_kcmwxo$('\n------STDERR------\n');
     this.printConsole_kcmwxo$(thing);
     this.printConsole_kcmwxo$('\n----STDERR_END----\n');
   };
-  Renderer.prototype.stdout_za3rmp$ = function (thing) {
+  RendererOriginal.prototype.stdout_za3rmp$ = function (thing) {
     this.printConsole_kcmwxo$(thing);
   };
-  Renderer.prototype.stderr_za3rmp$ = function (thing) {
+  RendererOriginal.prototype.stderr_za3rmp$ = function (thing) {
     this.displayError_za3rmp$(thing);
   };
-  Renderer.prototype.displayAssemblerError_9fh0nh$ = function (e) {
+  RendererOriginal.prototype.displayAssemblerError_9fh0nh$ = function (e) {
     alert('[ERROR]\n' + e.message);
   };
-  Renderer.prototype.renderProgramListing_0 = function () {
+  RendererOriginal.prototype.renderProgramListing_0 = function () {
     var tmp$;
     this.clearProgramListing();
     tmp$ = this.sim_0.linkedProgram.prog.insts.size;
@@ -2909,7 +3172,7 @@ var venus = function (_, Kotlin) {
       this.addToProgramListing_oi48jx$(pc, mcode, line);
     }
   };
-  Renderer.prototype.updateAll = function () {
+  RendererOriginal.prototype.updateAll = function () {
     this.updateText();
     this.updatePC_3p81yu$(this.sim_0.getPC());
     this.updateMemory_za3lpa$(this.activeMemoryAddress);
@@ -2921,7 +3184,7 @@ var venus = function (_, Kotlin) {
       this.updateFRegister_zc64of$(i_0, this.sim_0.getFReg_za3lpa$(i_0));
     }
   };
-  Renderer.prototype.updateFromDiffs_lk28az$ = function (diffs) {
+  RendererOriginal.prototype.updateFromDiffs_lk28az$ = function (diffs) {
     var tmp$;
     tmp$ = diffs.iterator();
     while (tmp$.hasNext()) {
@@ -2941,23 +3204,23 @@ var venus = function (_, Kotlin) {
       }
     }
   };
-  Renderer.prototype.clearProgramListing = function () {
+  RendererOriginal.prototype.clearProgramListing = function () {
     this.getElement_61zpoe$('program-listing-body').innerHTML = '';
   };
-  function Renderer$addToProgramListing$lambda(closure$pcx) {
+  function RendererOriginal$addToProgramListing$lambda(closure$pcx) {
     return function (it) {
       Driver_getInstance().toggleBreakpoint(closure$pcx);
       return Unit;
     };
   }
-  Renderer.prototype.addToProgramListing_oi48jx$ = function (pcx, mcode, progLine, invalidInst) {
+  RendererOriginal.prototype.addToProgramListing_oi48jx$ = function (pcx, mcode, progLine, invalidInst) {
     if (invalidInst === void 0)
       invalidInst = false;
     var tmp$, tmp$_0;
     var programTable = Kotlin.isType(tmp$ = this.getElement_61zpoe$('program-listing-body'), HTMLTableSectionElement) ? tmp$ : throwCCE();
     var newRow = Kotlin.isType(tmp$_0 = programTable.insertRow(), HTMLTableRowElement) ? tmp$_0 : throwCCE();
     newRow.id = 'instruction-' + pcx;
-    newRow.onclick = Renderer$addToProgramListing$lambda(pcx);
+    newRow.onclick = RendererOriginal$addToProgramListing$lambda(pcx);
     var pcline = newRow.insertCell(0);
     var pcText = document.createTextNode('0x' + toString_0(pcx, 16));
     pcline.appendChild(pcText);
@@ -2972,7 +3235,7 @@ var venus = function (_, Kotlin) {
     var lineText = document.createTextNode(progLine);
     line.appendChild(lineText);
   };
-  Renderer.prototype.updateProgramListing_fttt2j$ = function (idx, inst, orig) {
+  RendererOriginal.prototype.updateProgramListing_fttt2j$ = function (idx, inst, orig) {
     if (orig === void 0)
       orig = null;
     var tmp$, tmp$_0, tmp$_1, tmp$_2, tmp$_3, tmp$_4, tmp$_5;
@@ -2993,11 +3256,11 @@ var venus = function (_, Kotlin) {
     (tmp$_5 = children != null ? children[3] : null) != null ? (tmp$_5.innerHTML = orig != null ? orig : code) : null;
     return pre;
   };
-  Renderer.prototype.getElement_61zpoe$ = function (id) {
+  RendererOriginal.prototype.getElement_61zpoe$ = function (id) {
     var tmp$;
     return Kotlin.isType(tmp$ = document.getElementById(id), HTMLElement) ? tmp$ : throwCCE();
   };
-  Renderer.prototype.updateRegister_lirtej$ = function (id, value, setActive) {
+  RendererOriginal.prototype.updateRegister_lirtej$ = function (id, value, setActive) {
     if (setActive === void 0)
       setActive = false;
     var tmp$, tmp$_0, tmp$_1, tmp$_2;
@@ -3025,7 +3288,7 @@ var venus = function (_, Kotlin) {
       this.activeRegister_0 = register;
     }
   };
-  Renderer.prototype.updateFRegister_zc64of$ = function (id, v, setActive) {
+  RendererOriginal.prototype.updateFRegister_zc64of$ = function (id, v, setActive) {
     if (setActive === void 0)
       setActive = false;
     var tmp$, tmp$_0, tmp$_1, tmp$_2;
@@ -3053,7 +3316,7 @@ var venus = function (_, Kotlin) {
       this.activeRegister_0 = fregister;
     }
   };
-  Renderer.prototype.intToString_za3lpa$ = function (value) {
+  RendererOriginal.prototype.intToString_za3lpa$ = function (value) {
     var tmp$;
     switch (this.displayType_0) {
       case 'Hex':
@@ -3074,7 +3337,7 @@ var venus = function (_, Kotlin) {
     var v = tmp$;
     return v;
   };
-  Renderer.prototype.updateCache_e3g4se$ = function (a) {
+  RendererOriginal.prototype.updateCache_e3g4se$ = function (a) {
     var tmp$, tmp$_0, tmp$_1;
     (Kotlin.isType(tmp$ = document.getElementById('hit-count'), HTMLInputElement) ? tmp$ : throwCCE()).value = Driver_getInstance().cache.getHitCount().toString();
     var hr = Driver_getInstance().cache.getHitRate();
@@ -3092,12 +3355,12 @@ var venus = function (_, Kotlin) {
         throw e;
     }
   };
-  Renderer.prototype.renderSetCacheLevel_za3lpa$ = function (i) {
+  RendererOriginal.prototype.renderSetCacheLevel_za3lpa$ = function (i) {
     var tmp$;
     var clvl = Kotlin.isType(tmp$ = document.getElementById('cacheLevel'), HTMLSelectElement) ? tmp$ : throwCCE();
     clvl.value = 'L' + i.toString();
   };
-  Renderer.prototype.renderAddCacheLevel = function () {
+  RendererOriginal.prototype.renderAddCacheLevel = function () {
     var tmp$, tmp$_0;
     var clvl = Kotlin.isType(tmp$ = document.getElementById('cacheLevel'), HTMLSelectElement) ? tmp$ : throwCCE();
     var newCacheNumber = clvl.options.length + 1 | 0;
@@ -3105,12 +3368,12 @@ var venus = function (_, Kotlin) {
     option.innerHTML = 'L' + newCacheNumber.toString();
     clvl.options[clvl.options.length] = option;
   };
-  Renderer.prototype.renderRemoveCacheLevel = function () {
+  RendererOriginal.prototype.renderRemoveCacheLevel = function () {
     var tmp$;
     var clvl = Kotlin.isType(tmp$ = document.getElementById('cacheLevel'), HTMLSelectElement) ? tmp$ : throwCCE();
     clvl.options[clvl.options.length - 1 | 0] = null;
   };
-  Renderer.prototype.makeCacheBlocks = function () {
+  RendererOriginal.prototype.makeCacheBlocks = function () {
     var tmp$;
     var t = document.createElement('table');
     t.setAttribute('style', 'border-collapse: collapse;border: 1px solid black;width:100%;');
@@ -3134,7 +3397,7 @@ var venus = function (_, Kotlin) {
     cb.innerHTML = '';
     cb.appendChild(t);
   };
-  Renderer.prototype.updateCacheBlocks_xfjuj9$ = function (b) {
+  RendererOriginal.prototype.updateCacheBlocks_xfjuj9$ = function (b) {
     if (b === void 0)
       b = Driver_getInstance().cache.currentState().getChangedBlockState();
     var tmp$, tmp$_0;
@@ -3160,7 +3423,7 @@ var venus = function (_, Kotlin) {
       }
     }
   };
-  Renderer.prototype.updateAllCacheBlocks = function () {
+  RendererOriginal.prototype.updateAllCacheBlocks = function () {
     var bs = Driver_getInstance().cache.currentState().getBlocksState();
     for (var i = 0; i !== bs.size; ++i) {
       var tmp$;
@@ -3181,7 +3444,7 @@ var venus = function (_, Kotlin) {
     }
     this.updateCacheBlocks_xfjuj9$();
   };
-  Renderer.prototype.updatePC_3p81yu$ = function (pc) {
+  RendererOriginal.prototype.updatePC_3p81yu$ = function (pc) {
     var tmp$, tmp$_0, tmp$_1, tmp$_2;
     var idx = numberToInt(pc);
     (tmp$_0 = (tmp$ = this.activeInstruction_0) != null ? tmp$.classList : null) != null ? (tmp$_0.remove('is-selected'), Unit) : null;
@@ -3190,17 +3453,17 @@ var venus = function (_, Kotlin) {
     newActiveInstruction != null ? (newActiveInstruction.scrollIntoView(false), Unit) : null;
     this.activeInstruction_0 = newActiveInstruction;
   };
-  Renderer.prototype.printConsole_kcmwxo$ = function (thing) {
+  RendererOriginal.prototype.printConsole_kcmwxo$ = function (thing) {
     var tmp$;
     var console = Kotlin.isType(tmp$ = this.getElement_61zpoe$('console-output'), HTMLTextAreaElement) ? tmp$ : throwCCE();
     console.value = console.value + thing.toString();
   };
-  Renderer.prototype.clearConsole = function () {
+  RendererOriginal.prototype.clearConsole = function () {
     var tmp$;
     var console = Kotlin.isType(tmp$ = this.getElement_61zpoe$('console-output'), HTMLTextAreaElement) ? tmp$ : throwCCE();
     console.value = '';
   };
-  Renderer.prototype.setRunButtonSpinning_6taknv$ = function (spinning) {
+  RendererOriginal.prototype.setRunButtonSpinning_6taknv$ = function (spinning) {
     var runButton = this.getElement_61zpoe$('simulator-run');
     if (spinning) {
       runButton.classList.add('is-loading');
@@ -3211,7 +3474,7 @@ var venus = function (_, Kotlin) {
       this.updateControlButtons();
     }
   };
-  Renderer.prototype.setNameButtonSpinning_ivxn3r$ = function (name, spinning) {
+  RendererOriginal.prototype.setNameButtonSpinning_ivxn3r$ = function (name, spinning) {
     var runButton = this.getElement_61zpoe$(name);
     if (spinning) {
       runButton.classList.add('is-loading');
@@ -3222,24 +3485,24 @@ var venus = function (_, Kotlin) {
       this.updateControlButtons();
     }
   };
-  Renderer.prototype.setButtonDisabled_0 = function (id, disabled) {
+  RendererOriginal.prototype.setButtonDisabled_0 = function (id, disabled) {
     var tmp$;
     var button = Kotlin.isType(tmp$ = this.getElement_61zpoe$(id), HTMLButtonElement) ? tmp$ : throwCCE();
     button.disabled = disabled;
   };
-  Renderer.prototype.updateControlButtons = function () {
+  RendererOriginal.prototype.updateControlButtons = function () {
     this.setButtonDisabled_0('simulator-reset', !this.sim_0.canUndo());
     this.setButtonDisabled_0('simulator-undo', !this.sim_0.canUndo());
     this.setButtonDisabled_0('simulator-step', this.sim_0.isDone());
     this.setButtonDisabled_0('simulator-run', this.sim_0.isDone());
     this.setButtonDisabled_0('simulator-trace', this.sim_0.instOrderMapping.isEmpty() | this.sim_0.isDone());
   };
-  Renderer.prototype.disableControlButtons = function () {
+  RendererOriginal.prototype.disableControlButtons = function () {
     this.setButtonDisabled_0('simulator-reset', true);
     this.setButtonDisabled_0('simulator-undo', true);
     this.setButtonDisabled_0('simulator-step', true);
   };
-  Renderer.prototype.renderBreakpointAt_fzusl$ = function (idx, state) {
+  RendererOriginal.prototype.renderBreakpointAt_fzusl$ = function (idx, state) {
     var row = this.getElement_61zpoe$('instruction-' + idx);
     if (state) {
       row.classList.add('is-breakpoint');
@@ -3248,48 +3511,48 @@ var venus = function (_, Kotlin) {
       row.classList.remove('is-breakpoint');
     }
   };
-  Renderer.prototype.renderMemoryTab = function () {
+  RendererOriginal.prototype.renderMemoryTab = function () {
     this.tabSetVisibility('memory', 'block');
     this.tabSetVisibility('register', 'none');
     this.tabSetVisibility('cache', 'none');
   };
-  Renderer.prototype.renderRegisterTab = function () {
+  RendererOriginal.prototype.renderRegisterTab = function () {
     this.tabSetVisibility('register', 'block');
     this.tabSetVisibility('memory', 'none');
     this.tabSetVisibility('cache', 'none');
   };
-  Renderer.prototype.renderCacheTab = function () {
+  RendererOriginal.prototype.renderCacheTab = function () {
     this.tabSetVisibility('cache', 'block');
     this.tabSetVisibility('memory', 'none');
     this.tabSetVisibility('register', 'none');
   };
-  Renderer.prototype.renderSettingsTab = function () {
+  RendererOriginal.prototype.renderSettingsTab = function () {
     this.tabSetVisibility('settings', 'block');
   };
-  Renderer.prototype.renderGeneralSettingsTab = function () {
+  RendererOriginal.prototype.renderGeneralSettingsTab = function () {
     this.tabSetVisibility('general-settings', 'block');
     this.tabSetVisibility('tracer-settings', 'none');
     this.tabSetVisibility('packages', 'none');
   };
-  Renderer.prototype.renderTracerSettingsTab = function () {
+  RendererOriginal.prototype.renderTracerSettingsTab = function () {
     this.tabSetVisibility('general-settings', 'none');
     this.tabSetVisibility('tracer-settings', 'block');
     this.tabSetVisibility('packages', 'none');
   };
-  Renderer.prototype.renderPackagesTab = function () {
+  RendererOriginal.prototype.renderPackagesTab = function () {
     this.tabSetVisibility('general-settings', 'none');
     this.tabSetVisibility('tracer-settings', 'none');
     this.tabSetVisibility('packages', 'block');
   };
-  Renderer.prototype.renderRegsTab = function () {
+  RendererOriginal.prototype.renderRegsTab = function () {
     this.tabSetVisibility('regs', 'block');
     this.tabSetVisibility('fregs', 'none');
   };
-  Renderer.prototype.renderFRegsTab = function () {
+  RendererOriginal.prototype.renderFRegsTab = function () {
     this.tabSetVisibility('regs', 'none');
     this.tabSetVisibility('fregs', 'block');
   };
-  Renderer.prototype.rendererAddPackage_o0ij6q$ = function (pid, enabled, removable) {
+  RendererOriginal.prototype.rendererAddPackage_o0ij6q$ = function (pid, enabled, removable) {
     if (removable === void 0)
       removable = true;
     var tmp$;
@@ -3319,11 +3582,11 @@ var venus = function (_, Kotlin) {
     }
     (tmp$ = document.getElementById('package-list')) != null ? tmp$.appendChild(rp) : null;
   };
-  Renderer.prototype.rendererRemovePackage_61zpoe$ = function (pid) {
+  RendererOriginal.prototype.rendererRemovePackage_61zpoe$ = function (pid) {
     var tmp$;
     (tmp$ = document.getElementById('package-' + pid)) != null ? (tmp$.remove(), Unit) : null;
   };
-  Renderer.prototype.rendererUpdatePackage_ivxn3r$ = function (pid, state) {
+  RendererOriginal.prototype.rendererUpdatePackage_ivxn3r$ = function (pid, state) {
     var p = document.getElementById('penable-button-' + pid);
     if (p != null) {
       if (state) {
@@ -3338,7 +3601,7 @@ var venus = function (_, Kotlin) {
       console.log("Could not find package '" + pid + "!'");
     }
   };
-  Renderer.prototype.pkgMsg_61zpoe$ = function (m) {
+  RendererOriginal.prototype.pkgMsg_61zpoe$ = function (m) {
     var tmp$, tmp$_0;
     if (this.pkgmsgTimeout != null) {
       tmp$_0 = (tmp$ = this.pkgmsgTimeout) != null ? tmp$ : -1;
@@ -3350,11 +3613,11 @@ var venus = function (_, Kotlin) {
       return $receiver.clearPkgMsg(), Unit;
     }.bind(null, Renderer_getInstance())), 10000);
   };
-  Renderer.prototype.clearPkgMsg = function () {
+  RendererOriginal.prototype.clearPkgMsg = function () {
     var tmp$;
     (tmp$ = document.getElementById('package-msgs')) != null ? (tmp$.innerHTML = '') : null;
   };
-  Renderer.prototype.updateMemory_za3lpa$ = function (addr) {
+  RendererOriginal.prototype.updateMemory_za3lpa$ = function (addr) {
     var wordAddress = addr >> 2 << 2;
     if (this.mustMoveMemoryDisplay_0(wordAddress)) {
       this.activeMemoryAddress = wordAddress;
@@ -3365,12 +3628,12 @@ var venus = function (_, Kotlin) {
       this.renderMemoryRow_0(row, rowAddr);
     }
   };
-  Renderer.prototype.mustMoveMemoryDisplay_0 = function (wordAddress) {
+  RendererOriginal.prototype.mustMoveMemoryDisplay_0 = function (wordAddress) {
     var tmp$;
     tmp$ = this.activeMemoryAddress - wordAddress >> 2;
     return !(-6 <= tmp$ && tmp$ <= 6);
   };
-  Renderer.prototype.renderMemoryRow_0 = function (urow, rowAddr) {
+  RendererOriginal.prototype.renderMemoryRow_0 = function (urow, rowAddr) {
     var tmp$, tmp$_0, tmp$_1, tmp$_2;
     var row = this.cleanTableRow_0(urow);
     var tdAddress = Kotlin.isType(tmp$ = row.childNodes[0], HTMLTableCellElement) ? tmp$ : throwCCE();
@@ -3406,7 +3669,7 @@ var venus = function (_, Kotlin) {
       }
     }
   };
-  Renderer.prototype.cleanTableRow_0 = function (row) {
+  RendererOriginal.prototype.cleanTableRow_0 = function (row) {
     var tmp$;
     tmp$ = asList(row.childNodes).iterator();
     while (tmp$.hasNext()) {
@@ -3417,18 +3680,18 @@ var venus = function (_, Kotlin) {
     }
     return row;
   };
-  Renderer.prototype.byteToHex_0 = function (b) {
+  RendererOriginal.prototype.byteToHex_0 = function (b) {
     var leftNibble = unboxChar(this.hexMap_0.get_za3lpa$(b >>> 4));
     var rightNibble = unboxChar(this.hexMap_0.get_za3lpa$(b & 15));
     return String.fromCharCode(leftNibble) + String.fromCharCode(rightNibble);
   };
-  Renderer.prototype.byteToDec_0 = function (b) {
+  RendererOriginal.prototype.byteToDec_0 = function (b) {
     return toByte(b).toString();
   };
-  Renderer.prototype.byteToUnsign_0 = function (b) {
+  RendererOriginal.prototype.byteToUnsign_0 = function (b) {
     return b.toString();
   };
-  Renderer.prototype.toHex_ydzd23$ = function (value, num_nibbles, add_prefix) {
+  RendererOriginal.prototype.toHex_ydzd23$ = function (value, num_nibbles, add_prefix) {
     if (num_nibbles === void 0)
       num_nibbles = 8;
     if (add_prefix === void 0)
@@ -3446,13 +3709,13 @@ var venus = function (_, Kotlin) {
     }
     return suffix.v;
   };
-  Renderer.prototype.toHex_3p81yu$ = function (value) {
+  RendererOriginal.prototype.toHex_3p81yu$ = function (value) {
     return this.toHex_ydzd23$(numberToInt(value));
   };
-  Renderer.prototype.toUnsigned_0 = function (value) {
+  RendererOriginal.prototype.toUnsigned_0 = function (value) {
     return value >= 0 ? value.toString() : Kotlin.Long.fromInt(value).add(L4294967296).toString();
   };
-  Renderer.prototype.toAscii_0 = function (value, num_nibbles) {
+  RendererOriginal.prototype.toAscii_0 = function (value, num_nibbles) {
     if (num_nibbles === void 0)
       num_nibbles = 8;
     var tmp$, tmp$_0;
@@ -3468,13 +3731,13 @@ var venus = function (_, Kotlin) {
     s = tmp$_0 + tmp$;
     return s;
   };
-  Renderer.prototype.updateRegMemDisplay = function () {
+  RendererOriginal.prototype.updateRegMemDisplay = function () {
     var tmp$;
     var displaySelect = Kotlin.isType(tmp$ = this.getElement_61zpoe$('display-settings'), HTMLSelectElement) ? tmp$ : throwCCE();
     this.displayType_0 = displaySelect.value;
     this.updateAll();
   };
-  Renderer.prototype.moveMemoryJump = function () {
+  RendererOriginal.prototype.moveMemoryJump = function () {
     var tmp$, tmp$_0;
     var jumpSelect = Kotlin.isType(tmp$ = this.getElement_61zpoe$('address-jump'), HTMLSelectElement) ? tmp$ : throwCCE();
     var where = jumpSelect.value;
@@ -3498,25 +3761,25 @@ var venus = function (_, Kotlin) {
     this.updateMemory_za3lpa$(this.activeMemoryAddress);
     jumpSelect.selectedIndex = 0;
   };
-  Renderer.prototype.moveMemoryBy_0 = function (rows) {
+  RendererOriginal.prototype.moveMemoryBy_0 = function (rows) {
     var bytes = 4 * rows | 0;
     if ((this.activeMemoryAddress + bytes | 0) < 0)
       return;
     this.activeMemoryAddress = this.activeMemoryAddress + bytes | 0;
     this.updateMemory_za3lpa$(this.activeMemoryAddress);
   };
-  Renderer.prototype.moveMemoryUp = function () {
+  RendererOriginal.prototype.moveMemoryUp = function () {
     this.moveMemoryBy_0(6);
   };
-  Renderer.prototype.moveMemoryDown = function () {
+  RendererOriginal.prototype.moveMemoryDown = function () {
     this.moveMemoryBy_0(-6);
   };
-  Renderer.prototype.updateText = function () {
+  RendererOriginal.prototype.updateText = function () {
     var tmp$;
     var t = Kotlin.isType(tmp$ = document.getElementById('text-start'), HTMLInputElement) ? tmp$ : throwCCE();
     t.value = this.intToString_za3lpa$(userStringToInt(t.value));
   };
-  Renderer.prototype.renderButton_ypl1d1$ = function (e, b) {
+  RendererOriginal.prototype.renderButton_ypl1d1$ = function (e, b) {
     if (b) {
       e.classList.add('is-primary');
     }
@@ -3525,7 +3788,7 @@ var venus = function (_, Kotlin) {
     }
     e.value = b.toString();
   };
-  Renderer.prototype.addObjectToDisplay_hhgamg$ = function (obj, special) {
+  RendererOriginal.prototype.addObjectToDisplay_hhgamg$ = function (obj, special) {
     if (special === void 0)
       special = '';
     var b = ensureNotNull(document.getElementById('files-listing-body'));
@@ -3561,7 +3824,7 @@ var venus = function (_, Kotlin) {
     }
     b.appendChild(elm);
   };
-  Renderer.prototype.addFilePWD_hijjve$ = function (obj) {
+  RendererOriginal.prototype.addFilePWD_hijjve$ = function (obj) {
     var b = ensureNotNull(document.getElementById('files-listing-pwd'));
     var pwd = '';
     var o = obj;
@@ -3574,23 +3837,23 @@ var venus = function (_, Kotlin) {
     pwd = '<a onclick=' + '"' + "driver.openVFObject('" + path_0 + "')" + '"' + '>' + o.label + '<\/a>/' + pwd;
     b.innerHTML = pwd;
   };
-  Renderer.prototype.clearObjectsFromDisplay = function () {
+  RendererOriginal.prototype.clearObjectsFromDisplay = function () {
     var b = ensureNotNull(document.getElementById('files-listing-body'));
     b.innerHTML = '';
     b = ensureNotNull(document.getElementById('files-listing-pwd'));
     b.innerHTML = '';
   };
-  Renderer.$metadata$ = {
+  RendererOriginal.$metadata$ = {
     kind: Kind_OBJECT,
-    simpleName: 'Renderer',
+    simpleName: 'RendererOriginal',
     interfaces: []
   };
-  var Renderer_instance = null;
-  function Renderer_getInstance() {
-    if (Renderer_instance === null) {
-      new Renderer();
+  var RendererOriginal_instance = null;
+  function RendererOriginal_getInstance() {
+    if (RendererOriginal_instance === null) {
+      new RendererOriginal();
     }
-    return Renderer_instance;
+    return RendererOriginal_instance;
   }
   function assemble$lambda(args, t, sudo) {
     var tmp$, tmp$_0, tmp$_1;
@@ -15211,7 +15474,7 @@ var venus = function (_, Kotlin) {
       case 5:
         mallocActiveNumBlocks(sim);
         break;
-      default:Renderer_getInstance().printConsole_kcmwxo$('Invalid clib ecall ' + whichCall.toString());
+      default:Renderer_getInstance().printConsole_za3rmp$('Invalid clib ecall ' + whichCall.toString());
         break;
     }
   }
@@ -15291,7 +15554,7 @@ var venus = function (_, Kotlin) {
       case 972:
         clib(sim);
         break;
-      default:Renderer_getInstance().printConsole_kcmwxo$('Invalid ecall ' + whichCall.toString());
+      default:Renderer_getInstance().printConsole_za3rmp$('Invalid ecall ' + whichCall.toString());
         break;
     }
     if (!(equals(whichCall, 10) || equals(whichCall, 17))) {
@@ -15332,7 +15595,7 @@ var venus = function (_, Kotlin) {
     else if (equals(whichCall, L34))
       printHex(sim);
     else
-      Renderer_getInstance().printConsole_kcmwxo$('Invalid ecall ' + whichCall.toString());
+      Renderer_getInstance().printConsole_za3rmp$('Invalid ecall ' + whichCall.toString());
     if (!(equals(whichCall, L10) || equals(whichCall, L17))) {
       sim.incrementPC_3p81yu$(mcode.length);
     }
@@ -15371,7 +15634,7 @@ var venus = function (_, Kotlin) {
     else if (equals(whichCall, new QuadWord(34)))
       printHex(sim);
     else
-      Renderer_getInstance().printConsole_kcmwxo$('Invalid ecall ' + whichCall);
+      Renderer_getInstance().printConsole_za3rmp$('Invalid ecall ' + whichCall);
     if (!(equals(whichCall, new QuadWord(10)) || equals(whichCall, new QuadWord(17)))) {
       sim.incrementPC_3p81yu$(mcode.length);
     }
@@ -15609,18 +15872,18 @@ var venus = function (_, Kotlin) {
   function printHex(sim) {
     var arg = sim.getReg_za3lpa$(11);
     sim.ecallMsg = Renderer_getInstance().toHex_3p81yu$(arg);
-    Renderer_getInstance().printConsole_kcmwxo$(sim.ecallMsg);
+    Renderer_getInstance().printConsole_za3rmp$(sim.ecallMsg);
   }
   function printInteger(sim) {
     var arg = sim.getReg_za3lpa$(11);
     sim.ecallMsg = arg.toString();
-    Renderer_getInstance().printConsole_kcmwxo$(sim.ecallMsg);
+    Renderer_getInstance().printConsole_za3rmp$(sim.ecallMsg);
   }
   function printString(sim) {
     var arg = sim.getReg_za3lpa$(11);
     var s = getString(sim, arg);
     sim.ecallMsg = sim.ecallMsg + s;
-    Renderer_getInstance().printConsole_kcmwxo$(s);
+    Renderer_getInstance().printConsole_za3rmp$(s);
   }
   function atoi(sim) {
     var tmp$;
@@ -15653,14 +15916,14 @@ var venus = function (_, Kotlin) {
   function printChar(sim) {
     var arg = sim.getReg_za3lpa$(11);
     sim.ecallMsg = String.fromCharCode(numberToChar(arg));
-    Renderer_getInstance().printConsole_kcmwxo$(toBoxedChar(numberToChar(arg)));
+    Renderer_getInstance().printConsole_za3rmp$(toBoxedChar(numberToChar(arg)));
   }
   function exitWithCode(sim) {
     sim.setPC_3p81yu$(MemorySegments_getInstance().STATIC_BEGIN);
     var retVal = sim.getReg_za3lpa$(11);
     sim.exitcode = numberToInt(retVal);
     sim.ecallMsg = '\n' + 'Exited with error code ' + retVal.toString();
-    Renderer_getInstance().printConsole_kcmwxo$('\n' + 'Exited with error code ' + retVal.toString() + '\n');
+    Renderer_getInstance().printConsole_za3rmp$('\n' + 'Exited with error code ' + retVal.toString() + '\n');
   }
   function memdump(sim) {
     var tmp$;
@@ -20783,9 +21046,13 @@ var venus = function (_, Kotlin) {
     get: Driver_getInstance
   });
   package$venus.handleError_d6c7lj$ = handleError;
+  package$venus.IRenderer = IRenderer;
   package$venus.LocalStorage = LocalStorage;
   Object.defineProperty(package$venus, 'Renderer', {
     get: Renderer_getInstance
+  });
+  Object.defineProperty(package$venus, 'RendererOriginal', {
+    get: RendererOriginal_getInstance
   });
   var package$terminal = package$venus.terminal || (package$venus.terminal = {});
   var package$cmds = package$terminal.cmds || (package$terminal.cmds = {});
@@ -23152,6 +23419,87 @@ var venus = function (_, Kotlin) {
   package$simulator_0.TraceEncapsulation = TraceEncapsulation;
   package$venusbackend_0.toHex_ydzd23$ = toHex;
   package$venusbackend_0.toHex_3p81yu$ = toHex_0;
+  Renderer.prototype.renderTab = IRenderer.prototype.renderTab;
+  Renderer.prototype.addTab = IRenderer.prototype.addTab;
+  Renderer.prototype.removeTab = IRenderer.prototype.removeTab;
+  Renderer.prototype.renderSimulator = IRenderer.prototype.renderSimulator;
+  Renderer.prototype.loadSimulator_pivkot$ = IRenderer.prototype.loadSimulator_pivkot$;
+  Renderer.prototype.renderSimButtons = IRenderer.prototype.renderSimButtons;
+  Renderer.prototype.renderAssembleButtons = IRenderer.prototype.renderAssembleButtons;
+  Renderer.prototype.renderEditor = IRenderer.prototype.renderEditor;
+  Renderer.prototype.renderVenus = IRenderer.prototype.renderVenus;
+  Renderer.prototype.renderURLMaker = IRenderer.prototype.renderURLMaker;
+  Renderer.prototype.tabSetVisibility = IRenderer.prototype.tabSetVisibility;
+  Renderer.prototype.stderr_za3rmp$ = IRenderer.prototype.stderr_za3rmp$;
+  Renderer.prototype.renderProgramListing_vy1pvz$_0 = IRenderer.prototype.renderProgramListing_vy1pvz$_0;
+  Renderer.prototype.updateAll = IRenderer.prototype.updateAll;
+  Renderer.prototype.updateFromDiffs_lk28az$ = IRenderer.prototype.updateFromDiffs_lk28az$;
+  Renderer.prototype.clearProgramListing = IRenderer.prototype.clearProgramListing;
+  Renderer.prototype.addToProgramListing_oi48jx$$default = IRenderer.prototype.addToProgramListing_oi48jx$$default;
+  Renderer.prototype.updateProgramListing_fttt2j$$default = IRenderer.prototype.updateProgramListing_fttt2j$$default;
+  Renderer.prototype.getElement_61zpoe$ = IRenderer.prototype.getElement_61zpoe$;
+  Renderer.prototype.updateRegister_lirtej$$default = IRenderer.prototype.updateRegister_lirtej$$default;
+  Renderer.prototype.updateFRegister_zc64of$$default = IRenderer.prototype.updateFRegister_zc64of$$default;
+  Renderer.prototype.intToString_za3lpa$ = IRenderer.prototype.intToString_za3lpa$;
+  Renderer.prototype.updateCache_e3g4se$ = IRenderer.prototype.updateCache_e3g4se$;
+  Renderer.prototype.renderSetCacheLevel_za3lpa$ = IRenderer.prototype.renderSetCacheLevel_za3lpa$;
+  Renderer.prototype.renderAddCacheLevel = IRenderer.prototype.renderAddCacheLevel;
+  Renderer.prototype.renderRemoveCacheLevel = IRenderer.prototype.renderRemoveCacheLevel;
+  Renderer.prototype.makeCacheBlocks = IRenderer.prototype.makeCacheBlocks;
+  Renderer.prototype.updateCacheBlocks_xfjuj9$$default = IRenderer.prototype.updateCacheBlocks_xfjuj9$$default;
+  Renderer.prototype.updateAllCacheBlocks = IRenderer.prototype.updateAllCacheBlocks;
+  Renderer.prototype.updatePC_3p81yu$ = IRenderer.prototype.updatePC_3p81yu$;
+  Renderer.prototype.clearConsole = IRenderer.prototype.clearConsole;
+  Renderer.prototype.setRunButtonSpinning_6taknv$ = IRenderer.prototype.setRunButtonSpinning_6taknv$;
+  Renderer.prototype.setNameButtonSpinning_ivxn3r$ = IRenderer.prototype.setNameButtonSpinning_ivxn3r$;
+  Renderer.prototype.setButtonDisabled_qjzzba$_0 = IRenderer.prototype.setButtonDisabled_qjzzba$_0;
+  Renderer.prototype.updateControlButtons = IRenderer.prototype.updateControlButtons;
+  Renderer.prototype.disableControlButtons = IRenderer.prototype.disableControlButtons;
+  Renderer.prototype.renderBreakpointAt_fzusl$ = IRenderer.prototype.renderBreakpointAt_fzusl$;
+  Renderer.prototype.renderMemoryTab = IRenderer.prototype.renderMemoryTab;
+  Renderer.prototype.renderRegisterTab = IRenderer.prototype.renderRegisterTab;
+  Renderer.prototype.renderCacheTab = IRenderer.prototype.renderCacheTab;
+  Renderer.prototype.renderSettingsTab = IRenderer.prototype.renderSettingsTab;
+  Renderer.prototype.renderGeneralSettingsTab = IRenderer.prototype.renderGeneralSettingsTab;
+  Renderer.prototype.renderTracerSettingsTab = IRenderer.prototype.renderTracerSettingsTab;
+  Renderer.prototype.renderPackagesTab = IRenderer.prototype.renderPackagesTab;
+  Renderer.prototype.renderRegsTab = IRenderer.prototype.renderRegsTab;
+  Renderer.prototype.renderFRegsTab = IRenderer.prototype.renderFRegsTab;
+  Renderer.prototype.rendererAddPackage_o0ij6q$$default = IRenderer.prototype.rendererAddPackage_o0ij6q$$default;
+  Renderer.prototype.rendererRemovePackage_61zpoe$ = IRenderer.prototype.rendererRemovePackage_61zpoe$;
+  Renderer.prototype.rendererUpdatePackage_ivxn3r$ = IRenderer.prototype.rendererUpdatePackage_ivxn3r$;
+  Renderer.prototype.pkgMsg_61zpoe$ = IRenderer.prototype.pkgMsg_61zpoe$;
+  Renderer.prototype.clearPkgMsg = IRenderer.prototype.clearPkgMsg;
+  Renderer.prototype.updateMemory_za3lpa$ = IRenderer.prototype.updateMemory_za3lpa$;
+  Renderer.prototype.mustMoveMemoryDisplay_vhhmw8$_0 = IRenderer.prototype.mustMoveMemoryDisplay_vhhmw8$_0;
+  Renderer.prototype.renderMemoryRow_5nlvj0$_0 = IRenderer.prototype.renderMemoryRow_5nlvj0$_0;
+  Renderer.prototype.cleanTableRow_87o258$_0 = IRenderer.prototype.cleanTableRow_87o258$_0;
+  Renderer.prototype.byteToHex_lt7bd5$_0 = IRenderer.prototype.byteToHex_lt7bd5$_0;
+  Renderer.prototype.byteToDec_x74bdc$_0 = IRenderer.prototype.byteToDec_x74bdc$_0;
+  Renderer.prototype.byteToUnsign_thi4og$_0 = IRenderer.prototype.byteToUnsign_thi4og$_0;
+  Renderer.prototype.toHex_ydzd23$$default = IRenderer.prototype.toHex_ydzd23$$default;
+  Renderer.prototype.toHex_3p81yu$ = IRenderer.prototype.toHex_3p81yu$;
+  Renderer.prototype.toUnsigned_cnezon$_0 = IRenderer.prototype.toUnsigned_cnezon$_0;
+  Renderer.prototype.toAscii_4fre7f$_0 = IRenderer.prototype.toAscii_4fre7f$_0;
+  Renderer.prototype.updateRegMemDisplay = IRenderer.prototype.updateRegMemDisplay;
+  Renderer.prototype.moveMemoryJump = IRenderer.prototype.moveMemoryJump;
+  Renderer.prototype.moveMemoryBy_f1ht28$_0 = IRenderer.prototype.moveMemoryBy_f1ht28$_0;
+  Renderer.prototype.moveMemoryUp = IRenderer.prototype.moveMemoryUp;
+  Renderer.prototype.moveMemoryDown = IRenderer.prototype.moveMemoryDown;
+  Renderer.prototype.updateText = IRenderer.prototype.updateText;
+  Renderer.prototype.renderButton_ypl1d1$ = IRenderer.prototype.renderButton_ypl1d1$;
+  Renderer.prototype.addObjectToDisplay_hhgamg$$default = IRenderer.prototype.addObjectToDisplay_hhgamg$$default;
+  Renderer.prototype.addFilePWD_hijjve$ = IRenderer.prototype.addFilePWD_hijjve$;
+  Renderer.prototype.clearObjectsFromDisplay = IRenderer.prototype.clearObjectsFromDisplay;
+  Renderer.prototype.addToProgramListing_oi48jx$ = IRenderer.prototype.addToProgramListing_oi48jx$;
+  Renderer.prototype.updateProgramListing_fttt2j$ = IRenderer.prototype.updateProgramListing_fttt2j$;
+  Renderer.prototype.updateRegister_lirtej$ = IRenderer.prototype.updateRegister_lirtej$;
+  Renderer.prototype.updateFRegister_zc64of$ = IRenderer.prototype.updateFRegister_zc64of$;
+  Renderer.prototype.updateCacheBlocks_xfjuj9$ = IRenderer.prototype.updateCacheBlocks_xfjuj9$;
+  Renderer.prototype.rendererAddPackage_o0ij6q$ = IRenderer.prototype.rendererAddPackage_o0ij6q$;
+  Renderer.prototype.toHex_ydzd23$ = IRenderer.prototype.toHex_ydzd23$;
+  Renderer.prototype.toAscii_4fre7f$_0 = IRenderer.prototype.toAscii_4fre7f$_0;
+  Renderer.prototype.addObjectToDisplay_hhgamg$ = IRenderer.prototype.addObjectToDisplay_hhgamg$;
   VFSFolder.prototype.getPath = VFSObject.prototype.getPath;
   VFSFolder.prototype.addChild_hijjve$ = VFSObject.prototype.addChild_hijjve$;
   VFSFolder.prototype.removeChild_61zpoe$ = VFSObject.prototype.removeChild_61zpoe$;
@@ -23415,8 +23763,6 @@ var venus = function (_, Kotlin) {
   hexMap = listOf_0([toBoxedChar(48), toBoxedChar(49), toBoxedChar(50), toBoxedChar(51), toBoxedChar(52), toBoxedChar(53), toBoxedChar(54), toBoxedChar(55), toBoxedChar(56), toBoxedChar(57), toBoxedChar(65), toBoxedChar(66), toBoxedChar(67), toBoxedChar(68), toBoxedChar(69), toBoxedChar(70)]);
   Kotlin.defineModule('venus', _);
   return _;
-}(typeof venus === 'undefined' ? {} : venus, kotlin);
-return venus
-}
+}(module.exports, require('kotlin')));
 
 //# sourceMappingURL=venus.js.map
