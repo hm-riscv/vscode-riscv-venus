@@ -8,6 +8,7 @@ import * as vscode from 'vscode';
 import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
 import { VenusDebugSession } from './venusDebug';
 import * as Net from 'net';
+import { VenusRenderer } from './venusRenderer';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -28,6 +29,8 @@ export function activate(context: vscode.ExtensionContext) {
 	const venusProvider = new VenusConfigurationProvider();
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('venus', venusProvider));
 
+	// This makes sure that we have a instance active
+	VenusRenderer.getInstance();
 
 
 	// debug adapters can be run in different ways by using a vscode.DebugAdapterDescriptorFactory:

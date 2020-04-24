@@ -71,7 +71,7 @@ export class VenusRuntime extends EventEmitter {
 			this.sendEvent("end");
 			return;
 		}
-		for (let warn in warnings) {
+		for (let warn in warnings.toArray()) {
 			VenusRenderer.getInstance().printWarning(warn);
 		}
 		this.line_to_pc.clear();
