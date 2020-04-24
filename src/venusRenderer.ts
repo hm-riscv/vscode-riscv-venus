@@ -2,10 +2,14 @@ import * as vscode from 'vscode'
 import simulator = require('./runtime/riscvSimulator');
 import EventEmitter = require('events');
 
+/** This is a Singleton Class. Renders output to the specified Output Channel. Also listens for events from the venus.Renderer from KotlinJS
+ * and displays the appropiate Response.
+  */
 export class VenusRenderer {
-
+	private static instance: VenusRenderer;
 	private outputChannel: vscode.OutputChannel;
-	public constructor() {
+
+	private constructor() {
 
 		var emitter: EventEmitter = simulator.venus.venus.Renderer.setEmitter(new EventEmitter());
 		emitter.on("assembler_error", (e) => {this.showErrorWithPopup(e)});
@@ -14,6 +18,21 @@ export class VenusRenderer {
 		emitter.on("stdout", (any) => {this.stdout(any)});
 		emitter.on("printConsole", (any) => {this.printConsole(any)});
 		this.outputChannel = vscode.window.createOutputChannel("venus");
+	}
+
+	public static getInstance(): VenusRenderer {
+        if (!VenusRenderer.instance) {
+            VenusRenderer.instance = new VenusRenderer();
+        }
+
+        return VenusRenderer.instance;
+	}
+
+	/** Maybe need to call this if outputChannel exists beyond Lifetime. */
+	public static disposeOutputChannel() {
+		if (VenusRenderer.instance) {
+			VenusRenderer.getInstance().outputChannel.dispose();
+		}
 	}
 
 	showErrorWithPopup(e: any) {

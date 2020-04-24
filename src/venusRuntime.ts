@@ -33,7 +33,6 @@ export class VenusRuntime extends EventEmitter {
 	// the contents (= lines) of the one and only file
 	private _sourceLines: string[];
 
-	private _renderer: VenusRenderer = new VenusRenderer();
 	// maps from sourceFile to array of Mock breakpoints
 	private _breakPoints = new Map<string, MockBreakpoint[]>();
 
@@ -65,11 +64,15 @@ export class VenusRuntime extends EventEmitter {
 	public assemble(fpath: string) {
 		let text: string = readFileSync(fpath).toString();
 		simulator.frontendAPI.setText(text);
-		var[success, errs, warnings] = simulator.driver.externalAssemble(text, fpath); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
+		// [Bool, Error, Warnings[]]
+		var[success, error, warnings] = simulator.driver.externalAssemble(text, fpath); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
 		if (!success) {
-			this._renderer.showErrorWithPopup(errs);
+			VenusRenderer.getInstance().showErrorWithPopup(error);
 			this.sendEvent("end");
 			return;
+		}
+		for (let warn in warnings) {
+			VenusRenderer.getInstance().printWarning(warn);
 		}
 		this.line_to_pc.clear();
 		this.pc_to_line.clear();
