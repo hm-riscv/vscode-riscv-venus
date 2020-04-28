@@ -1,12 +1,12 @@
 {
-	"name": "mock-debug",
-	"displayName": "Mock Debug",
-	"version": "0.39.0",
-	"publisher": "andreweinand",
-	"description": "Starter extension for developing debug adapters for VS Code.",
+	"name": "riscv-venus",
+	"displayName": "RISC-V Venus Simulator",
+	"version": "0.0.1",
+	"publisher": "hm",
+	"description": "RISC-V Venus Simulator embedded in VS Code",
 	"author": {
-		"name": "Microsoft Corporation",
-		"email": "aweinand@microsoft.com"
+		"name": "Munich University of Applied Sciences",
+		"email": "stefan.wallentowitz@hm.edu"
 	},
 	"license": "MIT",
 	"keywords": [
@@ -22,10 +22,10 @@
 	"private": true,
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Microsoft/vscode-mock-debug.git"
+		"url": "https://github.com/hm-riscv/ vscode-venus-dap .git"
 	},
 	"bugs": {
-		"url": "https://github.com/Microsoft/vscode-mock-debug/issues"
+		"url": "https://github.com/hm-riscv/vscode-venus-dap /issues"
 	},
 	"scripts": {
 		"prepublish": "tsc -p ./src",
@@ -47,14 +47,14 @@
 		"vscode-debugadapter": "1.40.0"
 	},
 	"devDependencies": {
-		"@types/node": "10.12.12",
 		"@types/mocha": "5.2.7",
+		"@types/node": "10.12.12",
 		"@types/vscode": "^1.43.0",
-		"typescript": "3.5.3",
 		"mocha": "6.2.0",
-		"vscode-debugadapter-testsupport": "1.40.3",
 		"tslint": "5.18.0",
-		"vsce": "1.74.0"
+		"typescript": "3.5.3",
+		"vsce": "^1.74.0",
+		"vscode-debugadapter-testsupport": "1.40.3"
 	},
 	"main": "./out/extension",
 	"activationEvents": [
@@ -64,13 +64,13 @@
 	"contributes": {
 		"languages": [
 			{
-				"id": "riscv",
+				"id": "riscv-venus",
 				"extensions": [
 					".s",
 					".S"
 				],
 				"aliases": [
-					"RISC-V"
+					"RISC-V Venus"
 				],
 				"filenames": []
 			}
@@ -161,7 +161,7 @@
 					}
 				],
 				"variables": {
-					"AskForProgramName": "extension.mock-debug.getProgramName"
+					"AskForProgramName": "extension.riscv-venus.getProgramName"
 				}
 			}
 		]
