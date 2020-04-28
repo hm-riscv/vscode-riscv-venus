@@ -38,10 +38,12 @@
 	},
 	"dependencies": {
 		"await-notify": "1.0.1",
+		"bufferutil": "^4.0.1",
 		"jsdom": "^16.2.2",
 		"kotlin": "^1.3.61",
 		"lodash": "^4.17.15",
 		"node-localstorage": "^2.1.6",
+		"utf-8-validate": "^5.0.2",
 		"vscode-debugadapter": "1.40.0"
 	},
 	"devDependencies": {
@@ -63,8 +65,13 @@
 		"languages": [
 			{
 				"id": "riscv",
-				"extensions": [".s", ".S"],
-				"aliases": ["RISC-V"],
+				"extensions": [
+					".s",
+					".S"
+				],
+				"aliases": [
+					"RISC-V"
+				],
 				"filenames": []
 			}
 		],
@@ -113,15 +120,37 @@
 					{
 						"type": "venus",
 						"request": "launch",
-						"name": "Ask for file name",
-						"program": "${workspaceFolder}/${command:AskForProgramName}",
+						"name": "Debug current file",
+						"program": "${file}",
 						"stopOnEntry": true
 					}
 				],
 				"configurationSnippets": [
 					{
+						"label": "Venus Debug: Launch specific file",
+						"description": "Debugs the assembler file specified in program field",
+						"body": {
+							"type": "venus",
+							"request": "launch",
+							"name": "${2:Launch Program}",
+							"program": "^\"\\${workspaceFolder}/${1:Program}\"",
+							"stopOnEntry": true
+						}
+					},
+					{
+						"label": "Venus Debug: Launch current file",
+						"description": "Currently not properly working if there are Breakpoints across files.",
+						"body": {
+							"type": "venus",
+							"request": "launch",
+							"name": "${1:Debug Current File}",
+							"program": "^\"\\${file}\"",
+							"stopOnEntry": true
+						}
+					},
+					{
 						"label": "Venus Debug: Launch",
-						"description": "A new configuration for 'debugging' a user selected assembler file.",
+						"description": "Asks the user which assembler file to debug",
 						"body": {
 							"type": "venus",
 							"request": "launch",
