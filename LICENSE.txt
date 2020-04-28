@@ -1,6 +1,9 @@
 Copyright (c) Microsoft Corporation
+Copyright (c) Munich University of Applied Sciences
+Copyright (c) Stephan Kaminsky
+Copyright (c) Keyhan Vakil
 
-All rights reserved. 
+All rights reserved.
 
 MIT License
 
