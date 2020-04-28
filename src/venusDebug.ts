@@ -60,7 +60,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 	public constructor() {
 		super("mock-debug.txt");
 
-		// this debugger uses zero-based lines and columns
+		// this debugger uses 1-based lines and columns
 		this.setDebuggerLinesStartAt1(false);
 		this.setDebuggerColumnsStartAt1(false);
 
@@ -123,7 +123,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		response.body.supportsEvaluateForHovers = true;
 
 		// make VS Code to show a 'step back' button
-		response.body.supportsStepBack = true;
+		response.body.supportsStepBack = false;
 
 		// make VS Code to support data breakpoints
 		response.body.supportsDataBreakpoints = true;
@@ -162,15 +162,16 @@ export class VenusDebugSession extends LoggingDebugSession {
 		// make sure to 'Stop' the buffered logging if 'trace' is not set
 		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
 
-		this._runtime.assemble(args.program);
-
+		this._runtime.assemble(args.program, basename(args.program));
+		// This is a workaround so we always stop execution and start debugging
+		this._runtime.setBreakPoint(args.program, this.convertClientLineToDebugger(1));
 		// wait until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(1000);
+
 
 		// start the program in the runtime
 		this._runtime.start(args.program, !!args.stopOnEntry);
 
-		this.sendResponse(response);
 	}
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
