@@ -7,7 +7,7 @@
 		"esModuleInterop": true,
 		"noImplicitAny": false,
 		"removeComments": false,
-		"noUnusedLocals": true,
+		"noUnusedLocals": false,
 		"noImplicitThis": true,
 		"inlineSourceMap": false,
 		"sourceMap": true,
