@@ -12,6 +12,8 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import { MockBreakpoint, VenusRuntime } from './venusRuntime';
+import { workspace, languages, Disposable, window } from 'vscode';
+import { VenusDecoratorProvider } from './venusDecorator';
 const { Subject } = require('await-notify');
 
 function timeout(ms: number) {
@@ -40,7 +42,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	// a Mock runtime (or debugger)
 	private _runtime: VenusRuntime;
-
 	private _variableHandles = new Handles<string>();
 
 	private _configurationDone = new Subject();
@@ -65,6 +66,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.setDebuggerColumnsStartAt1(false);
 
 		this._runtime = new VenusRuntime();
+
 
 		// setup event handlers
 		this._runtime.on('stopOnEntry', () => {
@@ -165,6 +167,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._runtime.assemble(args.program, basename(args.program));
 		// This is a workaround so we always stop execution and start debugging
 		this._runtime.setBreakPoint(args.program, this.convertClientLineToDebugger(1));
+
+		// Add Instruction Information to Line
+		this.addDecorators();
+
 		// wait until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(1000);
 
@@ -499,10 +505,24 @@ export class VenusDebugSession extends LoggingDebugSession {
 			this._cancelledProgressId= args.progressId;
 		}
 	}
+	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {
+		this.sendResponse(response)
+	}
 
 	//---- helpers
 
 	private createSource(filePath: string): Source {
 		return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'mock-adapter-data');
+	}
+
+	private addDecorators() {
+		let activeEditor = window.activeTextEditor!;
+		if (activeEditor != null) {
+			let infos = this._runtime.getDecoratorLineInfo();
+			for (let info of infos) {
+				info.line = this.convertClientLineToDebugger(info.line);
+			}
+			VenusDecoratorProvider.updateDecorators(activeEditor, infos);
+		}
 	}
 }

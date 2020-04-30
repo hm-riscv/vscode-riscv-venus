@@ -33,6 +33,7 @@
   var substring = Kotlin.kotlin.text.substring_fc3b62$;
   var throwUPAE = Kotlin.throwUPAE;
   var arrayListOf = Kotlin.kotlin.collections.arrayListOf_i5x0yv$;
+  var copyToArray = Kotlin.kotlin.collections.copyToArray;
   var unboxChar = Kotlin.unboxChar;
   var toByte = Kotlin.toByte;
   var L15 = Kotlin.Long.fromInt(15);
@@ -75,7 +76,6 @@
   var trim = Kotlin.kotlin.text.trim_gw00vp$;
   var StringBuilder = Kotlin.kotlin.text.StringBuilder;
   var StringBuilder_init_0 = Kotlin.kotlin.text.StringBuilder_init_6bul2c$;
-  var copyToArray = Kotlin.kotlin.collections.copyToArray;
   var startsWith_0 = Kotlin.kotlin.text.startsWith_sgbm27$;
   var endsWith = Kotlin.kotlin.text.endsWith_7epoxm$;
   var RuntimeException_init = Kotlin.kotlin.RuntimeException_init_pdl1vj$;
@@ -1275,6 +1275,62 @@
   Driver.prototype.getDefaultArgs = function () {
     var tmp$;
     return (Kotlin.isType(tmp$ = document.getElementById('ArgsList'), HTMLInputElement) ? tmp$ : throwCCE()).value;
+  };
+  function Driver$InstructionInfo(pc, mcode, basicCode, line) {
+    this.pc = pc;
+    this.mcode = mcode;
+    this.basicCode = basicCode;
+    this.line = line;
+  }
+  Driver$InstructionInfo.$metadata$ = {
+    kind: Kind_CLASS,
+    simpleName: 'InstructionInfo',
+    interfaces: []
+  };
+  Driver$InstructionInfo.prototype.component1 = function () {
+    return this.pc;
+  };
+  Driver$InstructionInfo.prototype.component2 = function () {
+    return this.mcode;
+  };
+  Driver$InstructionInfo.prototype.component3 = function () {
+    return this.basicCode;
+  };
+  Driver$InstructionInfo.prototype.component4 = function () {
+    return this.line;
+  };
+  Driver$InstructionInfo.prototype.copy_5q45w$ = function (pc, mcode, basicCode, line) {
+    return new Driver$InstructionInfo(pc === void 0 ? this.pc : pc, mcode === void 0 ? this.mcode : mcode, basicCode === void 0 ? this.basicCode : basicCode, line === void 0 ? this.line : line);
+  };
+  Driver$InstructionInfo.prototype.toString = function () {
+    return 'InstructionInfo(pc=' + Kotlin.toString(this.pc) + (', mcode=' + Kotlin.toString(this.mcode)) + (', basicCode=' + Kotlin.toString(this.basicCode)) + (', line=' + Kotlin.toString(this.line)) + ')';
+  };
+  Driver$InstructionInfo.prototype.hashCode = function () {
+    var result = 0;
+    result = result * 31 + Kotlin.hashCode(this.pc) | 0;
+    result = result * 31 + Kotlin.hashCode(this.mcode) | 0;
+    result = result * 31 + Kotlin.hashCode(this.basicCode) | 0;
+    result = result * 31 + Kotlin.hashCode(this.line) | 0;
+    return result;
+  };
+  Driver$InstructionInfo.prototype.equals = function (other) {
+    return this === other || (other !== null && (typeof other === 'object' && (Object.getPrototypeOf(this) === Object.getPrototypeOf(other) && (Kotlin.equals(this.pc, other.pc) && Kotlin.equals(this.mcode, other.mcode) && Kotlin.equals(this.basicCode, other.basicCode) && Kotlin.equals(this.line, other.line)))));
+  };
+  Driver.prototype.getInstructions = function () {
+    var tmp$;
+    var instructions = ArrayList_init();
+    tmp$ = this.sim.linkedProgram.prog.insts.size;
+    for (var i = 0; i < tmp$; i++) {
+      var programDebug = this.sim.linkedProgram.dbg.get_za3lpa$(i);
+      var dbg = programDebug.component2();
+      var line = dbg.component2();
+      var lineNo = dbg.lineNo;
+      var mcode = this.sim.linkedProgram.prog.insts.get_za3lpa$(i);
+      var pc = ensureNotNull(this.sim.instOrderMapping.get_11rb$(i));
+      var basicCode = Instruction$Companion_getInstance().get_6cx2xq$(mcode).disasm.invoke_6cx2xq$(mcode);
+      instructions.add_11rb$(new Driver$InstructionInfo(pc, mcode, basicCode, lineNo));
+    }
+    return copyToArray(instructions);
   };
   Driver.prototype.assembleSimulator = function () {
     var tmp$, tmp$_0, tmp$_1;
@@ -21045,6 +21101,7 @@
     get: Simulator_getInstance
   });
   package$venus.CookieJar = CookieJar;
+  Driver.prototype.InstructionInfo = Driver$InstructionInfo;
   Object.defineProperty(package$venus, 'Driver', {
     get: Driver_getInstance
   });

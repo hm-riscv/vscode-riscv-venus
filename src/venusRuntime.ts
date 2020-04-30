@@ -7,6 +7,7 @@ import { EventEmitter } from 'events';
 import simulator = require('./runtime/riscvSimulator');
 import range from 'lodash/range';
 import { VenusRenderer } from './venusRenderer';
+import {DecoratorLineInfo} from './venusDecorator';
 
 export interface MockBreakpoint {
 	id: number;
@@ -87,6 +88,30 @@ export class VenusRuntime extends EventEmitter {
 			this.line_to_pc.set(line, pc);
 			this.pc_to_line.set(pc, line);
 		}
+	}
+
+	public getDecoratorLineInfo(): DecoratorLineInfo[]{
+
+		let instructions = simulator.driver.getInstructions();
+		const infos: DecoratorLineInfo[] = [];
+
+		for (let i = 0; i < instructions.length; i++) {
+			let decorator: DecoratorLineInfo = {pc: instructions[i].pc, mCode: instructions[i].mcode, basicCode: instructions[i].basicCode, line: instructions[i].line};
+			infos.push(decorator);
+		}
+
+		// for (let i = 0; i < simulator.driver.sim.linkedProgram.prog.insts.size; i++) {
+		// 	let programDebug = simulator.driver.sim.linkedProgram.dbg.toArray()[i];
+		// 	// val programName: String, val dbg: DebugInfo
+		// 	let dbg = programDebug.dbg;
+		// 	// val lineNo: Int, val line: String, val address: Int, val prog: Program
+		// 	let line = dbg.lineNo;
+		// 	let mcode = simulator.driver.sim.linkedProgram.prog.insts.toArray()[i];
+		// 	let pc = simulator.driver.sim.instOrderMapping.get_11rb$(i);
+		// 	let decorator: DecoratorLineInfo = {pc: pc, mCode:mcode, basicCode: "", line: line};
+		// 	infos.push(decorator);
+		// }
+		return infos;
 	}
 
 	/**
