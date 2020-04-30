@@ -5,7 +5,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken } from 'vscode';
+import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken, languages, workspace } from 'vscode';
 import { VenusDebugSession } from './venusDebug';
 import * as Net from 'net';
 import { VenusRenderer } from './venusRenderer';
@@ -18,7 +18,7 @@ const runMode: 'external' | 'server' | 'inline' = 'inline';
 
 export function activate(context: vscode.ExtensionContext) {
 
-	context.subscriptions.push(vscode.commands.registerCommand('extension.riscv-debug.getProgramName', config => {
+	context.subscriptions.push(vscode.commands.registerCommand('extension.riscv-venus.getProgramName', config => {
 		return vscode.window.showInputBox({
 			placeHolder: "Please enter the name of a assembler file in the workspace folder",
 			value: ""
