@@ -27,6 +27,7 @@
 	"bugs": {
 		"url": "https://github.com/hm-riscv/vscode-venus-dap/issues"
 	},
+	"preview": true,
 	"scripts": {
 		"prepublish": "tsc -p ./src",
 		"compile": "tsc -p ./src",
