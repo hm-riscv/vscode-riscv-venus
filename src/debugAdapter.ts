@@ -2,6 +2,6 @@
  * Copyright (C) Microsoft Corporation. All rights reserved.
  *--------------------------------------------------------*/
 
- import { MockDebugSession } from './mockDebug';
+ import { VenusDebugSession } from './venusDebug';
 
- MockDebugSession.run(MockDebugSession);
+ VenusDebugSession.run(VenusDebugSession);

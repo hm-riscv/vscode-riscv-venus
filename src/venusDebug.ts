@@ -11,7 +11,9 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
-import { MockRuntime, MockBreakpoint } from './mockRuntime';
+import { MockBreakpoint, VenusRuntime } from './venusRuntime';
+import { workspace, languages, Disposable, window } from 'vscode';
+import { VenusDecoratorProvider } from './venusDecorator';
 const { Subject } = require('await-notify');
 
 function timeout(ms: number) {
@@ -33,14 +35,13 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	trace?: boolean;
 }
 
-export class MockDebugSession extends LoggingDebugSession {
+export class VenusDebugSession extends LoggingDebugSession {
 
 	// we don't support multiple threads, so we can use a hardcoded ID for the default thread
 	private static THREAD_ID = 1;
 
 	// a Mock runtime (or debugger)
-	private _runtime: MockRuntime;
-
+	private _runtime: VenusRuntime;
 	private _variableHandles = new Handles<string>();
 
 	private _configurationDone = new Subject();
@@ -60,27 +61,28 @@ export class MockDebugSession extends LoggingDebugSession {
 	public constructor() {
 		super("mock-debug.txt");
 
-		// this debugger uses zero-based lines and columns
+		// this debugger uses 1-based lines and columns
 		this.setDebuggerLinesStartAt1(false);
 		this.setDebuggerColumnsStartAt1(false);
 
-		this._runtime = new MockRuntime();
+		this._runtime = new VenusRuntime();
+
 
 		// setup event handlers
 		this._runtime.on('stopOnEntry', () => {
-			this.sendEvent(new StoppedEvent('entry', MockDebugSession.THREAD_ID));
+			this.sendEvent(new StoppedEvent('entry', VenusDebugSession.THREAD_ID));
 		});
 		this._runtime.on('stopOnStep', () => {
-			this.sendEvent(new StoppedEvent('step', MockDebugSession.THREAD_ID));
+			this.sendEvent(new StoppedEvent('step', VenusDebugSession.THREAD_ID));
 		});
 		this._runtime.on('stopOnBreakpoint', () => {
-			this.sendEvent(new StoppedEvent('breakpoint', MockDebugSession.THREAD_ID));
+			this.sendEvent(new StoppedEvent('breakpoint', VenusDebugSession.THREAD_ID));
 		});
 		this._runtime.on('stopOnDataBreakpoint', () => {
-			this.sendEvent(new StoppedEvent('data breakpoint', MockDebugSession.THREAD_ID));
+			this.sendEvent(new StoppedEvent('data breakpoint', VenusDebugSession.THREAD_ID));
 		});
 		this._runtime.on('stopOnException', () => {
-			this.sendEvent(new StoppedEvent('exception', MockDebugSession.THREAD_ID));
+			this.sendEvent(new StoppedEvent('exception', VenusDebugSession.THREAD_ID));
 		});
 		this._runtime.on('breakpointValidated', (bp: MockBreakpoint) => {
 			this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
@@ -123,7 +125,7 @@ export class MockDebugSession extends LoggingDebugSession {
 		response.body.supportsEvaluateForHovers = true;
 
 		// make VS Code to show a 'step back' button
-		response.body.supportsStepBack = true;
+		response.body.supportsStepBack = false;
 
 		// make VS Code to support data breakpoints
 		response.body.supportsDataBreakpoints = true;
@@ -162,13 +164,20 @@ export class MockDebugSession extends LoggingDebugSession {
 		// make sure to 'Stop' the buffered logging if 'trace' is not set
 		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
 
+		this._runtime.assemble(args.program, basename(args.program));
+		// This is a workaround so we always stop execution and start debugging
+		this._runtime.setBreakPoint(args.program, this.convertClientLineToDebugger(1));
+
+		// Add Instruction Information to Line
+		this.addDecorators();
+
 		// wait until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(1000);
+
 
 		// start the program in the runtime
 		this._runtime.start(args.program, !!args.stopOnEntry);
 
-		this.sendResponse(response);
 	}
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
@@ -219,7 +228,7 @@ export class MockDebugSession extends LoggingDebugSession {
 		// runtime supports no threads so just return a default thread.
 		response.body = {
 			threads: [
-				new Thread(MockDebugSession.THREAD_ID, "thread 1")
+				new Thread(VenusDebugSession.THREAD_ID, "thread 1")
 			]
 		};
 		this.sendResponse(response);
@@ -283,31 +292,17 @@ export class MockDebugSession extends LoggingDebugSession {
 
 			const id = this._variableHandles.get(args.variablesReference);
 
+			const registers = this._runtime.getRegisters()
+
 			if (id) {
-				variables.push({
-					name: id + "_i",
-					type: "integer",
-					value: "123",
-					variablesReference: 0
-				});
-				variables.push({
-					name: id + "_f",
-					type: "float",
-					value: "3.14",
-					variablesReference: 0
-				});
-				variables.push({
-					name: id + "_s",
-					type: "string",
-					value: "hello world",
-					variablesReference: 0
-				});
-				variables.push({
-					name: id + "_o",
-					type: "object",
-					value: "Object",
-					variablesReference: this._variableHandles.create(id + "_o")
-				});
+				registers.forEach(reg => {
+					variables.push({
+						name: "x" + reg.id.toString(),
+						type: "hex",
+						value: "0x" + reg.value.toString(16),
+						variablesReference: 0
+					})
+				})
 
 				// cancelation support for long running requests
 				const nm = id + "_long_running";
@@ -333,8 +328,13 @@ export class MockDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
+	/*
+		Not yet supported
+		see: https://gitlab.lrz.de/riscv/debugger/-/issues/9
+	*/
 	protected reverseContinueRequest(response: DebugProtocol.ReverseContinueResponse, args: DebugProtocol.ReverseContinueArguments) : void {
-		this._runtime.continue(true);
+		console.warn("ReverseContinue is not supported yet (=> Continue)")
+		this._runtime.continue();
 		this.sendResponse(response);
  	}
 
@@ -505,10 +505,24 @@ export class MockDebugSession extends LoggingDebugSession {
 			this._cancelledProgressId= args.progressId;
 		}
 	}
+	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {
+		this.sendResponse(response)
+	}
 
 	//---- helpers
 
 	private createSource(filePath: string): Source {
 		return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'mock-adapter-data');
+	}
+
+	private addDecorators() {
+		let activeEditor = window.activeTextEditor!;
+		if (activeEditor != null) {
+			let infos = this._runtime.getDecoratorLineInfo();
+			for (let info of infos) {
+				info.line = this.convertClientLineToDebugger(info.line);
+			}
+			VenusDecoratorProvider.updateDecorators(activeEditor, infos);
+		}
 	}
 }
