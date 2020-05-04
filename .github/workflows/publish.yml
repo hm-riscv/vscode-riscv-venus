@@ -20,5 +20,5 @@ jobs:
     - name: Vscode release plugin
       env:
         PUBLISHER_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
-      runs: |
-        vsce publish -p $PUBLISHER_TOKEN
+      run: |
+        npm run publish -- -p $PUBLISHER_TOKEN
