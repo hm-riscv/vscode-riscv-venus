@@ -1,0 +1,24 @@
+on:
+	push:
+		branches:
+		  - master
+	pull_request:
+		branches:
+		  - master
+
+jobs:
+	publish:
+		name: Publish to marketplace
+		runs-on: ubuntu-latest
+		steps:
+		- name: Checkout code
+			uses: actions/checkout@v2
+		- name: Use Node.js
+			uses: actions/setup-node@v1
+		- name: Install dependencies
+			run: npm install
+		- name: Vscode release plugin
+			env:
+				PUBLISHER_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
+			runs: |
+				vsce publish -p $PUBLISHER_TOKEN
