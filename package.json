@@ -51,6 +51,10 @@
 		"@types/mocha": "5.2.7",
 		"@types/node": "10.12.12",
 		"@types/vscode": "^1.43.0",
+		"grunt": "1.0.4",
+		"grunt-cli": "^1.2.0",
+		"grunt-contrib-copy": "^1.0.0",
+		"grunt-exec": "^3.0.0",
 		"mocha": "6.2.0",
 		"tslint": "5.18.0",
 		"typescript": "3.5.3",
@@ -64,18 +68,23 @@
 	],
 	"contributes": {
 		"configuration": {
-            "properties": {
-                "riscv-venus.enableCodeLens": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
-        },
+			"properties": {
+				"riscv-venus.enableCodeLens": {
+					"type": "boolean",
+					"default": true
+				}
+			}
+		},
 		"languages": [
 			{
 				"id": "riscv",
-				"extensions": [".s", ".S"],
-				"aliases": ["RISC-V"],
+				"extensions": [
+					".s",
+					".S"
+				],
+				"aliases": [
+					"RISC-V"
+				],
 				"filenames": []
 			}
 		],
