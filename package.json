@@ -1,7 +1,7 @@
 {
 	"name": "riscv-venus",
 	"displayName": "RISC-V Venus Simulator",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"publisher": "hm",
 	"description": "RISC-V Venus Simulator embedded in VS Code",
 	"author": {
@@ -51,7 +51,12 @@
 		"@types/mocha": "5.2.7",
 		"@types/node": "10.12.12",
 		"@types/vscode": "^1.43.0",
+		"grunt": "1.0.4",
+		"grunt-cli": "^1.2.0",
+		"grunt-contrib-copy": "^1.0.0",
+		"grunt-exec": "^3.0.0",
 		"mocha": "6.2.0",
+		"npx": "^10.2.2",
 		"tslint": "5.18.0",
 		"typescript": "3.5.3",
 		"vsce": "^1.74.0",
@@ -64,18 +69,23 @@
 	],
 	"contributes": {
 		"configuration": {
-            "properties": {
-                "riscv-venus.enableCodeLens": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
-        },
+			"properties": {
+				"riscv-venus.enableCodeLens": {
+					"type": "boolean",
+					"default": true
+				}
+			}
+		},
 		"languages": [
 			{
 				"id": "riscv",
-				"extensions": [".s", ".S"],
-				"aliases": ["RISC-V"],
+				"extensions": [
+					".s",
+					".S"
+				],
+				"aliases": [
+					"RISC-V"
+				],
 				"filenames": []
 			}
 		],

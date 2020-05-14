@@ -11,14 +11,18 @@ name: Publish extension
 jobs:
   publish:
     name: Publish to marketplace
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        submodules: 'recursive'
     - name: Use Node.js
       uses: actions/setup-node@v1
     - name: Install dependencies
       run: npm install
+    - name: Build venus
+      run: npx grunt buildvenus
     - name: Vscode release plugin
       env:
         PUBLISHER_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
