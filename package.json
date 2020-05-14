@@ -56,6 +56,7 @@
 		"grunt-contrib-copy": "^1.0.0",
 		"grunt-exec": "^3.0.0",
 		"mocha": "6.2.0",
+		"npx": "^10.2.2",
 		"tslint": "5.18.0",
 		"typescript": "3.5.3",
 		"vsce": "^1.74.0",

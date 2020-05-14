@@ -12,10 +12,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
       - name: Use Node.js
         uses: actions/setup-node@v1
       - name: Install dependencies
         run: npm install
+      - name: Build venus
+        run: npx grunt buildvenus
       - name: Build project
         run: npm run package
       - name: Create Release
