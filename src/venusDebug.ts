@@ -12,8 +12,9 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import { MockBreakpoint, VenusRuntime } from './venusRuntime';
-import { workspace, languages, Disposable, window } from 'vscode';
+import { workspace, languages, Disposable, window, ViewColumn } from 'vscode';
 import { VenusDecoratorProvider } from './venusDecorator';
+import { riscvAssemblyProvider } from './assemblyView';
 const { Subject } = require('await-notify');
 
 function timeout(ms: number) {
@@ -43,6 +44,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 	// a Mock runtime (or debugger)
 	private _runtime: VenusRuntime;
 	private _variableHandles = new Handles<string>();
+	private _riscvAssemblyProvider = new riscvAssemblyProvider();
+	private _providerDisposable: Disposable;
 
 	private _configurationDone = new Subject();
 
@@ -138,7 +141,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 		response.body.supportsCancelRequest = true;
 
 		// make VS Code send the breakpointLocations request
-		response.body.supportsBreakpointLocationsRequest = true;
+		response.body.supportsBreakpointLocationsRequest = false;
+
+		// Doesn't seem to be supported for now
+		// response.body.supportsDisassembleRequest = true;
 
 		this.sendResponse(response);
 
@@ -169,7 +175,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._runtime.setBreakPoint(args.program, this.convertClientLineToDebugger(1));
 
 		// Add Instruction Information to Line
-		this.addDecorators();
+		this.openAssemblyView();
 
 		// wait until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(1000);
@@ -512,17 +518,16 @@ export class VenusDebugSession extends LoggingDebugSession {
 	//---- helpers
 
 	private createSource(filePath: string): Source {
-		return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'mock-adapter-data');
+		return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'venus-adapter-data');
 	}
 
-	private addDecorators() {
-		let activeEditor = window.activeTextEditor!;
-		if (activeEditor != null) {
-			let infos = this._runtime.getDecoratorLineInfo();
-			for (let info of infos) {
-				info.line = this.convertClientLineToDebugger(info.line);
-			}
-			VenusDecoratorProvider.updateDecorators(activeEditor, infos);
-		}
+	private async openAssemblyView() {
+
+		const riscvAsmScheme = 'riscv_asm';
+		this._providerDisposable = workspace.registerTextDocumentContentProvider(riscvAsmScheme, this._riscvAssemblyProvider);
+		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getAssemblyLineInfo()));
+		let doc = await workspace.openTextDocument(riscvAssemblyProvider.createUri()); // calls back into the provider
+		await window.showTextDocument(doc,{ preview: false , viewColumn: ViewColumn.Beside, preserveFocus: true});
+
 	}
 }
