@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 export interface DecoratorLineInfo {
 	line: number;
 	pc: number;
-    mCode: string;
+    mCode: number;
     basicCode: string;
 }
 
@@ -27,7 +27,7 @@ export class VenusDecoratorProvider {
 		for (let info of infos) {
 			const decoration = VenusDecoratorProvider.trailing(
                 info.pc,
-                info.mCode,
+                info.mCode.toString(),
                 info.basicCode,
                 true
 			) as vscode.DecorationOptions;

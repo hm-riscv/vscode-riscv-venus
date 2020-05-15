@@ -8,6 +8,7 @@ import simulator = require('./runtime/riscvSimulator');
 import range from 'lodash/range';
 import { VenusRenderer } from './venusRenderer';
 import {DecoratorLineInfo} from './venusDecorator';
+import { AssemblyLineInfo } from './assemblyView';
 
 export interface MockBreakpoint {
 	id: number;
@@ -90,27 +91,16 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
-	public getDecoratorLineInfo(): DecoratorLineInfo[]{
-
+	public getAssemblyLineInfo(): AssemblyLineInfo[]{
+		simulator.driver.get
 		let instructions = simulator.driver.getInstructions();
-		const infos: DecoratorLineInfo[] = [];
+		const infos: AssemblyLineInfo[] = [];
 
 		for (let i = 0; i < instructions.length; i++) {
-			let decorator: DecoratorLineInfo = {pc: instructions[i].pc, mCode: instructions[i].mcode, basicCode: instructions[i].basicCode, line: instructions[i].line};
+			let decorator: AssemblyLineInfo = {pc: instructions[i].pc, mCode: instructions[i].mcode, basicCode: instructions[i].basicCode, line: instructions[i].line};
 			infos.push(decorator);
 		}
 
-		// for (let i = 0; i < simulator.driver.sim.linkedProgram.prog.insts.size; i++) {
-		// 	let programDebug = simulator.driver.sim.linkedProgram.dbg.toArray()[i];
-		// 	// val programName: String, val dbg: DebugInfo
-		// 	let dbg = programDebug.dbg;
-		// 	// val lineNo: Int, val line: String, val address: Int, val prog: Program
-		// 	let line = dbg.lineNo;
-		// 	let mcode = simulator.driver.sim.linkedProgram.prog.insts.toArray()[i];
-		// 	let pc = simulator.driver.sim.instOrderMapping.get_11rb$(i);
-		// 	let decorator: DecoratorLineInfo = {pc: pc, mCode:mcode, basicCode: "", line: line};
-		// 	infos.push(decorator);
-		// }
 		return infos;
 	}
 
@@ -151,35 +141,62 @@ export class VenusRuntime extends EventEmitter {
 		} else {
 			simulator.driver.step()
 		}
-		this.sendEvent('stopOnStep')
+		if (simulator.driver.isFinished()) {
+			this.sendEvent('end')
+		} else {
+			this.sendEvent('stopOnStep')
+		}
 	}
+
 
 	/**
 	 * Continue execution to the end/beginning.
 	 */
 	public continue() {
+		//TODO this runs one execution too long
 		simulator.driver.run()
-		this.sendEvent('stopOnBreakpoint')
+		if (simulator.driver.isFinished()) {
+			this.sendEvent('end')
+		} else {
+			this.sendEvent('stopOnBreakpoint')
+		}
 	}
+
 
 	/**
 	 * Returns a fake 'stacktrace' where every 'stackframe' is a word from the current line.
 	 */
 	public stack(startFrame: number, endFrame: number): any {
 
-		const lineContent = this._sourceLines[this.getCurrentLine()];
+		let instruction = simulator.driver.getCurrentInstruction()
+		const lineContent = instruction.basicCode
+		const lineadditive = -1;
 
 		const frames = new Array<any>();
 		frames.push({
-			index: null,
-			name: lineContent,
-			file: this._sourceFile,
-			line: this.getCurrentLine() // the top element on the stack defines the highlighted line in the editor!!!
-		});
-		return {
-			frames: frames,
-			count: frames.length
-		};
+				index: null,
+				name: lineContent,
+				file: instruction.sourceFile,
+				line: instruction.line + lineadditive // the top element on the stack defines the highlighted line in the editor!!!
+			});
+			return {
+				frames: frames,
+				count: frames.length
+			};
+
+		// const lineContent = this._sourceLines[this.getCurrentLine()];
+
+		// const frames = new Array<any>();
+		// frames.push({
+		// 	index: null,
+		// 	name: lineContent,
+		// 	file: this._sourceFile,
+		// 	line: this.getCurrentLine() // the top element on the stack defines the highlighted line in the editor!!!
+		// });
+		// return {
+		// 	frames: frames,
+		// 	count: frames.length
+		// };
 	}
 
 	public getBreakpoints(path: string, line: number): number[] {

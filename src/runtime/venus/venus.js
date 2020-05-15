@@ -18,12 +18,12 @@
   var ArrayList_init = Kotlin.kotlin.collections.ArrayList_init_287e2$;
   var getCallableRef = Kotlin.getCallableRef;
   var HashSet_init = Kotlin.kotlin.collections.HashSet_init_287e2$;
+  var numberToInt = Kotlin.numberToInt;
   var listOf = Kotlin.kotlin.collections.listOf_mh5how$;
   var Throwable = Error;
   var replace = Kotlin.kotlin.text.replace_680rmw$;
   var first = Kotlin.kotlin.collections.first_2p1efm$;
   var toInt = Kotlin.kotlin.text.toInt_pdl1vz$;
-  var numberToInt = Kotlin.numberToInt;
   var listOf_0 = Kotlin.kotlin.collections.listOf_i5x0yv$;
   var NumberFormatException = Kotlin.kotlin.NumberFormatException;
   var StringBuilder_init = Kotlin.kotlin.text.StringBuilder_init;
@@ -1299,7 +1299,7 @@
   Driver$InstructionInfo.prototype.component4 = function () {
     return this.line;
   };
-  Driver$InstructionInfo.prototype.copy_5q45w$ = function (pc, mcode, basicCode, line) {
+  Driver$InstructionInfo.prototype.copy_17rbv4$ = function (pc, mcode, basicCode, line) {
     return new Driver$InstructionInfo(pc === void 0 ? this.pc : pc, mcode === void 0 ? this.mcode : mcode, basicCode === void 0 ? this.basicCode : basicCode, line === void 0 ? this.line : line);
   };
   Driver$InstructionInfo.prototype.toString = function () {
@@ -1316,6 +1316,67 @@
   Driver$InstructionInfo.prototype.equals = function (other) {
     return this === other || (other !== null && (typeof other === 'object' && (Object.getPrototypeOf(this) === Object.getPrototypeOf(other) && (Kotlin.equals(this.pc, other.pc) && Kotlin.equals(this.mcode, other.mcode) && Kotlin.equals(this.basicCode, other.basicCode) && Kotlin.equals(this.line, other.line)))));
   };
+  function Driver$DebugInfo(pc, mcode, basicCode, line, sourceFile) {
+    this.pc = pc;
+    this.mcode = mcode;
+    this.basicCode = basicCode;
+    this.line = line;
+    this.sourceFile = sourceFile;
+  }
+  Driver$DebugInfo.$metadata$ = {
+    kind: Kind_CLASS,
+    simpleName: 'DebugInfo',
+    interfaces: []
+  };
+  Driver$DebugInfo.prototype.component1 = function () {
+    return this.pc;
+  };
+  Driver$DebugInfo.prototype.component2 = function () {
+    return this.mcode;
+  };
+  Driver$DebugInfo.prototype.component3 = function () {
+    return this.basicCode;
+  };
+  Driver$DebugInfo.prototype.component4 = function () {
+    return this.line;
+  };
+  Driver$DebugInfo.prototype.component5 = function () {
+    return this.sourceFile;
+  };
+  Driver$DebugInfo.prototype.copy_2xgzj6$ = function (pc, mcode, basicCode, line, sourceFile) {
+    return new Driver$DebugInfo(pc === void 0 ? this.pc : pc, mcode === void 0 ? this.mcode : mcode, basicCode === void 0 ? this.basicCode : basicCode, line === void 0 ? this.line : line, sourceFile === void 0 ? this.sourceFile : sourceFile);
+  };
+  Driver$DebugInfo.prototype.toString = function () {
+    return 'DebugInfo(pc=' + Kotlin.toString(this.pc) + (', mcode=' + Kotlin.toString(this.mcode)) + (', basicCode=' + Kotlin.toString(this.basicCode)) + (', line=' + Kotlin.toString(this.line)) + (', sourceFile=' + Kotlin.toString(this.sourceFile)) + ')';
+  };
+  Driver$DebugInfo.prototype.hashCode = function () {
+    var result = 0;
+    result = result * 31 + Kotlin.hashCode(this.pc) | 0;
+    result = result * 31 + Kotlin.hashCode(this.mcode) | 0;
+    result = result * 31 + Kotlin.hashCode(this.basicCode) | 0;
+    result = result * 31 + Kotlin.hashCode(this.line) | 0;
+    result = result * 31 + Kotlin.hashCode(this.sourceFile) | 0;
+    return result;
+  };
+  Driver$DebugInfo.prototype.equals = function (other) {
+    return this === other || (other !== null && (typeof other === 'object' && (Object.getPrototypeOf(this) === Object.getPrototypeOf(other) && (Kotlin.equals(this.pc, other.pc) && Kotlin.equals(this.mcode, other.mcode) && Kotlin.equals(this.basicCode, other.basicCode) && Kotlin.equals(this.line, other.line) && Kotlin.equals(this.sourceFile, other.sourceFile)))));
+  };
+  Driver.prototype.getCurrentInstruction = function () {
+    var tmp$;
+    tmp$ = this.sim.linkedProgram.prog.insts.size;
+    for (var i = 0; i < tmp$; i++) {
+      var programDebug = this.sim.linkedProgram.dbg.get_za3lpa$(i);
+      var dbg = programDebug.component2();
+      var pc = ensureNotNull(this.sim.instOrderMapping.get_11rb$(i));
+      if (pc === numberToInt(this.sim.getPC())) {
+        var mc = this.sim.linkedProgram.prog.insts.get_za3lpa$(i);
+        var basicCode = Instruction$Companion_getInstance().get_6cx2xq$(mc).disasm.invoke_6cx2xq$(mc);
+        var mcode = mc.get_cv51c2$(InstructionField$ENTIRE_getInstance());
+        return new Driver$DebugInfo(pc, mcode, basicCode, dbg.lineNo, dbg.prog.absPath);
+      }
+    }
+    return new Driver$DebugInfo(0, 0, 'failure', 0, 'unknown');
+  };
   Driver.prototype.getInstructions = function () {
     var tmp$;
     var instructions = ArrayList_init();
@@ -1325,9 +1386,10 @@
       var dbg = programDebug.component2();
       var line = dbg.component2();
       var lineNo = dbg.lineNo;
-      var mcode = this.sim.linkedProgram.prog.insts.get_za3lpa$(i);
+      var mc = this.sim.linkedProgram.prog.insts.get_za3lpa$(i);
       var pc = ensureNotNull(this.sim.instOrderMapping.get_11rb$(i));
-      var basicCode = Instruction$Companion_getInstance().get_6cx2xq$(mcode).disasm.invoke_6cx2xq$(mcode);
+      var basicCode = Instruction$Companion_getInstance().get_6cx2xq$(mc).disasm.invoke_6cx2xq$(mc);
+      var mcode = mc.get_cv51c2$(InstructionField$ENTIRE_getInstance());
       instructions.add_11rb$(new Driver$InstructionInfo(pc, mcode, basicCode, lineNo));
     }
     return copyToArray(instructions);
@@ -1473,10 +1535,10 @@
     if (this.sim.exitcode != null) {
       var msg = 'Exited with error code ' + toString(this.sim.exitcode);
       if (((tmp$ = this.sim.exitcode) != null ? tmp$ : 0) === 0) {
-        console.log(msg);
+        Renderer_getInstance().stdout_za3rmp$(msg);
       }
        else {
-        console.warn(msg);
+        Renderer_getInstance().displayWarning_61zpoe$(msg);
       }
     }
   };
@@ -1615,9 +1677,6 @@
     try {
       var diffs = this.sim.step();
       this.handleNotExitOver_0();
-      Renderer_getInstance().updateFromDiffs_lk28az$(diffs);
-      Renderer_getInstance().updateCache_e3g4se$(new Address(0, MemSize$WORD_getInstance()));
-      Renderer_getInstance().updateControlButtons();
       this.exitcodecheck();
     }
      catch (e) {
@@ -1626,6 +1685,14 @@
       }
        else
         throw e;
+    }
+  };
+  Driver.prototype.isFinished = function () {
+    if (this.sim.exitcode != null) {
+      return true;
+    }
+     else {
+      return false;
     }
   };
   Driver.prototype.handleNotExitOver_0 = function () {
@@ -21102,6 +21169,7 @@
   });
   package$venus.CookieJar = CookieJar;
   Driver.prototype.InstructionInfo = Driver$InstructionInfo;
+  Driver.prototype.DebugInfo = Driver$DebugInfo;
   Object.defineProperty(package$venus, 'Driver', {
     get: Driver_getInstance
   });
@@ -23479,87 +23547,87 @@
   package$simulator_0.TraceEncapsulation = TraceEncapsulation;
   package$venusbackend_0.toHex_ydzd23$ = toHex;
   package$venusbackend_0.toHex_3p81yu$ = toHex_0;
-  Renderer.prototype.addFilePWD_hijjve$ = IRenderer.prototype.addFilePWD_hijjve$;
-  Renderer.prototype.addObjectToDisplay_hhgamg$$default = IRenderer.prototype.addObjectToDisplay_hhgamg$$default;
-  Renderer.prototype.addTab = IRenderer.prototype.addTab;
-  Renderer.prototype.addToProgramListing_oi48jx$$default = IRenderer.prototype.addToProgramListing_oi48jx$$default;
-  Renderer.prototype.byteToDec_x74bdc$_0 = IRenderer.prototype.byteToDec_x74bdc$_0;
-  Renderer.prototype.byteToHex_lt7bd5$_0 = IRenderer.prototype.byteToHex_lt7bd5$_0;
-  Renderer.prototype.byteToUnsign_thi4og$_0 = IRenderer.prototype.byteToUnsign_thi4og$_0;
-  Renderer.prototype.cleanTableRow_87o258$_0 = IRenderer.prototype.cleanTableRow_87o258$_0;
-  Renderer.prototype.clearConsole = IRenderer.prototype.clearConsole;
-  Renderer.prototype.clearObjectsFromDisplay = IRenderer.prototype.clearObjectsFromDisplay;
-  Renderer.prototype.clearPkgMsg = IRenderer.prototype.clearPkgMsg;
-  Renderer.prototype.clearProgramListing = IRenderer.prototype.clearProgramListing;
-  Renderer.prototype.disableControlButtons = IRenderer.prototype.disableControlButtons;
-  Renderer.prototype.getElement_61zpoe$ = IRenderer.prototype.getElement_61zpoe$;
-  Renderer.prototype.intToString_za3lpa$ = IRenderer.prototype.intToString_za3lpa$;
-  Renderer.prototype.loadSimulator_pivkot$ = IRenderer.prototype.loadSimulator_pivkot$;
-  Renderer.prototype.makeCacheBlocks = IRenderer.prototype.makeCacheBlocks;
-  Renderer.prototype.moveMemoryBy_f1ht28$_0 = IRenderer.prototype.moveMemoryBy_f1ht28$_0;
-  Renderer.prototype.moveMemoryDown = IRenderer.prototype.moveMemoryDown;
-  Renderer.prototype.moveMemoryJump = IRenderer.prototype.moveMemoryJump;
-  Renderer.prototype.moveMemoryUp = IRenderer.prototype.moveMemoryUp;
-  Renderer.prototype.mustMoveMemoryDisplay_vhhmw8$_0 = IRenderer.prototype.mustMoveMemoryDisplay_vhhmw8$_0;
-  Renderer.prototype.pkgMsg_61zpoe$ = IRenderer.prototype.pkgMsg_61zpoe$;
-  Renderer.prototype.removeTab = IRenderer.prototype.removeTab;
-  Renderer.prototype.renderAddCacheLevel = IRenderer.prototype.renderAddCacheLevel;
-  Renderer.prototype.renderAssembleButtons = IRenderer.prototype.renderAssembleButtons;
-  Renderer.prototype.renderBreakpointAt_fzusl$ = IRenderer.prototype.renderBreakpointAt_fzusl$;
-  Renderer.prototype.renderButton_ypl1d1$ = IRenderer.prototype.renderButton_ypl1d1$;
-  Renderer.prototype.renderCacheTab = IRenderer.prototype.renderCacheTab;
-  Renderer.prototype.renderEditor = IRenderer.prototype.renderEditor;
-  Renderer.prototype.renderFRegsTab = IRenderer.prototype.renderFRegsTab;
-  Renderer.prototype.renderGeneralSettingsTab = IRenderer.prototype.renderGeneralSettingsTab;
-  Renderer.prototype.renderMemoryRow_5nlvj0$_0 = IRenderer.prototype.renderMemoryRow_5nlvj0$_0;
-  Renderer.prototype.renderMemoryTab = IRenderer.prototype.renderMemoryTab;
-  Renderer.prototype.renderPackagesTab = IRenderer.prototype.renderPackagesTab;
-  Renderer.prototype.renderProgramListing_vy1pvz$_0 = IRenderer.prototype.renderProgramListing_vy1pvz$_0;
-  Renderer.prototype.renderRegisterTab = IRenderer.prototype.renderRegisterTab;
-  Renderer.prototype.renderRegsTab = IRenderer.prototype.renderRegsTab;
-  Renderer.prototype.renderRemoveCacheLevel = IRenderer.prototype.renderRemoveCacheLevel;
-  Renderer.prototype.renderSetCacheLevel_za3lpa$ = IRenderer.prototype.renderSetCacheLevel_za3lpa$;
-  Renderer.prototype.renderSettingsTab = IRenderer.prototype.renderSettingsTab;
-  Renderer.prototype.renderSimButtons = IRenderer.prototype.renderSimButtons;
-  Renderer.prototype.renderSimulator = IRenderer.prototype.renderSimulator;
   Renderer.prototype.renderTab = IRenderer.prototype.renderTab;
-  Renderer.prototype.renderTracerSettingsTab = IRenderer.prototype.renderTracerSettingsTab;
-  Renderer.prototype.renderURLMaker = IRenderer.prototype.renderURLMaker;
+  Renderer.prototype.addTab = IRenderer.prototype.addTab;
+  Renderer.prototype.removeTab = IRenderer.prototype.removeTab;
+  Renderer.prototype.renderSimulator = IRenderer.prototype.renderSimulator;
+  Renderer.prototype.loadSimulator_pivkot$ = IRenderer.prototype.loadSimulator_pivkot$;
+  Renderer.prototype.renderSimButtons = IRenderer.prototype.renderSimButtons;
+  Renderer.prototype.renderAssembleButtons = IRenderer.prototype.renderAssembleButtons;
+  Renderer.prototype.renderEditor = IRenderer.prototype.renderEditor;
   Renderer.prototype.renderVenus = IRenderer.prototype.renderVenus;
+  Renderer.prototype.renderURLMaker = IRenderer.prototype.renderURLMaker;
+  Renderer.prototype.tabSetVisibility = IRenderer.prototype.tabSetVisibility;
+  Renderer.prototype.stderr_za3rmp$ = IRenderer.prototype.stderr_za3rmp$;
+  Renderer.prototype.renderProgramListing_vy1pvz$_0 = IRenderer.prototype.renderProgramListing_vy1pvz$_0;
+  Renderer.prototype.updateAll = IRenderer.prototype.updateAll;
+  Renderer.prototype.updateFromDiffs_lk28az$ = IRenderer.prototype.updateFromDiffs_lk28az$;
+  Renderer.prototype.clearProgramListing = IRenderer.prototype.clearProgramListing;
+  Renderer.prototype.addToProgramListing_oi48jx$$default = IRenderer.prototype.addToProgramListing_oi48jx$$default;
+  Renderer.prototype.updateProgramListing_fttt2j$$default = IRenderer.prototype.updateProgramListing_fttt2j$$default;
+  Renderer.prototype.getElement_61zpoe$ = IRenderer.prototype.getElement_61zpoe$;
+  Renderer.prototype.updateRegister_lirtej$$default = IRenderer.prototype.updateRegister_lirtej$$default;
+  Renderer.prototype.updateFRegister_zc64of$$default = IRenderer.prototype.updateFRegister_zc64of$$default;
+  Renderer.prototype.intToString_za3lpa$ = IRenderer.prototype.intToString_za3lpa$;
+  Renderer.prototype.updateCache_e3g4se$ = IRenderer.prototype.updateCache_e3g4se$;
+  Renderer.prototype.renderSetCacheLevel_za3lpa$ = IRenderer.prototype.renderSetCacheLevel_za3lpa$;
+  Renderer.prototype.renderAddCacheLevel = IRenderer.prototype.renderAddCacheLevel;
+  Renderer.prototype.renderRemoveCacheLevel = IRenderer.prototype.renderRemoveCacheLevel;
+  Renderer.prototype.makeCacheBlocks = IRenderer.prototype.makeCacheBlocks;
+  Renderer.prototype.updateCacheBlocks_xfjuj9$$default = IRenderer.prototype.updateCacheBlocks_xfjuj9$$default;
+  Renderer.prototype.updateAllCacheBlocks = IRenderer.prototype.updateAllCacheBlocks;
+  Renderer.prototype.updatePC_3p81yu$ = IRenderer.prototype.updatePC_3p81yu$;
+  Renderer.prototype.clearConsole = IRenderer.prototype.clearConsole;
+  Renderer.prototype.setRunButtonSpinning_6taknv$ = IRenderer.prototype.setRunButtonSpinning_6taknv$;
+  Renderer.prototype.setNameButtonSpinning_ivxn3r$ = IRenderer.prototype.setNameButtonSpinning_ivxn3r$;
+  Renderer.prototype.setButtonDisabled_qjzzba$_0 = IRenderer.prototype.setButtonDisabled_qjzzba$_0;
+  Renderer.prototype.updateControlButtons = IRenderer.prototype.updateControlButtons;
+  Renderer.prototype.disableControlButtons = IRenderer.prototype.disableControlButtons;
+  Renderer.prototype.renderBreakpointAt_fzusl$ = IRenderer.prototype.renderBreakpointAt_fzusl$;
+  Renderer.prototype.renderMemoryTab = IRenderer.prototype.renderMemoryTab;
+  Renderer.prototype.renderRegisterTab = IRenderer.prototype.renderRegisterTab;
+  Renderer.prototype.renderCacheTab = IRenderer.prototype.renderCacheTab;
+  Renderer.prototype.renderSettingsTab = IRenderer.prototype.renderSettingsTab;
+  Renderer.prototype.renderGeneralSettingsTab = IRenderer.prototype.renderGeneralSettingsTab;
+  Renderer.prototype.renderTracerSettingsTab = IRenderer.prototype.renderTracerSettingsTab;
+  Renderer.prototype.renderPackagesTab = IRenderer.prototype.renderPackagesTab;
+  Renderer.prototype.renderRegsTab = IRenderer.prototype.renderRegsTab;
+  Renderer.prototype.renderFRegsTab = IRenderer.prototype.renderFRegsTab;
   Renderer.prototype.rendererAddPackage_o0ij6q$$default = IRenderer.prototype.rendererAddPackage_o0ij6q$$default;
   Renderer.prototype.rendererRemovePackage_61zpoe$ = IRenderer.prototype.rendererRemovePackage_61zpoe$;
   Renderer.prototype.rendererUpdatePackage_ivxn3r$ = IRenderer.prototype.rendererUpdatePackage_ivxn3r$;
-  Renderer.prototype.setButtonDisabled_qjzzba$_0 = IRenderer.prototype.setButtonDisabled_qjzzba$_0;
-  Renderer.prototype.setNameButtonSpinning_ivxn3r$ = IRenderer.prototype.setNameButtonSpinning_ivxn3r$;
-  Renderer.prototype.setRunButtonSpinning_6taknv$ = IRenderer.prototype.setRunButtonSpinning_6taknv$;
-  Renderer.prototype.stderr_za3rmp$ = IRenderer.prototype.stderr_za3rmp$;
-  Renderer.prototype.tabSetVisibility = IRenderer.prototype.tabSetVisibility;
-  Renderer.prototype.toAscii_4fre7f$_0 = IRenderer.prototype.toAscii_4fre7f$_0;
+  Renderer.prototype.pkgMsg_61zpoe$ = IRenderer.prototype.pkgMsg_61zpoe$;
+  Renderer.prototype.clearPkgMsg = IRenderer.prototype.clearPkgMsg;
+  Renderer.prototype.updateMemory_za3lpa$ = IRenderer.prototype.updateMemory_za3lpa$;
+  Renderer.prototype.mustMoveMemoryDisplay_vhhmw8$_0 = IRenderer.prototype.mustMoveMemoryDisplay_vhhmw8$_0;
+  Renderer.prototype.renderMemoryRow_5nlvj0$_0 = IRenderer.prototype.renderMemoryRow_5nlvj0$_0;
+  Renderer.prototype.cleanTableRow_87o258$_0 = IRenderer.prototype.cleanTableRow_87o258$_0;
+  Renderer.prototype.byteToHex_lt7bd5$_0 = IRenderer.prototype.byteToHex_lt7bd5$_0;
+  Renderer.prototype.byteToDec_x74bdc$_0 = IRenderer.prototype.byteToDec_x74bdc$_0;
+  Renderer.prototype.byteToUnsign_thi4og$_0 = IRenderer.prototype.byteToUnsign_thi4og$_0;
   Renderer.prototype.toHex_ydzd23$$default = IRenderer.prototype.toHex_ydzd23$$default;
   Renderer.prototype.toHex_3p81yu$ = IRenderer.prototype.toHex_3p81yu$;
   Renderer.prototype.toUnsigned_cnezon$_0 = IRenderer.prototype.toUnsigned_cnezon$_0;
-  Renderer.prototype.updateAll = IRenderer.prototype.updateAll;
-  Renderer.prototype.updateAllCacheBlocks = IRenderer.prototype.updateAllCacheBlocks;
-  Renderer.prototype.updateCache_e3g4se$ = IRenderer.prototype.updateCache_e3g4se$;
-  Renderer.prototype.updateCacheBlocks_xfjuj9$$default = IRenderer.prototype.updateCacheBlocks_xfjuj9$$default;
-  Renderer.prototype.updateControlButtons = IRenderer.prototype.updateControlButtons;
-  Renderer.prototype.updateFRegister_zc64of$$default = IRenderer.prototype.updateFRegister_zc64of$$default;
-  Renderer.prototype.updateFromDiffs_lk28az$ = IRenderer.prototype.updateFromDiffs_lk28az$;
-  Renderer.prototype.updateMemory_za3lpa$ = IRenderer.prototype.updateMemory_za3lpa$;
-  Renderer.prototype.updatePC_3p81yu$ = IRenderer.prototype.updatePC_3p81yu$;
-  Renderer.prototype.updateProgramListing_fttt2j$$default = IRenderer.prototype.updateProgramListing_fttt2j$$default;
-  Renderer.prototype.updateRegMemDisplay = IRenderer.prototype.updateRegMemDisplay;
-  Renderer.prototype.updateRegister_lirtej$$default = IRenderer.prototype.updateRegister_lirtej$$default;
-  Renderer.prototype.updateText = IRenderer.prototype.updateText;
-  Renderer.prototype.addObjectToDisplay_hhgamg$ = IRenderer.prototype.addObjectToDisplay_hhgamg$;
-  Renderer.prototype.addToProgramListing_oi48jx$ = IRenderer.prototype.addToProgramListing_oi48jx$;
-  Renderer.prototype.rendererAddPackage_o0ij6q$ = IRenderer.prototype.rendererAddPackage_o0ij6q$;
   Renderer.prototype.toAscii_4fre7f$_0 = IRenderer.prototype.toAscii_4fre7f$_0;
-  Renderer.prototype.toHex_ydzd23$ = IRenderer.prototype.toHex_ydzd23$;
-  Renderer.prototype.updateCacheBlocks_xfjuj9$ = IRenderer.prototype.updateCacheBlocks_xfjuj9$;
-  Renderer.prototype.updateFRegister_zc64of$ = IRenderer.prototype.updateFRegister_zc64of$;
+  Renderer.prototype.updateRegMemDisplay = IRenderer.prototype.updateRegMemDisplay;
+  Renderer.prototype.moveMemoryJump = IRenderer.prototype.moveMemoryJump;
+  Renderer.prototype.moveMemoryBy_f1ht28$_0 = IRenderer.prototype.moveMemoryBy_f1ht28$_0;
+  Renderer.prototype.moveMemoryUp = IRenderer.prototype.moveMemoryUp;
+  Renderer.prototype.moveMemoryDown = IRenderer.prototype.moveMemoryDown;
+  Renderer.prototype.updateText = IRenderer.prototype.updateText;
+  Renderer.prototype.renderButton_ypl1d1$ = IRenderer.prototype.renderButton_ypl1d1$;
+  Renderer.prototype.addObjectToDisplay_hhgamg$$default = IRenderer.prototype.addObjectToDisplay_hhgamg$$default;
+  Renderer.prototype.addFilePWD_hijjve$ = IRenderer.prototype.addFilePWD_hijjve$;
+  Renderer.prototype.clearObjectsFromDisplay = IRenderer.prototype.clearObjectsFromDisplay;
+  Renderer.prototype.addToProgramListing_oi48jx$ = IRenderer.prototype.addToProgramListing_oi48jx$;
   Renderer.prototype.updateProgramListing_fttt2j$ = IRenderer.prototype.updateProgramListing_fttt2j$;
   Renderer.prototype.updateRegister_lirtej$ = IRenderer.prototype.updateRegister_lirtej$;
+  Renderer.prototype.updateFRegister_zc64of$ = IRenderer.prototype.updateFRegister_zc64of$;
+  Renderer.prototype.updateCacheBlocks_xfjuj9$ = IRenderer.prototype.updateCacheBlocks_xfjuj9$;
+  Renderer.prototype.rendererAddPackage_o0ij6q$ = IRenderer.prototype.rendererAddPackage_o0ij6q$;
+  Renderer.prototype.toHex_ydzd23$ = IRenderer.prototype.toHex_ydzd23$;
+  Renderer.prototype.toAscii_4fre7f$_0 = IRenderer.prototype.toAscii_4fre7f$_0;
+  Renderer.prototype.addObjectToDisplay_hhgamg$ = IRenderer.prototype.addObjectToDisplay_hhgamg$;
   VFSFolder.prototype.getPath = VFSObject.prototype.getPath;
   VFSFolder.prototype.addChild_hijjve$ = VFSObject.prototype.addChild_hijjve$;
   VFSFolder.prototype.removeChild_61zpoe$ = VFSObject.prototype.removeChild_61zpoe$;
