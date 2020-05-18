@@ -172,7 +172,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		this._runtime.assemble(args.program, basename(args.program));
 		// This is a workaround so we always stop execution and start debugging
-		this._runtime.setBreakPoint(args.program, this.convertClientLineToDebugger(1));
+		// this._runtime.setBreakPoint(args.program, this.convertClientLineToDebugger(1));
 
 		// Add Instruction Information to Line
 		this.openAssemblyView();
