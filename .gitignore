@@ -3,3 +3,5 @@ node_modules/
 out/
 npm-debug.log
 *.vsix
+package-lock.json
+.gitignore
