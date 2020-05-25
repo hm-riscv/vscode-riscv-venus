@@ -94,6 +94,17 @@
 				"language": "riscv"
 			}
 		],
+		"colors": [
+			{
+				"id": "venus.debugLineBackground",
+				"description": "Background color for active debug line",
+				"defaults": {
+					"dark": "#8174008c",
+					"light": "#8174008c",
+					"highContrast": "#8174008c"
+				}
+			}
+		],
 		"debuggers": [
 			{
 				"type": "venus",
