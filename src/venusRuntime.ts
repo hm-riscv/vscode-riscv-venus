@@ -189,6 +189,7 @@ export class VenusRuntime extends EventEmitter {
 
 	/**
 	 * Returns a fake 'stacktrace' where every 'stackframe' is a word from the current line.
+	 * TODO: return a real stacktrace.
 	 */
 	public stack(startFrame: number, endFrame: number): any {
 
@@ -210,6 +211,9 @@ export class VenusRuntime extends EventEmitter {
 			};
 	}
 
+	/** TODO: This is used by the BreakPoint Location Request but we don't use that right now.
+	 * If we decide to use this fuction we need to rewrite it.
+	 */
 	public getBreakpoints(path: string, line: number): number[] {
 
 		const l = this._sourceLines[line];
@@ -312,12 +316,14 @@ export class VenusRuntime extends EventEmitter {
 				if (!bp.verified && bp.line < sourceLines.length) {
 					const srcLine = sourceLines[bp.line].trim();
 
-					// don't set 'verified' to true if the line contains the word 'lazy'
-					// in this case the breakpoint will be verified 'lazy' after hitting it once.
-					if (srcLine.indexOf('lazy') < 0) {
+					let pc = this.sourceLine_to_pc.get(this.createSourcelineString(path, bp.line));
+					if (pc == null) {
+						bp.verified = false;
+					} else {
 						bp.verified = true;
 						this.sendEvent('breakpointValidated', bp);
 					}
+
 				}
 			});
 		}
