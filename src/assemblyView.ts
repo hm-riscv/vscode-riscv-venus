@@ -41,7 +41,6 @@ export class riscvAssemblyProvider implements vscode.TextDocumentContentProvider
 	}
 
 	static createUri(): vscode.Uri {
-
-		return vscode.Uri.parse('riscv_asm:disassemly')
+		return vscode.Uri.parse('riscv_asm:disassemly' + Date.now())
 	}
 }
