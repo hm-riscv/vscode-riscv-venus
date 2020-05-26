@@ -534,6 +534,14 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()));
 		let doc = await workspace.openTextDocument(riscvAssemblyProvider.createUri()); // calls back into the provider
 		this._assemblyViewEditor = await window.showTextDocument(doc,{ preview: false , viewColumn: ViewColumn.Beside, preserveFocus: true});
+		window.onDidChangeActiveTextEditor((e) => {
+			if (e != null && e.document != null) {
+				if(e!.document == this._assemblyViewEditor.document) {
+					this._assemblyViewEditor = e!;
+					AssemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo() - 1);
+				}
+			}
+		});
 
 	}
 
