@@ -12,7 +12,7 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import { VenusBreakpoint, VenusRuntime } from './venusRuntime';
-import { workspace, languages, Disposable, window, ViewColumn, TextEditor } from 'vscode';
+import { workspace, languages, Disposable, window, ViewColumn, TextEditor, commands, Uri, TextDocument } from 'vscode';
 import { riscvAssemblyProvider } from './assemblyView';
 import { AssemblyDecoratorProvider } from './assemblyDecorator';
 const { Subject } = require('await-notify');
@@ -47,6 +47,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 	private _riscvAssemblyProvider = new riscvAssemblyProvider();
 	private _providerDisposable: Disposable;
 	private _assemblyViewEditor: TextEditor;
+	private _assemblyDocument: TextDocument;
 
 	private _configurationDone = new Subject();
 
@@ -518,6 +519,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 		}
 	}
 	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {
+		window.showTextDocument(this._assemblyDocument, {preview: false, viewColumn: this._assemblyViewEditor.viewColumn})
+		.then(() => {
+			return commands.executeCommand('workbench.action.closeActiveEditor');
+		});
 		this.sendResponse(response)
 	}
 
@@ -532,8 +537,12 @@ export class VenusDebugSession extends LoggingDebugSession {
 		const riscvAsmScheme = 'riscv_asm';
 		this._providerDisposable = workspace.registerTextDocumentContentProvider(riscvAsmScheme, this._riscvAssemblyProvider);
 		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()));
-		let doc = await workspace.openTextDocument(riscvAssemblyProvider.createUri()); // calls back into the provider
-		this._assemblyViewEditor = await window.showTextDocument(doc,{ preview: false , viewColumn: ViewColumn.Beside, preserveFocus: true});
+		this._assemblyDocument = await workspace.openTextDocument(riscvAssemblyProvider.createUri()); // calls back into the provider
+		this._assemblyViewEditor = await window.showTextDocument(this._assemblyDocument,{ preview: false , viewColumn: ViewColumn.Beside});
+
+		/** If we have have the assembly editor in the background all it's decorators are destroyed.
+		 * So we create the decorators again if the assembly editor is brough to the foreground.
+		*/
 		window.onDidChangeActiveTextEditor((e) => {
 			if (e != null && e.document != null) {
 				if(e!.document == this._assemblyViewEditor.document) {
@@ -542,7 +551,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 				}
 			}
 		});
-
 	}
 
 	/** Updates the Decorators in Assemblyview. This means lines are marked, for example the current active line that is debugged. */
