@@ -9,7 +9,6 @@ import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken,
 import { VenusDebugSession } from './venusDebug';
 import * as Net from 'net';
 import { VenusRenderer } from './venusRenderer';
-import { riscvAssemblyProvider } from './assemblyView';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -25,6 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
 			value: ""
 		});
 	}));
+
 
 	// register a configuration provider for 'venus' debug type
 	const venusProvider = new VenusConfigurationProvider();
