@@ -551,8 +551,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 			this._windowDisposable.dispose();
 		}
 		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()));
-		let dateString = Date.now().toString();
-		this._assemblyDocument = await workspace.openTextDocument(riscvAssemblyProvider.createUri(dateString)); // calls back into the provider
+		this._assemblyDocument = await workspace.openTextDocument(riscvAssemblyProvider.createUri("assembly")); // calls back into the provider
 		this._assemblyViewEditor = await window.showTextDocument(this._assemblyDocument,{ preview: false , viewColumn: ViewColumn.Beside});
 
 		/** If we have have the assembly editor in the background all it's decorators are destroyed.
