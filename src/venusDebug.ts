@@ -17,6 +17,8 @@ import { riscvAssemblyProvider } from './assemblyView';
 import { AssemblyDecoratorProvider } from './assemblyDecorator';
 const { Subject } = require('await-notify');
 
+const riscvAsmScheme = 'venus_asm';
+
 function timeout(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -37,6 +39,7 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 }
 
 export class VenusDebugSession extends LoggingDebugSession {
+
 
 	// we don't support multiple threads, so we can use a hardcoded ID for the default thread
 	private static THREAD_ID = 1;
@@ -72,7 +75,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.setDebuggerColumnsStartAt1(false);
 		this._runtime = new VenusRuntime();
 
-		const riscvAsmScheme = 'riscv_asm';
+
 		this._providerDisposable = workspace.registerTextDocumentContentProvider(riscvAsmScheme, this._riscvAssemblyProvider);
 
 
@@ -552,6 +555,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		}
 		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()));
 		this._assemblyDocument = await workspace.openTextDocument(riscvAssemblyProvider.createUri("assembly")); // calls back into the provider
+		languages.setTextDocumentLanguage(this._assemblyDocument, "riscv")
 		this._assemblyViewEditor = await window.showTextDocument(this._assemblyDocument,{ preview: false , viewColumn: ViewColumn.Beside});
 
 		/** If we have have the assembly editor in the background all it's decorators are destroyed.
