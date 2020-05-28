@@ -11,10 +11,10 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
-import { MockBreakpoint, VenusRuntime } from './venusRuntime';
-import { workspace, languages, Disposable, window, ViewColumn } from 'vscode';
-import { VenusDecoratorProvider } from './venusDecorator';
+import { VenusBreakpoint, VenusRuntime } from './venusRuntime';
+import { workspace, languages, Disposable, window, ViewColumn, TextEditor, commands, Uri, TextDocument } from 'vscode';
 import { riscvAssemblyProvider } from './assemblyView';
+import { AssemblyDecoratorProvider } from './assemblyDecorator';
 const { Subject } = require('await-notify');
 
 function timeout(ms: number) {
@@ -40,12 +40,15 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	// we don't support multiple threads, so we can use a hardcoded ID for the default thread
 	private static THREAD_ID = 1;
-
 	// a Mock runtime (or debugger)
 	private _runtime: VenusRuntime;
 	private _variableHandles = new Handles<string>();
 	private _riscvAssemblyProvider = new riscvAssemblyProvider();
 	private _providerDisposable: Disposable;
+	private _windowDisposable: Disposable;
+	private _assemblyViewEditor: TextEditor;
+	private _assemblyDocument: TextDocument;
+	private _openAssemblyDisposable: Disposable;
 
 	private _configurationDone = new Subject();
 
@@ -65,10 +68,12 @@ export class VenusDebugSession extends LoggingDebugSession {
 		super("mock-debug.txt");
 
 		// this debugger uses 1-based lines and columns
-		this.setDebuggerLinesStartAt1(false);
+		this.setDebuggerLinesStartAt1(true);
 		this.setDebuggerColumnsStartAt1(false);
-
 		this._runtime = new VenusRuntime();
+
+		const riscvAsmScheme = 'riscv_asm';
+		this._providerDisposable = workspace.registerTextDocumentContentProvider(riscvAsmScheme, this._riscvAssemblyProvider);
 
 
 		// setup event handlers
@@ -87,7 +92,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._runtime.on('stopOnException', () => {
 			this.sendEvent(new StoppedEvent('exception', VenusDebugSession.THREAD_ID));
 		});
-		this._runtime.on('breakpointValidated', (bp: MockBreakpoint) => {
+		this._runtime.on('breakpointValidated', (bp: VenusBreakpoint) => {
 			this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
 		});
 		this._runtime.on('output', (text, filePath, line, column) => {
@@ -175,7 +180,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		// this._runtime.setBreakPoint(args.program, this.convertClientLineToDebugger(1));
 
 		// Add Instruction Information to Line
-		this.openAssemblyView();
+
 
 		// wait until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(1000);
@@ -183,6 +188,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		// start the program in the runtime
 		this._runtime.start(args.program, !!args.stopOnEntry);
+
+		this.openAssemblyView();
+		this._openAssemblyDisposable = commands.registerCommand('venusAssembly.openAssembly', () =>
+		this.openAssemblyView());
 
 	}
 
@@ -327,10 +336,13 @@ export class VenusDebugSession extends LoggingDebugSession {
 			variables: variables
 		};
 		this.sendResponse(response);
+
+
 	}
 
 	protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
 		this._runtime.continue();
+		this.updateAssemblyViewDecorator();
 		this.sendResponse(response);
 	}
 
@@ -346,6 +358,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
 		this._runtime.step();
+		this.updateAssemblyViewDecorator();
 		this.sendResponse(response);
 	}
 
@@ -512,6 +525,17 @@ export class VenusDebugSession extends LoggingDebugSession {
 		}
 	}
 	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {
+		if (this._assemblyViewEditor != null) {
+			if (this._assemblyDocument != null) {
+				window.showTextDocument(this._assemblyDocument, {preview: false, viewColumn: this._assemblyViewEditor.viewColumn})
+				.then(() => {
+					return commands.executeCommand('workbench.action.closeActiveEditor');
+				});
+			}
+		}
+		this._openAssemblyDisposable.dispose();
+		this._providerDisposable.dispose();
+		this._windowDisposable.dispose();
 		this.sendResponse(response)
 	}
 
@@ -523,11 +547,34 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	private async openAssemblyView() {
 
-		const riscvAsmScheme = 'riscv_asm';
-		this._providerDisposable = workspace.registerTextDocumentContentProvider(riscvAsmScheme, this._riscvAssemblyProvider);
-		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getAssemblyLineInfo()));
-		let doc = await workspace.openTextDocument(riscvAssemblyProvider.createUri()); // calls back into the provider
-		await window.showTextDocument(doc,{ preview: false , viewColumn: ViewColumn.Beside, preserveFocus: true});
+		if (this._windowDisposable != null) {
+			this._windowDisposable.dispose();
+		}
+		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()));
+		this._assemblyDocument = await workspace.openTextDocument(riscvAssemblyProvider.createUri("assembly")); // calls back into the provider
+		this._assemblyViewEditor = await window.showTextDocument(this._assemblyDocument,{ preview: false , viewColumn: ViewColumn.Beside});
 
+		/** If we have have the assembly editor in the background all it's decorators are destroyed.
+		 * So we create the decorators again if the assembly editor is brough to the foreground.
+		*/
+
+		this.updateAssemblyViewDecorator();
+
+
+		this._windowDisposable =  window.onDidChangeActiveTextEditor((e) => {
+			if (e != null && e.document != null) {
+				if(e.document == this._assemblyViewEditor.document) {
+					this._assemblyViewEditor = e;
+					AssemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo() - 1);
+				}
+			}
+		});
+	}
+
+	/** Updates the Decorators in Assemblyview. This means lines are marked, for example the current active line that is debugged. */
+	private updateAssemblyViewDecorator() {
+		if (this._assemblyViewEditor != null) {
+			AssemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo() - 1)
+		}
 	}
 }

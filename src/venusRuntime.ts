@@ -7,18 +7,30 @@ import { EventEmitter } from 'events';
 import simulator = require('./runtime/riscvSimulator');
 import range from 'lodash/range';
 import { VenusRenderer } from './venusRenderer';
-import {DecoratorLineInfo} from './venusDecorator';
 import { AssemblyLineInfo } from './assemblyView';
 
-export interface MockBreakpoint {
+export interface VenusBreakpoint {
 	id: number;
 	line: number;
 	verified: boolean;
+	path: string;
 }
 
 export interface Register {
 	id: number;
 	value: number;
+}
+
+/**
+ * This interface holds the data that a AssemblyLine contains
+ */
+export interface AssemblyLine {
+	pc: number;
+    mCode: number;
+	basicCode: string;
+	assemblyViewLine: number;
+	sourcePath: string;
+	sourceLine: number;
 }
 
 /**
@@ -36,7 +48,7 @@ export class VenusRuntime extends EventEmitter {
 	private _sourceLines: string[];
 
 	// maps from sourceFile to array of Mock breakpoints
-	private _breakPoints = new Map<string, MockBreakpoint[]>();
+	private _breakPoints = new Map<string, VenusBreakpoint[]>();
 
 	// since we want to send breakpoint events, we will assign an id to every event
 	// so that the frontend can match events with breakpoints.
@@ -48,8 +60,9 @@ export class VenusRuntime extends EventEmitter {
 		super();
 	}
 
-	private line_to_pc: Map<number, number> = new Map<number, number>();
-	private pc_to_line: Map<number, number> = new Map<number, number>();
+
+	private sourceLine_to_pc: Map<string, number[]> = new Map<string, number[]>();
+	private pc_to_assemblyLine: Map<number, AssemblyLine> = new Map<number, AssemblyLine>();
 
 	/**
 	 * Start executing the given program.
@@ -76,32 +89,43 @@ export class VenusRuntime extends EventEmitter {
 		for (let warn in warnings.toArray()) {
 			VenusRenderer.getInstance().printWarning(warn);
 		}
-		this.line_to_pc.clear();
-		this.pc_to_line.clear();
-		for (let i = 0; i < simulator.driver.sim.linkedProgram.prog.insts.size; i++) {
-			let programDebug = simulator.driver.sim.linkedProgram.dbg.toArray()[i];
-			// val programName: String, val dbg: DebugInfo
-			let dbg = programDebug.dbg;
-			// val lineNo: Int, val line: String, val address: Int, val prog: Program
-			let line = dbg.lineNo;
-			//let mcode = simulator.driver.sim.linkedProgram.prog.insts.toArray()[i];
-			let pc = simulator.driver.sim.instOrderMapping.get_11rb$(i);
-			this.line_to_pc.set(line, pc);
-			this.pc_to_line.set(pc, line);
-		}
+
+		this.getAssemblyLines();
 	}
 
-	public getAssemblyLineInfo(): AssemblyLineInfo[]{
-		simulator.driver.get
+	private getAssemblyLines(){
+		this.pc_to_assemblyLine.clear();
+		this.sourceLine_to_pc.clear()
 		let instructions = simulator.driver.getInstructions();
-		const infos: AssemblyLineInfo[] = [];
 
 		for (let i = 0; i < instructions.length; i++) {
-			let decorator: AssemblyLineInfo = {pc: instructions[i].pc, mCode: instructions[i].mcode, basicCode: instructions[i].basicCode, line: instructions[i].line};
-			infos.push(decorator);
+			let assemblyLine: AssemblyLine = {pc: instructions[i].pc, mCode: instructions[i].mcode, basicCode: instructions[i].basicCode, assemblyViewLine: 0, sourceLine: instructions[i].line, sourcePath: instructions[i].sourceFile};
+			this.pc_to_assemblyLine.set(instructions[i].pc, assemblyLine);
+			let sourceIdent = this.createSourcelineString(instructions[i].sourceFile, instructions[i].line);
+			if (this.sourceLine_to_pc.has(sourceIdent)) {
+				this.sourceLine_to_pc.get(sourceIdent)!.push(instructions[i].pc);
+			} else {
+				this.sourceLine_to_pc.set(sourceIdent, [instructions[i].pc]);
+			}
 		}
 
-		return infos;
+	}
+
+	/** Creates a sourceLine identifier for debugging: C://exampledir/example.file:5 5 == linenumber */
+	private createSourcelineString(path: string, line: number): string {
+		return path + ':' + Math.round(line).toString();
+	}
+
+	public getPcToAssemblyLine(): Map<number, AssemblyLine> {
+		return this.pc_to_assemblyLine
+	}
+
+	public getCurrentAssemlyLineNo(): number {
+		if (this.pc_to_assemblyLine.has(simulator.driver.sim.getPC())) {
+			return this.pc_to_assemblyLine.get(simulator.driver.sim.getPC())!.assemblyViewLine
+		} else {
+			return 0
+		}
 	}
 
 	/**
@@ -154,7 +178,7 @@ export class VenusRuntime extends EventEmitter {
 	 */
 	public continue() {
 		//TODO this runs one execution too long
-		simulator.driver.run()
+		simulator.driver.continue()
 		if (simulator.driver.isFinished()) {
 			this.sendEvent('end')
 		} else {
@@ -165,40 +189,31 @@ export class VenusRuntime extends EventEmitter {
 
 	/**
 	 * Returns a fake 'stacktrace' where every 'stackframe' is a word from the current line.
+	 * TODO: return a real stacktrace.
 	 */
 	public stack(startFrame: number, endFrame: number): any {
 
-		let instruction = simulator.driver.getCurrentInstruction()
+		let pc = simulator.driver.sim.getPC();
+		let instruction = this.pc_to_assemblyLine.get(pc)!;
 		const lineContent = instruction.basicCode
-		const lineadditive = -1;
+		const lineadditive = 0;
 
 		const frames = new Array<any>();
 		frames.push({
 				index: null,
 				name: lineContent,
-				file: instruction.sourceFile,
-				line: instruction.line + lineadditive // the top element on the stack defines the highlighted line in the editor!!!
+				file: instruction.sourcePath,
+				line: instruction.sourceLine + lineadditive // the top element on the stack defines the highlighted line in the editor!!!
 			});
 			return {
 				frames: frames,
 				count: frames.length
 			};
-
-		// const lineContent = this._sourceLines[this.getCurrentLine()];
-
-		// const frames = new Array<any>();
-		// frames.push({
-		// 	index: null,
-		// 	name: lineContent,
-		// 	file: this._sourceFile,
-		// 	line: this.getCurrentLine() // the top element on the stack defines the highlighted line in the editor!!!
-		// });
-		// return {
-		// 	frames: frames,
-		// 	count: frames.length
-		// };
 	}
 
+	/** TODO: This is used by the BreakPoint Location Request but we don't use that right now.
+	 * If we decide to use this fuction we need to rewrite it.
+	 */
 	public getBreakpoints(path: string, line: number): number[] {
 
 		const l = this._sourceLines[line];
@@ -222,19 +237,19 @@ export class VenusRuntime extends EventEmitter {
 	/*
 	 * Set breakpoint in file with given line.
 	 */
-	public setBreakPoint(path: string, line: number) : MockBreakpoint {
+	public setBreakPoint(path: string, line: number) : VenusBreakpoint {
 
-		const bp = <MockBreakpoint> { verified: false, line, id: this._breakpointId++ };
+		const bp = <VenusBreakpoint> { verified: false, line, id: this._breakpointId++ };
 		let bps = this._breakPoints.get(path);
 		if (!bps) {
-			bps = new Array<MockBreakpoint>();
+			bps = new Array<VenusBreakpoint>();
 			this._breakPoints.set(path, bps);
 		}
 		bps.push(bp);
 
 		this.verifyBreakpoints(path);
 
-		this.toggleBreakpoint(bp.line)
+		this.toggleBreakpoint(path, bp.line)
 
 		return bp;
 	}
@@ -242,7 +257,7 @@ export class VenusRuntime extends EventEmitter {
 	/*
 	 * Clear breakpoint in file with given line.
 	 */
-	public clearBreakPoint(path: string, line: number) : MockBreakpoint | undefined {
+	public clearBreakPoint(path: string, line: number) : VenusBreakpoint | undefined {
 		let bps = this._breakPoints.get(path);
 		if (bps) {
 			const index = bps.findIndex(bp => bp.line === line);
@@ -261,7 +276,7 @@ export class VenusRuntime extends EventEmitter {
 	public clearBreakpoints(path: string): void {
 		const bps = this._breakPoints.get(path);
 		if (bps) {
-			bps.forEach(bp => this.toggleBreakpoint(bp.line));
+			bps.forEach(bp => this.toggleBreakpoint(path, bp.line));
 		}
 		this._breakPoints.delete(path);
 	}
@@ -293,55 +308,22 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
-	/**
-	 * Run through the file.
-	 * If stepEvent is specified only run a single step and emit the stepEvent.
-	 */
-	private run(reverse = false, stepEvent?: string) {
-		if (reverse) {
-			for (let ln = this.getCurrentLine()-1; ln >= 0; ln--) {
-				if (this.fireEventsForLine(ln, stepEvent)) {
-					// this.getCurrentLine() = ln;
-					return;
-				}
-			}
-			// no more lines: stop at first line
-			// this.getCurrentLine() = 0;
-			this.sendEvent('stopOnEntry');
-		} else {
-			for (let ln = this.getCurrentLine()+1; ln < this._sourceLines.length; ln++) {
-				if (this.fireEventsForLine(ln, stepEvent)) {
-					//this.getCurrentLine() = ln;
-					return true;
-				}
-			}
-			// no more lines: run to end
-			this.sendEvent('end');
-		}
-	}
-
 	private verifyBreakpoints(path: string) : void {
 		let bps = this._breakPoints.get(path);
 		if (bps) {
-			this.loadSource(path);
+			let sourceLines = readFileSync(path).toString().split('\n');
 			bps.forEach(bp => {
-				if (!bp.verified && bp.line < this._sourceLines.length) {
-					const srcLine = this._sourceLines[bp.line].trim();
+				if (!bp.verified && bp.line < sourceLines.length) {
+					const srcLine = sourceLines[bp.line].trim();
 
-					// if a line is empty or starts with '+' we don't allow to set a breakpoint but move the breakpoint down
-					if (srcLine.length === 0 || srcLine.indexOf('+') === 0) {
-						bp.line++;
-					}
-					// if a line starts with '-' we don't allow to set a breakpoint but move the breakpoint up
-					if (srcLine.indexOf('-') === 0) {
-						bp.line--;
-					}
-					// don't set 'verified' to true if the line contains the word 'lazy'
-					// in this case the breakpoint will be verified 'lazy' after hitting it once.
-					if (srcLine.indexOf('lazy') < 0) {
+					let pc = this.sourceLine_to_pc.get(this.createSourcelineString(path, bp.line));
+					if (pc == null) {
+						bp.verified = false;
+					} else {
 						bp.verified = true;
 						this.sendEvent('breakpointValidated', bp);
 					}
+
 				}
 			});
 		}
@@ -405,22 +387,13 @@ export class VenusRuntime extends EventEmitter {
 		return false;
 	}
 
-	private toggleBreakpoint(line: number) {
-		simulator.driver.toggleBreakpoint(this.line_to_pc.get(line));
-	}
-
-	/**
-	 * Current line
-	 * Starts with 0, this means: Editor line 1 == Current line 0
-	 */
-	private getCurrentLine(): number {
-		const pc: number = simulator.driver.sim.getPC()
-		let line = this.pc_to_line.get(pc)
-		if (!line) {
-			console.warn("Cannot get current line. Unknown program counter.")
-			line = 1
+	private toggleBreakpoint(path: string, line: number) {
+		let pc = this.sourceLine_to_pc.get(this.createSourcelineString(path, line))
+		if (pc != null) {
+			pc.forEach(progcounter => {
+				simulator.driver.toggleBreakpoint(progcounter);
+			});
 		}
-		return line - 1
 	}
 
 	private sendEvent(event: string, ... args: any[]) {
