@@ -41,6 +41,6 @@ export class riscvAssemblyProvider implements vscode.TextDocumentContentProvider
 	}
 
 	static createUri(title: string): vscode.Uri {
-		return vscode.Uri.parse('venus_asm:' + title)
+		return vscode.Uri.parse('venus_asm:' + title + Date.now().toString())
 	}
 }
