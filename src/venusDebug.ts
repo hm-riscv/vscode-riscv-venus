@@ -271,8 +271,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		response.body = {
 			scopes: [
-				new Scope("Local", this._variableHandles.create("local"), false),
-				new Scope("Global", this._variableHandles.create("global"), true)
+				new Scope("Integer", this._variableHandles.create("integer"), false),
+				new Scope("Float", this._variableHandles.create("float"), true)
 			]
 		};
 		this.sendResponse(response);
@@ -310,14 +310,41 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 			const id = this._variableHandles.get(args.variablesReference);
 
-			const registers = this._runtime.getRegisters()
-
-			if (id) {
+			if (id == "integer") {
+				const registers = this._runtime.getRegisters()
 				registers.forEach(reg => {
 					variables.push({
 						name: "x" + reg.id.toString(),
 						type: "hex",
 						value: "0x" + reg.value.toString(16),
+						variablesReference: 0
+					})
+				})
+
+				// cancelation support for long running requests
+				const nm = id + "_long_running";
+				const ref = this._variableHandles.create(id + "_lr");
+				variables.push({
+					name: nm,
+					type: "object",
+					value: "Object",
+					variablesReference: ref
+				});
+				this._isLongrunning.set(ref, true);
+			} else if (id == "float") {
+
+				const f_registers = this._runtime.getFRegisters()
+				var value;
+				f_registers.forEach(reg => {
+					if (reg.value.isFloat) {
+						value = reg.value.float
+					} else {
+						value = reg.value.double
+					}
+					variables.push({
+						name: "x" + reg.id.toString(),
+						type: "hex",
+						value: "0x" + value.toString(),
 						variablesReference: 0
 					})
 				})
@@ -339,8 +366,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 			variables: variables
 		};
 		this.sendResponse(response);
-
-
 	}
 
 	protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
