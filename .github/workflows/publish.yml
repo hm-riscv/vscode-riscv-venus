@@ -27,4 +27,4 @@ jobs:
       env:
         PUBLISHER_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
       run: |
-        npm run publish -- -p $PUBLISHER_TOKEN
+        npm run publish -- -p "$PUBLISHER_TOKEN"
