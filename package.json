@@ -76,6 +76,30 @@
 				}
 			}
 		},
+		"viewsWelcome": [
+			{
+			  "view": "venusAssembly",
+			  "contents": "[Open Assembly](command:venusAssembly.openAssembly)"
+			}
+		],
+		"commands": [
+            {
+                "command": "venusAssembly.openAssembly",
+                "title": "Open",
+                "icon": {
+                    "light": "resources/light/add.svg",
+                    "dark": "resources/dark/add.svg"
+                }
+            }
+    	],
+		"views": {
+			"debug": [
+			  {
+				"id": "venusAssembly",
+				"name": "Venus Assembly"
+			  }
+			]
+		},
 		"languages": [
 			{
 				"id": "riscv",
@@ -92,6 +116,17 @@
 		"breakpoints": [
 			{
 				"language": "riscv"
+			}
+		],
+		"colors": [
+			{
+				"id": "venus.debugLineBackground",
+				"description": "Background color for active debug line",
+				"defaults": {
+					"dark": "#8174008c",
+					"light": "#8174008c",
+					"highContrast": "#8174008c"
+				}
 			}
 		],
 		"debuggers": [

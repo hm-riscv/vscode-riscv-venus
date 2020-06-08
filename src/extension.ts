@@ -25,9 +25,13 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	}));
 
+
 	// register a configuration provider for 'venus' debug type
 	const venusProvider = new VenusConfigurationProvider();
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('venus', venusProvider));
+	// register a content provider for the riscv-scheme
+
+
 
 	// This makes sure that we have a instance active
 	VenusRenderer.getInstance();
