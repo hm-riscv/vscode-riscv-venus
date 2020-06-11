@@ -8,6 +8,7 @@ import simulator = require('./runtime/riscvSimulator');
 import range from 'lodash/range';
 import { VenusRenderer } from './venusRenderer';
 import { AssemblyLineInfo } from './assemblyView';
+import { StackFrame } from 'vscode-debugadapter';
 
 export interface VenusBreakpoint {
 	id: number;
@@ -33,6 +34,13 @@ export interface AssemblyLine {
 	sourceLine: number;
 }
 
+export interface CallStackItem {
+	index: number;
+	name: string;
+	file: string;
+	line: number;
+}
+
 /**
  * A Mock runtime with minimal debugger functionality.
  */
@@ -43,6 +51,9 @@ export class VenusRuntime extends EventEmitter {
 	public get sourceFile() {
 		return this._sourceFile;
 	}
+
+	// This stack keeps track of the functions we jumped from
+	private _functionStack = new Array<CallStackItem>();
 
 	// the contents (= lines) of the one and only file
 	private _sourceLines: string[];
@@ -69,6 +80,7 @@ export class VenusRuntime extends EventEmitter {
 	 */
 	public start(program: string, stopOnEntry: boolean) {
 		if (stopOnEntry) {
+			this.updateStack();
 			this.sendEvent('stopOnEntry');
 		} else {
 			// we just start to run until we hit a breakpoint or an exception
@@ -164,6 +176,7 @@ export class VenusRuntime extends EventEmitter {
 			simulator.driver.undo()
 		} else {
 			simulator.driver.step()
+			this.updateStack()
 		}
 		if (simulator.driver.isFinished()) {
 			this.sendEvent('end')
@@ -172,13 +185,33 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
+	private continueRun() {
+		try {
+			if (!simulator.driver.sim.isDone()) {
+				simulator.driver.sim.step()
+				this.updateStack()
 
+			}
+			while (true) {
+				if (simulator.driver.sim.isDone() || (simulator.driver.sim.atBreakpoint())) {
+					simulator.driver.exitcodecheck()
+					return
+				}
+				simulator.driver.sim.step()
+				this.updateStack()
+			}
+		} catch (e) {
+			simulator.driver.runEnd()
+			simulator.driver.handleError("RunStart", e, e == simulator.driver.AlignmentError || e == simulator.driver.StoreError || e == simulator.driver.ExceededAllowedCyclesError)
+		}
+	}
 	/**
 	 * Continue execution to the end/beginning.
 	 */
 	public continue() {
 		//TODO this runs one execution too long
-		simulator.driver.continue()
+		//simulator.driver.continue()
+		this.continueRun();
 		if (simulator.driver.isFinished()) {
 			this.sendEvent('end')
 		} else {
@@ -186,6 +219,44 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
+	private updateStack() {
+		const jumpRegex = new RegExp("jalr?\\sx1")
+
+		let instInfo = simulator.driver.getCurrentInstruction()
+
+		var assemblyLine: AssemblyLine = {pc: instInfo.pc, mCode: instInfo.mcode, basicCode: instInfo.basicCode, assemblyViewLine: 0, sourceLine: 0, sourcePath: "unkown"};
+
+		let pc = simulator.driver.sim.getPC();
+		let instruction = this.pc_to_assemblyLine.get(pc);
+		if (instruction != null) {
+			assemblyLine.assemblyViewLine = instruction.assemblyViewLine
+			assemblyLine.sourceLine = instruction.sourceLine
+			assemblyLine.sourcePath = instruction.sourcePath
+		}
+		const lineadditive = 0;
+
+
+		if (assemblyLine != null) {
+			const lineContent = assemblyLine.basicCode
+
+			if (this._functionStack.length > 0 && this._functionStack[0].name.startsWith("jalr x0")) {
+				this._functionStack.shift()
+				this._functionStack.shift()
+			} else if (this._functionStack.length > 0 && jumpRegex.test(this._functionStack[0].name)) {
+				// if there is a jump we keep the jump on the stack
+			} else {
+				this._functionStack.shift()
+			}
+
+			this._functionStack.unshift({
+					index: 0,
+					name: lineContent,
+					file: assemblyLine.sourcePath,
+					line: assemblyLine.sourceLine + lineadditive // the top element on the stack defines the highlighted line in the editor!!!
+				});
+
+		}
+	}
 
 	/**
 	 * Returns a fake 'stacktrace' where every 'stackframe' is a word from the current line.
@@ -193,22 +264,11 @@ export class VenusRuntime extends EventEmitter {
 	 */
 	public stack(startFrame: number, endFrame: number): any {
 
-		let pc = simulator.driver.sim.getPC();
-		let instruction = this.pc_to_assemblyLine.get(pc)!;
-		const lineContent = instruction.basicCode
-		const lineadditive = 0;
+		return {
+			frames: this._functionStack,
+			count: this._functionStack.length
+		};
 
-		const frames = new Array<any>();
-		frames.push({
-				index: null,
-				name: lineContent,
-				file: instruction.sourcePath,
-				line: instruction.sourceLine + lineadditive // the top element on the stack defines the highlighted line in the editor!!!
-			});
-			return {
-				frames: frames,
-				count: frames.length
-			};
 	}
 
 	/** TODO: This is used by the BreakPoint Location Request but we don't use that right now.

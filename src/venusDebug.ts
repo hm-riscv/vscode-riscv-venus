@@ -75,7 +75,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.setDebuggerColumnsStartAt1(false);
 		this._runtime = new VenusRuntime();
 
-
+		this._openAssemblyDisposable = commands.registerCommand('venusAssembly.openAssembly', () =>
+		this.openAssemblyView());
 		this._providerDisposable = workspace.registerTextDocumentContentProvider(riscvAsmScheme, this._riscvAssemblyProvider);
 
 
@@ -193,9 +194,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._runtime.start(args.program, !!args.stopOnEntry);
 
 		this.openAssemblyView();
-		this._openAssemblyDisposable = commands.registerCommand('venusAssembly.openAssembly', () =>
-		this.openAssemblyView());
-
 	}
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
@@ -561,9 +559,9 @@ export class VenusDebugSession extends LoggingDebugSession {
 				});
 			}
 		}
-		this._openAssemblyDisposable.dispose();
-		this._providerDisposable.dispose();
-		this._windowDisposable.dispose();
+		this._openAssemblyDisposable?.dispose();
+		this._providerDisposable?.dispose();
+		this._windowDisposable?.dispose();
 		this.sendResponse(response)
 	}
 
@@ -578,6 +576,9 @@ export class VenusDebugSession extends LoggingDebugSession {
 		if (this._windowDisposable != null) {
 			this._windowDisposable.dispose();
 		}
+
+
+
 		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()));
 		this._assemblyDocument = await workspace.openTextDocument(riscvAssemblyProvider.createUri("assembly")); // calls back into the provider
 		languages.setTextDocumentLanguage(this._assemblyDocument, "riscv")
