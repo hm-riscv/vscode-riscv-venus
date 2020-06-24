@@ -133,6 +133,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 		// the adapter implements the configurationDoneRequest.
 		response.body.supportsConfigurationDoneRequest = true;
 
+		// the adapter supports changing register values.
+		response.body.supportsSetVariable = true;
+
+
 		// make VS Code to use 'evaluate' when hovering over source
 		response.body.supportsEvaluateForHovers = true;
 
@@ -340,7 +344,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 						value = reg.value.double
 					}
 					variables.push({
-						name: "x" + reg.id.toString(),
+						name: "f" + reg.id.toString(),
 						type: "hex",
 						value: "0x" + value.toString(),
 						variablesReference: 0
@@ -364,6 +368,12 @@ export class VenusDebugSession extends LoggingDebugSession {
 			variables: variables
 		};
 		this.sendResponse(response);
+	}
+
+	protected setVariableRequest(response: DebugProtocol.SetVariableResponse, args: DebugProtocol.SetVariableArguments, request?: DebugProtocol.Request): void {
+		this._runtime.setRegister(parseInt(args.name.replace("x", "")), parseInt(args.value));
+		this.sendResponse(response);
+		this.sendEvent(new StoppedEvent('setVariable', VenusDebugSession.THREAD_ID))
 	}
 
 	protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
@@ -564,6 +574,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._windowDisposable?.dispose();
 		this.sendResponse(response)
 	}
+
+
 
 	//---- helpers
 

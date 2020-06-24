@@ -148,7 +148,7 @@ export class VenusRuntime extends EventEmitter {
 		return range(0,32).map(id => {
 			return {
 				id,
-				value: simulator.driver.sim.getReg_za3lpa$(id)
+				value: simulator.driver.getRegister(id)
 			}
 		})
 	}
@@ -160,9 +160,30 @@ export class VenusRuntime extends EventEmitter {
 		return range(0,32).map(id => {
 			return {
 				id,
-				value: simulator.driver.sim.getFReg_za3lpa$(id)
+				value: simulator.driver.getFRegister(id)
 			}
 		})
+	}
+
+	/**
+	 * Sets a int Register in the simulator
+	 * @param reg The register with value
+	 */
+	public setRegister(id: number, value: number) {
+		if (Number.isInteger(id) && Number.isInteger(value)) {
+			simulator.driver.setRegister(id, value)
+		}
+	}
+
+	/**
+	 * Sets a float Register in the simulator.
+	 * Make sure the register value is float.
+	 * @param reg The register with value
+	 */
+	public setFRegister(id: number, value: number) {
+		if (Number.isInteger(id) && !Number.isInteger(value)) {
+			simulator.driver.setFRegister(id, value)
+		}
 	}
 
 	// MOCK RUNTIME DEFINED METHODS
