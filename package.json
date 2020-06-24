@@ -76,12 +76,6 @@
 				}
 			}
 		},
-		"viewsWelcome": [
-			{
-				"view": "venusAssembly",
-				"contents": "[Open Assembly](command:venusAssembly.openAssembly)"
-			}
-		],
 		"commands": [
 			{
 				"command": "venusAssembly.openAssembly",
@@ -95,11 +89,18 @@
 		"views": {
 			"debug": [
 				{
+					"when": "resourceLangId == riscv",
 					"id": "venusAssembly",
 					"name": "Venus Assembly"
 				}
 			]
 		},
+		"viewsWelcome": [
+			{
+				"view": "venusAssembly",
+				"contents": "[Open Assembly](command:venusAssembly.openAssembly)"
+			}
+		],
 		"languages": [
 			{
 				"id": "riscv",
