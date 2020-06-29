@@ -319,7 +319,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 						name: "x" + reg.id.toString(),
 						type: "hex",
 						value: "0x" + reg.value.toString(16),
-						variablesReference: 0
+						variablesReference: reg.id
 					})
 				})
 
@@ -346,8 +346,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 					variables.push({
 						name: "f" + reg.id.toString(),
 						type: "hex",
-						value: "0x" + value.toString(),
-						variablesReference: 0
+						value: reg.value.toHex(),
+						variablesReference: reg.id + 32
 					})
 				})
 
@@ -371,9 +371,25 @@ export class VenusDebugSession extends LoggingDebugSession {
 	}
 
 	protected setVariableRequest(response: DebugProtocol.SetVariableResponse, args: DebugProtocol.SetVariableArguments, request?: DebugProtocol.Request): void {
-		this._runtime.setRegister(parseInt(args.name.replace("x", "")), parseInt(args.value));
+		if (args.name.startsWith("x")) {
+			if (Number.isInteger(parseInt(args.value))) {
+				this._runtime.setRegister(parseInt(args.name.replace("x", "")), parseInt(args.value));
+			} else {
+				response.success = false;
+				response.message = "The specified value for register could not be interpreted as an integer"
+			}
+		} else if (args.name.startsWith("f")) {
+			if (!isNaN(parseFloat(args.value))) {
+				this._runtime.setFRegister(parseInt(args.name.replace("f", "")), parseFloat(args.value));
+			} else {
+				response.success = false;
+				response.message = "The specified value for register could not be interpreted as an float"
+			}
+		}
 		this.sendResponse(response);
-		this.sendEvent(new StoppedEvent('setVariable', VenusDebugSession.THREAD_ID))
+		if (response.success) {
+			this.sendEvent(new StoppedEvent('setVariable', VenusDebugSession.THREAD_ID))
+		}
 	}
 
 	protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
