@@ -75,7 +75,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.setDebuggerColumnsStartAt1(false);
 		this._runtime = new VenusRuntime();
 
-
+		this._openAssemblyDisposable = commands.registerCommand('venusAssembly.openAssembly', () =>
+		this.openAssemblyView());
 		this._providerDisposable = workspace.registerTextDocumentContentProvider(riscvAsmScheme, this._riscvAssemblyProvider);
 
 
@@ -131,6 +132,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		// the adapter implements the configurationDoneRequest.
 		response.body.supportsConfigurationDoneRequest = true;
+
+		// the adapter supports changing register values.
+		response.body.supportsSetVariable = true;
+
 
 		// make VS Code to use 'evaluate' when hovering over source
 		response.body.supportsEvaluateForHovers = true;
@@ -193,9 +198,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._runtime.start(args.program, !!args.stopOnEntry);
 
 		this.openAssemblyView();
-		this._openAssemblyDisposable = commands.registerCommand('venusAssembly.openAssembly', () =>
-		this.openAssemblyView());
-
 	}
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
@@ -271,8 +273,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		response.body = {
 			scopes: [
-				new Scope("Local", this._variableHandles.create("local"), false),
-				new Scope("Global", this._variableHandles.create("global"), true)
+				new Scope("Integer", this._variableHandles.create("integer"), false),
+				new Scope("Float", this._variableHandles.create("float"), true)
 			]
 		};
 		this.sendResponse(response);
@@ -310,15 +312,42 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 			const id = this._variableHandles.get(args.variablesReference);
 
-			const registers = this._runtime.getRegisters()
-
-			if (id) {
+			if (id == "integer") {
+				const registers = this._runtime.getRegisters()
 				registers.forEach(reg => {
 					variables.push({
 						name: "x" + reg.id.toString(),
 						type: "hex",
 						value: "0x" + reg.value.toString(16),
-						variablesReference: 0
+						variablesReference: reg.id
+					})
+				})
+
+				// cancelation support for long running requests
+				const nm = id + "_long_running";
+				const ref = this._variableHandles.create(id + "_lr");
+				variables.push({
+					name: nm,
+					type: "object",
+					value: "Object",
+					variablesReference: ref
+				});
+				this._isLongrunning.set(ref, true);
+			} else if (id == "float") {
+
+				const f_registers = this._runtime.getFRegisters()
+				var value;
+				f_registers.forEach(reg => {
+					if (reg.value.isFloat) {
+						value = reg.value.float
+					} else {
+						value = reg.value.double
+					}
+					variables.push({
+						name: "f" + reg.id.toString(),
+						type: "hex",
+						value: reg.value.toHex(),
+						variablesReference: reg.id + 32
 					})
 				})
 
@@ -339,8 +368,28 @@ export class VenusDebugSession extends LoggingDebugSession {
 			variables: variables
 		};
 		this.sendResponse(response);
+	}
 
-
+	protected setVariableRequest(response: DebugProtocol.SetVariableResponse, args: DebugProtocol.SetVariableArguments, request?: DebugProtocol.Request): void {
+		if (args.name.startsWith("x")) {
+			if (Number.isInteger(parseInt(args.value))) {
+				this._runtime.setRegister(parseInt(args.name.replace("x", "")), parseInt(args.value));
+			} else {
+				response.success = false;
+				response.message = "The specified value for register could not be interpreted as an integer"
+			}
+		} else if (args.name.startsWith("f")) {
+			if (!isNaN(parseFloat(args.value))) {
+				this._runtime.setFRegister(parseInt(args.name.replace("f", "")), parseFloat(args.value));
+			} else {
+				response.success = false;
+				response.message = "The specified value for register could not be interpreted as an float"
+			}
+		}
+		this.sendResponse(response);
+		if (response.success) {
+			this.sendEvent(new StoppedEvent('setVariable', VenusDebugSession.THREAD_ID))
+		}
 	}
 
 	protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
@@ -536,11 +585,13 @@ export class VenusDebugSession extends LoggingDebugSession {
 				});
 			}
 		}
-		this._openAssemblyDisposable.dispose();
-		this._providerDisposable.dispose();
-		this._windowDisposable.dispose();
+		this._openAssemblyDisposable?.dispose();
+		this._providerDisposable?.dispose();
+		this._windowDisposable?.dispose();
 		this.sendResponse(response)
 	}
+
+
 
 	//---- helpers
 
@@ -553,6 +604,9 @@ export class VenusDebugSession extends LoggingDebugSession {
 		if (this._windowDisposable != null) {
 			this._windowDisposable.dispose();
 		}
+
+
+
 		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()));
 		this._assemblyDocument = await workspace.openTextDocument(riscvAssemblyProvider.createUri("assembly")); // calls back into the provider
 		languages.setTextDocumentLanguage(this._assemblyDocument, "riscv")

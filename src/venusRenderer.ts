@@ -11,7 +11,7 @@ export class VenusRenderer {
 
 	private constructor() {
 
-		var emitter: EventEmitter = simulator.venus.venus.Renderer.setEmitter(new EventEmitter());
+		var emitter: EventEmitter.EventEmitter = simulator.venus.venus.Renderer.setEmitter(new EventEmitter.EventEmitter());
 		emitter.on("assembler_error", (e) => {this.showErrorWithPopup(e)});
 		emitter.on("warning", (str) => {this.printWarning(str)});
 		emitter.on("error", (e) => {this.printError(e)});
