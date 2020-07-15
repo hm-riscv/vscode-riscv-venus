@@ -25,6 +25,14 @@ export function activate(context: vscode.ExtensionContext) {
 		});
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.setVariableFormat', async config => {
+		const result = await vscode.window.showQuickPick(['hex', 'decimal', 'ascii', 'binary'], {
+			placeHolder: "hex, decimal, ascii, or binary",
+		});
+		await vscode.workspace.getConfiguration('riscv-venus').update('variableFormat', result, false)
+		return vscode.window.showInformationMessage(`Changed Variable Format to ${result}`)
+	}));
+
 	// register a configuration provider for 'venus' debug type
 	const venusProvider = new VenusConfigurationProvider();
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('venus', venusProvider));

@@ -75,10 +75,14 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.setDebuggerColumnsStartAt1(false);
 		this._runtime = new VenusRuntime();
 
-		this._openAssemblyDisposable = commands.registerCommand('venusAssembly.openAssembly', () =>
+		this._openAssemblyDisposable = commands.registerCommand('riscv-venus.openAssembly', () =>
 		this.openAssemblyView());
 		this._providerDisposable = workspace.registerTextDocumentContentProvider(riscvAsmScheme, this._riscvAssemblyProvider);
-
+		workspace.onDidChangeConfiguration(e => {
+			if (e != null) {
+				this.sendEvent(new StoppedEvent('settings changed', VenusDebugSession.THREAD_ID))
+			}
+		})
 
 		// setup event handlers
 		this._runtime.on('stopOnEntry', () => {
@@ -283,7 +287,63 @@ export class VenusDebugSession extends LoggingDebugSession {
 	protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request) {
 
 		const variables: DebugProtocol.Variable[] = [];
-
+		let test = workspace.getConfiguration('riscv-venus').get('variableFormat');
+		let formatFunction: (para: number) => string;
+		let floatFormatFunction: (decimal: any) => string;
+		switch (test) {
+			case "hex": {
+				formatFunction = (para: number) => {
+					return "0x" + para.toString(16);
+				}
+				floatFormatFunction = (decimal: any) => {
+					return decimal.toHex();
+				}
+				break;
+			}
+			case "binary": {
+				formatFunction = (para: number) => {
+					return (para.toString(2).padStart(32, '0'));
+				}
+				floatFormatFunction = (decimal: any) => {
+					return decimal.toHex();
+				}
+				break;
+			}
+			case "decimal": {
+				formatFunction = (para: number) => {
+					return para.toString(10)
+				}
+				floatFormatFunction = (decimal: any) => {
+					return decimal.toDecimal();
+				}
+				break;
+			}
+			case "ascii": {
+				formatFunction = (para: number) => {
+					let binary = para.toString(2).padStart(32, '0')
+					// Split string into
+					let asciiBin = binary.match(/.{8}/g);
+					if (asciiBin != null) {
+						return String.fromCharCode(parseInt(asciiBin[0], 2)) + String.fromCharCode(parseInt(asciiBin[1], 2)) +
+							String.fromCharCode(parseInt(asciiBin[2], 2)) + String.fromCharCode(parseInt(asciiBin[3], 2))
+					}
+					return ''
+				}
+				floatFormatFunction = (decimal: any) => {
+					return decimal.toAscii();
+				}
+				break;
+			}
+			default: {
+				formatFunction = (para: number) => {
+					return "0x" + para.toString(16);
+				}
+				floatFormatFunction = (decimal: any) => {
+					return decimal.toHex();
+				}
+				break;
+			}
+		}
 		if (this._isLongrunning.get(args.variablesReference)) {
 			// long running
 
@@ -316,9 +376,9 @@ export class VenusDebugSession extends LoggingDebugSession {
 				const registers = this._runtime.getRegisters()
 				registers.forEach(reg => {
 					variables.push({
-						name: "x" + reg.id.toString(),
+						name: "x" + reg.id.toString().padStart(2,'0'),
 						type: "hex",
-						value: "0x" + reg.value.toString(16),
+						value: formatFunction(reg.value),
 						variablesReference: reg.id
 					})
 				})
@@ -344,9 +404,9 @@ export class VenusDebugSession extends LoggingDebugSession {
 						value = reg.value.double
 					}
 					variables.push({
-						name: "f" + reg.id.toString(),
+						name: "f" + reg.id.toString().padStart(2,'0'),
 						type: "hex",
-						value: reg.value.toHex(),
+						value: floatFormatFunction(reg.value),
 						variablesReference: reg.id + 32
 					})
 				})

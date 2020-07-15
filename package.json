@@ -73,16 +73,29 @@
 				"riscv-venus.enableCodeLens": {
 					"type": "boolean",
 					"default": true
+				},
+				"riscv-venus.variableFormat": {
+					"type": "string",
+					"default": "hex",
+					"enum": ["hex", "binary", "decimal", "ascii"]
 				}
 			}
 		},
 		"commands": [
 			{
-				"command": "venusAssembly.openAssembly",
-				"title": "Open",
+				"command": "riscv-venus.openAssembly",
+				"title": "Open Assembly",
 				"icon": {
-					"light": "resources/light/add.svg",
-					"dark": "resources/dark/add.svg"
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
+			},
+			{
+				"command": "riscv-venus.setVariableFormat",
+				"title": "Set Variable Format",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
 				}
 			}
 		],
@@ -90,15 +103,23 @@
 			"debug": [
 				{
 					"when": "resourceLangId == riscv",
-					"id": "venusAssembly",
-					"name": "Venus Assembly"
+					"id": "riscv-venus.Assembly",
+					"name": "Venus Options"
+				}
+			]
+		},
+		"menus": {
+			"view/title": [
+				{
+				  "command": "riscv-venus.openAssembly",
+				  "when": "view == venusAssembly"
 				}
 			]
 		},
 		"viewsWelcome": [
 			{
-				"view": "venusAssembly",
-				"contents": "[Open Assembly](command:venusAssembly.openAssembly)"
+				"view": "riscv-venus.Assembly",
+				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)"
 			}
 		],
 		"languages": [
