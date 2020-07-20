@@ -1,7 +1,7 @@
 {
 	"name": "riscv-venus",
 	"displayName": "RISC-V Venus Simulator",
-	"version": "0.0.3",
+	"version": "0.0.5",
 	"publisher": "hm",
 	"description": "RISC-V Venus Simulator embedded in VS Code",
 	"author": {
