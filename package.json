@@ -1,7 +1,7 @@
 {
 	"name": "riscv-venus",
 	"displayName": "RISC-V Venus Simulator",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"publisher": "hm",
 	"description": "RISC-V Venus Simulator embedded in VS Code",
 	"author": {
@@ -31,7 +31,7 @@
 	"scripts": {
 		"prepublish": "tsc -p ./src",
 		"compile": "tsc -p ./src",
-		"tslint": "tslint ./src/**/*.ts",
+		"eslint": "eslint ./src/**/*.ts",
 		"watch": "tsc -w -p ./src",
 		"test": "mocha -u tdd ./out/tests/",
 		"package": "vsce package",
@@ -44,22 +44,22 @@
 		"kotlin": "^1.3.61",
 		"lodash": "^4.17.15",
 		"node-localstorage": "^2.1.6",
+		"typescript": "^3.9.5",
 		"utf-8-validate": "^5.0.2",
 		"vscode-debugadapter": "1.40.0"
 	},
 	"devDependencies": {
 		"@types/mocha": "5.2.7",
-		"@types/node": "10.12.12",
-		"@types/vscode": "^1.43.0",
+		"@types/node": "^14.0.13",
+		"@types/vscode": "^1.46.0",
+		"eslint": "7.2.0",
 		"grunt": "1.0.4",
 		"grunt-cli": "^1.2.0",
 		"grunt-contrib-copy": "^1.0.0",
 		"grunt-exec": "^3.0.0",
 		"mocha": "6.2.0",
 		"npx": "^10.2.2",
-		"tslint": "5.18.0",
-		"typescript": "3.5.3",
-		"vsce": "^1.74.0",
+		"vsce": "^1.76.1",
 		"vscode-debugadapter-testsupport": "1.40.3"
 	},
 	"main": "./out/extension",
@@ -73,33 +73,55 @@
 				"riscv-venus.enableCodeLens": {
 					"type": "boolean",
 					"default": true
+				},
+				"riscv-venus.variableFormat": {
+					"type": "string",
+					"default": "hex",
+					"enum": ["hex", "binary", "decimal", "ascii"]
 				}
 			}
 		},
-		"viewsWelcome": [
+		"commands": [
 			{
-			  "view": "venusAssembly",
-			  "contents": "[Open Assembly](command:venusAssembly.openAssembly)"
+				"command": "riscv-venus.openAssembly",
+				"title": "Open Assembly",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
+			},
+			{
+				"command": "riscv-venus.setVariableFormat",
+				"title": "Set Variable Format",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
 			}
 		],
-		"commands": [
-            {
-                "command": "venusAssembly.openAssembly",
-                "title": "Open",
-                "icon": {
-                    "light": "resources/light/add.svg",
-                    "dark": "resources/dark/add.svg"
-                }
-            }
-    	],
 		"views": {
 			"debug": [
-			  {
-				"id": "venusAssembly",
-				"name": "Venus Assembly"
-			  }
+				{
+					"when": "resourceLangId == riscv",
+					"id": "riscv-venus.Assembly",
+					"name": "Venus Options"
+				}
 			]
 		},
+		"menus": {
+			"view/title": [
+				{
+				  "command": "riscv-venus.openAssembly",
+				  "when": "view == venusAssembly"
+				}
+			]
+		},
+		"viewsWelcome": [
+			{
+				"view": "riscv-venus.Assembly",
+				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)"
+			}
+		],
 		"languages": [
 			{
 				"id": "riscv",
