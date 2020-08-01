@@ -7,7 +7,7 @@ import {
 	LoggingDebugSession,
 	InitializedEvent, TerminatedEvent, StoppedEvent, BreakpointEvent, OutputEvent,
 	ProgressStartEvent, ProgressUpdateEvent, ProgressEndEvent,
-	Thread, StackFrame, Scope, Source, Handles, Breakpoint
+	Thread, StackFrame, Scope, Source, Handles, Breakpoint, Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
@@ -56,7 +56,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 	private _configurationDone = new Subject();
 
 	private _cancelationTokens = new Map<number, boolean>();
-	private _isLongrunning = new Map<number, boolean>();
+	//private _isLongrunning = new Map<number, boolean>();
 
 	private _reportProgress = false;
 	private _progressId = 10000;
@@ -293,7 +293,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		switch (test) {
 			case "hex": {
 				formatFunction = (para: number) => {
-					return "0x" + para.toString(16);
+					return "0x" + ((para >>> 0).toString(16).toUpperCase().padStart(8, '0'));
 				}
 				floatFormatFunction = (decimal: any) => {
 					return decimal.toHex();
@@ -302,7 +302,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 			}
 			case "binary": {
 				formatFunction = (para: number) => {
-					return (para.toString(2).padStart(32, '0'));
+					return ((para >>> 0).toString(2).padStart(32, '0'));
 				}
 				floatFormatFunction = (decimal: any) => {
 					return decimal.toHex();
@@ -320,7 +320,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 			}
 			case "ascii": {
 				formatFunction = (para: number) => {
-					let binary = para.toString(2).padStart(32, '0')
+					let binary = (para >>> 0).toString(2).padStart(32, '0')
 					// Split string into
 					let asciiBin = binary.match(/.{8}/g);
 					if (asciiBin != null) {
@@ -336,7 +336,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 			}
 			default: {
 				formatFunction = (para: number) => {
-					return "0x" + para.toString(16);
+					return "0x" + (para >>> 0).toString(16);
 				}
 				floatFormatFunction = (decimal: any) => {
 					return decimal.toHex();
@@ -344,84 +344,39 @@ export class VenusDebugSession extends LoggingDebugSession {
 				break;
 			}
 		}
-		if (this._isLongrunning.get(args.variablesReference)) {
-			// long running
 
-			if (request) {
-				this._cancelationTokens.set(request.seq, false);
-			}
+		const id = this._variableHandles.get(args.variablesReference);
 
-			for (let i = 0; i < 100; i++) {
-				await timeout(1000);
+		if (id == "integer") {
+			const registers = this._runtime.getRegisters()
+			registers.forEach(reg => {
 				variables.push({
-					name: `i_${i}`,
-					type: "integer",
-					value: `${i}`,
-					variablesReference: 0
-				});
-				if (request && this._cancelationTokens.get(request.seq)) {
-					break;
+					name: "x" + reg.id.toString().padStart(2,'0'),
+					type: "hex",
+					value: formatFunction(reg.value),
+					variablesReference: 0,
+					indexedVariables: 0,
+					namedVariables: 0,
+					evaluateName: reg.id.toString(),
+				})
+			})
+		} else if (id == "float") {
+
+			const f_registers = this._runtime.getFRegisters()
+			var value;
+			f_registers.forEach(reg => {
+				if (reg.value.isFloat) {
+					value = reg.value.float
+				} else {
+					value = reg.value.double
 				}
-			}
-
-			if (request) {
-				this._cancelationTokens.delete(request.seq);
-			}
-
-		} else {
-
-			const id = this._variableHandles.get(args.variablesReference);
-
-			if (id == "integer") {
-				const registers = this._runtime.getRegisters()
-				registers.forEach(reg => {
-					variables.push({
-						name: "x" + reg.id.toString().padStart(2,'0'),
-						type: "hex",
-						value: formatFunction(reg.value),
-						variablesReference: reg.id
-					})
-				})
-
-				// cancelation support for long running requests
-				const nm = id + "_long_running";
-				const ref = this._variableHandles.create(id + "_lr");
 				variables.push({
-					name: nm,
-					type: "object",
-					value: "Object",
-					variablesReference: ref
-				});
-				this._isLongrunning.set(ref, true);
-			} else if (id == "float") {
-
-				const f_registers = this._runtime.getFRegisters()
-				var value;
-				f_registers.forEach(reg => {
-					if (reg.value.isFloat) {
-						value = reg.value.float
-					} else {
-						value = reg.value.double
-					}
-					variables.push({
-						name: "f" + reg.id.toString().padStart(2,'0'),
-						type: "hex",
-						value: floatFormatFunction(reg.value),
-						variablesReference: reg.id + 32
-					})
+					name: "f" + reg.id.toString().padStart(2,'0'),
+					type: "hex",
+					value: floatFormatFunction(reg.value),
+					variablesReference: reg.id + 32
 				})
-
-				// cancelation support for long running requests
-				const nm = id + "_long_running";
-				const ref = this._variableHandles.create(id + "_lr");
-				variables.push({
-					name: nm,
-					type: "object",
-					value: "Object",
-					variablesReference: ref
-				});
-				this._isLongrunning.set(ref, true);
-			}
+			})
 		}
 
 		response.body = {
