@@ -278,7 +278,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		response.body = {
 			scopes: [
 				new Scope("Integer", this._variableHandles.create("integer"), false),
-				new Scope("Float", this._variableHandles.create("float"), true)
+				new Scope("Float", this._variableHandles.create("float"), false)
 			]
 		};
 		this.sendResponse(response);
@@ -287,10 +287,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 	protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request) {
 
 		const variables: DebugProtocol.Variable[] = [];
-		let test = workspace.getConfiguration('riscv-venus').get('variableFormat');
+		let format = workspace.getConfiguration('riscv-venus').get('variableFormat');
 		let formatFunction: (para: number) => string;
 		let floatFormatFunction: (decimal: any) => string;
-		switch (test) {
+		switch (format) {
 			case "hex": {
 				formatFunction = (para: number) => {
 					return "0x" + ((para >>> 0).toString(16).toUpperCase().padStart(8, '0'));
@@ -357,7 +357,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 					variablesReference: 0,
 					indexedVariables: 0,
 					namedVariables: 0,
-					evaluateName: reg.id.toString(),
 				})
 			})
 		} else if (id == "float") {
@@ -374,7 +373,9 @@ export class VenusDebugSession extends LoggingDebugSession {
 					name: "f" + reg.id.toString().padStart(2,'0'),
 					type: "hex",
 					value: floatFormatFunction(reg.value),
-					variablesReference: reg.id + 32
+					variablesReference: 0,
+					indexedVariables: 0,
+					namedVariables: 0,
 				})
 			})
 		}
