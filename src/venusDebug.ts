@@ -19,6 +19,41 @@ const { Subject } = require('await-notify');
 
 const riscvAsmScheme = 'venus_asm';
 
+const regNames = new Map([
+	["0", "zero"],
+	["1", "ra"],
+	["2", "sp"],
+	["3", "gp"],
+	["4", "tp"],
+	["5", "t0"],
+	["6", "t1"],
+	["7", "t2"],
+	["8", "s0"],
+	["9", "s1"],
+	["10", "a0"],
+	["11", "a1"],
+	["12", "a2"],
+	["13", "a3"],
+	["14", "a4"],
+	["15", "a5"],
+	["16", "a6"],
+	["17", "a7"],
+	["18", "s2"],
+	["19", "s3"],
+	["20", "s4"],
+	["21", "s5"],
+	["22", "s6"],
+	["23", "s7"],
+	["24", "s8"],
+	["25", "s9"],
+	["26", "s10"],
+	["27", "s11"],
+	["28", "t3"],
+	["29", "t4"],
+	["30", "t5"],
+	["31", "t6"],
+]);
+
 function timeout(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -52,7 +87,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 	private _assemblyViewEditor: TextEditor;
 	private _assemblyDocument: TextDocument;
 	private _openAssemblyDisposable: Disposable;
-
 	private _configurationDone = new Subject();
 
 	private _cancelationTokens = new Map<number, boolean>();
@@ -83,7 +117,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 				this.sendEvent(new StoppedEvent('settings changed', VenusDebugSession.THREAD_ID))
 			}
 		})
-
 		// setup event handlers
 		this._runtime.on('stopOnEntry', () => {
 			this.sendEvent(new StoppedEvent('entry', VenusDebugSession.THREAD_ID));
@@ -351,7 +384,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 			const registers = this._runtime.getRegisters()
 			registers.forEach(reg => {
 				variables.push({
-					name: "x" + reg.id.toString().padStart(2,'0'),
+					name: "x" + reg.id.toString().padStart(2,'0') + (" (" + regNames.get(reg.id.toString()) + ")").padEnd(7, " "),
 					type: "hex",
 					value: formatFunction(reg.value),
 					variablesReference: 0,
@@ -389,7 +422,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 	protected setVariableRequest(response: DebugProtocol.SetVariableResponse, args: DebugProtocol.SetVariableArguments, request?: DebugProtocol.Request): void {
 		if (args.name.startsWith("x")) {
 			if (Number.isInteger(parseInt(args.value))) {
-				this._runtime.setRegister(parseInt(args.name.replace("x", "")), parseInt(args.value));
+				this._runtime.setRegister(parseInt(args.name.replace(new RegExp("\s(.*)", "i"), "").replace("x", "")), parseInt(args.value));
 			} else {
 				response.success = false;
 				response.message = "The specified value for register could not be interpreted as an integer"
