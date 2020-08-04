@@ -229,8 +229,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		// wait until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(1000);
-
-
 		// start the program in the runtime
 		this._runtime.start(args.program, !!args.stopOnEntry);
 

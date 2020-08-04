@@ -77,7 +77,12 @@
 				"riscv-venus.variableFormat": {
 					"type": "string",
 					"default": "hex",
-					"enum": ["hex", "binary", "decimal", "ascii"]
+					"enum": [
+						"hex",
+						"binary",
+						"decimal",
+						"ascii"
+					]
 				}
 			}
 		},
@@ -111,8 +116,8 @@
 		"menus": {
 			"view/title": [
 				{
-				  "command": "riscv-venus.openAssembly",
-				  "when": "view == venusAssembly"
+					"command": "riscv-venus.openAssembly",
+					"when": "view == venusAssembly"
 				}
 			]
 		},
