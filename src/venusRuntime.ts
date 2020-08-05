@@ -485,7 +485,8 @@ export class VenusRuntime extends EventEmitter {
 	}
 
 	private receiveEcall(json: string) {
-		let test = json;
-		let string = JSON.parse(json)
+		let jString = json;
+		let jsonObj = JSON.parse(jString)
+		VenusRenderer.getInstance().printConsole("Received Ecall: " + jString)
 	}
 }
