@@ -9,6 +9,8 @@ import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken,
 import { VenusDebugSession } from './venusDebug';
 import * as Net from 'net';
 import { VenusRenderer } from './venusRenderer';
+import path from 'path';
+import fs from 'fs'
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -32,6 +34,34 @@ export function activate(context: vscode.ExtensionContext) {
 		await vscode.workspace.getConfiguration('riscv-venus').update('variableFormat', result, false)
 		return vscode.window.showInformationMessage(`Changed Variable Format to ${result}`)
 	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openEcallUI', async config => {
+
+		const panel = vscode.window.createWebviewPanel(
+			'venusUI', // Identifies the type of the webview. Used internally
+			'Venus UI', // Title of the panel displayed to the user
+			vscode.ViewColumn.One, // Editor column to show the new webview panel in.
+
+			{enableScripts: true} // Webview options. More on these later.
+		);
+
+		const htmlPathOnDisk = vscode.Uri.file(path.join(context.extensionPath, '/src/ui/venusUI.html'));
+		var htmlpath = htmlPathOnDisk.fsPath;
+		var html = fs.readFileSync(htmlpath).toString();
+
+		const onDiskPath = vscode.Uri.file(path.join(context.extensionPath, '/src/ui/venusUI.js'))
+		const scriptSrc = panel.webview.asWebviewUri(onDiskPath)
+		html = html.replace('${scriptSrc}', scriptSrc.toString());
+
+		const stylePath = vscode.Uri.file(path.join(context.extensionPath, '/src/ui/venusUI.css'))
+		const styleSrc = panel.webview.asWebviewUri(stylePath)
+		html = html.replace('${styleSrc}', styleSrc.toString());
+
+		panel.webview.html = html;
+
+
+	}));
+
 
 	// register a configuration provider for 'venus' debug type
 	const venusProvider = new VenusConfigurationProvider();
@@ -168,3 +198,18 @@ class InlineDebugAdapterFactory implements vscode.DebugAdapterDescriptorFactory 
 		return new vscode.DebugAdapterInlineImplementation(new VenusDebugSession());
 	}
 }
+
+function getWebviewContent(scriptSrc: vscode.Uri, styleSrc: vscode.Uri) {
+	return `<!DOCTYPE html>
+  <html lang="en">
+  <head>
+	  <meta charset="UTF-8">
+	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	  <title>Cat Coding</title>
+	  <link href="${styleSrc}" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+	  <script src="${scriptSrc}"></script>
+  </body>
+  </html>`;
+  }

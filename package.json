@@ -89,7 +89,7 @@
 		"commands": [
 			{
 				"command": "riscv-venus.openAssembly",
-				"title": "Open Assembly",
+				"title": "Venus: Open Assembly",
 				"icon": {
 					"light": "images/light/three-bars.svg",
 					"dark": "images/dark/three-bars.svg"
@@ -97,7 +97,15 @@
 			},
 			{
 				"command": "riscv-venus.setVariableFormat",
-				"title": "Set Variable Format",
+				"title": "Venus: Set Variable Format",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
+			},
+			{
+				"command": "riscv-venus.openEcallUI",
+				"title": "Venus: Open Ecall UI",
 				"icon": {
 					"light": "images/light/three-bars.svg",
 					"dark": "images/dark/three-bars.svg"
