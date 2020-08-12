@@ -11,6 +11,7 @@ import * as Net from 'net';
 import { VenusRenderer } from './venusRenderer';
 import path from 'path';
 import fs from 'fs'
+import { VenusUI, UIState, LedMatrix } from './ui/venusUI';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -19,6 +20,8 @@ import fs from 'fs'
 const runMode: 'external' | 'server' | 'inline' = 'inline';
 
 export function activate(context: vscode.ExtensionContext) {
+
+	VenusUI.createNewInstance(new UIState(new LedMatrix(20, 20)))
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.riscv-venus.getProgramName', config => {
 		return vscode.window.showInputBox({
@@ -36,32 +39,8 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openEcallUI', async config => {
-
-		const panel = vscode.window.createWebviewPanel(
-			'venusUI', // Identifies the type of the webview. Used internally
-			'Venus UI', // Title of the panel displayed to the user
-			vscode.ViewColumn.One, // Editor column to show the new webview panel in.
-
-			{enableScripts: true} // Webview options. More on these later.
-		);
-
-		const htmlPathOnDisk = vscode.Uri.file(path.join(context.extensionPath, '/src/ui/venusUI.html'));
-		var htmlpath = htmlPathOnDisk.fsPath;
-		var html = fs.readFileSync(htmlpath).toString();
-
-		const onDiskPath = vscode.Uri.file(path.join(context.extensionPath, '/src/ui/venusUI.js'))
-		const scriptSrc = panel.webview.asWebviewUri(onDiskPath)
-		html = html.replace('${scriptSrc}', scriptSrc.toString());
-
-		const stylePath = vscode.Uri.file(path.join(context.extensionPath, '/src/ui/venusUI.css'))
-		const styleSrc = panel.webview.asWebviewUri(stylePath)
-		html = html.replace('${styleSrc}', styleSrc.toString());
-
-		panel.webview.html = html;
-
-
+		VenusUI.getInstance().show(context.extensionUri);
 	}));
-
 
 	// register a configuration provider for 'venus' debug type
 	const venusProvider = new VenusConfigurationProvider();

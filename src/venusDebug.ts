@@ -15,6 +15,8 @@ import { VenusBreakpoint, VenusRuntime } from './venusRuntime';
 import { workspace, languages, Disposable, window, ViewColumn, TextEditor, commands, Uri, TextDocument } from 'vscode';
 import { riscvAssemblyProvider } from './assemblyView';
 import { AssemblyDecoratorProvider } from './assemblyDecorator';
+import { VenusRenderer } from './venusRenderer';
+import { VenusUI, Color } from './ui/venusUI';
 const { Subject } = require('await-notify');
 
 const riscvAsmScheme = 'venus_asm';
@@ -74,7 +76,6 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 }
 
 export class VenusDebugSession extends LoggingDebugSession {
-
 
 	// we don't support multiple threads, so we can use a hardcoded ID for the default thread
 	private static THREAD_ID = 1;
@@ -221,6 +222,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
 
 		this._runtime.assemble(args.program, basename(args.program));
+
+		VenusRuntime.registerECallReceiver(this.receiveEcall)
 		// This is a workaround so we always stop execution and start debugging
 		// this._runtime.setBreakPoint(args.program, this.convertClientLineToDebugger(1));
 
@@ -680,6 +683,16 @@ export class VenusDebugSession extends LoggingDebugSession {
 	private updateAssemblyViewDecorator() {
 		if (this._assemblyViewEditor != null) {
 			AssemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo() - 1)
+		}
+	}
+
+	private receiveEcall(json: string) {
+		let jString = json;
+		let jsonObj = JSON.parse(jString)
+		VenusRenderer.getInstance().printConsole("Received Ecall: " + jString)
+		if (jsonObj.id == 50) {
+			let params = jsonObj.params
+			VenusUI.getInstance().setLed(params.x, params.y, new Color(params.red, params.green, params.blue))
 		}
 	}
 }

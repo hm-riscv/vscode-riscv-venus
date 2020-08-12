@@ -79,7 +79,6 @@ export class VenusRuntime extends EventEmitter {
 	 * Start executing the given program.
 	 */
 	public start(program: string, stopOnEntry: boolean) {
-		simulator.driver.registerECallReceiver(this.receiveEcall)
 		if (stopOnEntry) {
 			this.updateStack();
 			this.sendEvent('stopOnEntry');
@@ -484,9 +483,8 @@ export class VenusRuntime extends EventEmitter {
 		});
 	}
 
-	private receiveEcall(json: string) {
-		let jString = json;
-		let jsonObj = JSON.parse(jString)
-		VenusRenderer.getInstance().printConsole("Received Ecall: " + jString)
+	public static registerECallReceiver(func: (json: string) => void) {
+		simulator.driver.registerECallReceiver(func);
 	}
+
 }

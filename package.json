@@ -132,7 +132,7 @@
 		"viewsWelcome": [
 			{
 				"view": "riscv-venus.Assembly",
-				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)"
+				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)\n[Open UI](command:riscv-venus.openEcallUI)"
 			}
 		],
 		"languages": [
