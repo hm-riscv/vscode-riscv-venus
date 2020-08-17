@@ -14,14 +14,14 @@ export class VenusUI {
 	private _panel: vscode.WebviewPanel;
 	private _extensionUri: vscode.Uri;
 	private _disposables: vscode.Disposable[] = [];
-	private _uiState: UIState;
+	private static _uiState: UIState;
 
 
 	public static getInstance(): VenusUI {
 		if (VenusUI.instance) {
 			return VenusUI.instance
 		} else {
-			VenusUI.instance = new VenusUI()
+			VenusUI.instance = new VenusUI(VenusUI._uiState)
 			return VenusUI.instance
 		}
 	}
@@ -37,9 +37,9 @@ export class VenusUI {
 
 	private constructor(uiState?: UIState) {
 		if (uiState) {
-			this._uiState = uiState;
+			VenusUI._uiState = uiState;
 		} else {
-			this._uiState = new UIState(new LedMatrix(10, 10))
+			VenusUI._uiState = new UIState(new LedMatrix(10, 10))
 		}
 	}
 
@@ -121,7 +121,7 @@ export class VenusUI {
 		const webview = this._panel.webview;
 		this._panel.webview.html = this._getHtmlForWebview(webview);
 
-		this._panel.webview.postMessage({command: "loadState", uiState: this._uiState})
+		this._panel.webview.postMessage({command: "loadState", uiState: VenusUI._uiState})
 	}
 
 	private _getHtmlForWebview(webview: vscode.Webview, ) {
@@ -142,10 +142,14 @@ export class VenusUI {
 	}
 
 	public setLed(x: number, y: number, color: Color) {
-		this._uiState.getLedMatrix().setLed(x, y, color)
+		VenusUI._uiState.getLedMatrix().setLed(x, y, color)
 		if (this._panel?.visible) {
 			this._panel.webview.postMessage({command: "setLed", x: x, y: y, color: color})
 		}
+	}
+
+	public resetLedMatrix() {
+		VenusUI._uiState.getLedMatrix().resetMatrix()
 	}
 }
 

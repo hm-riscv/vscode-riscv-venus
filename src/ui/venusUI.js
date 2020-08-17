@@ -18,17 +18,9 @@ class LedMatrix {
 		this.canvas.width = this.xCount * stepWidth + this.size;
 		this.canvas.height = this.yCount * stepWidth + this.size;
 
-		var radius = this.size / 2;
-
 		for (let x = 0; x < this.xCount; x++) {
 			for (let y = 0; y < this.yCount; y++) {
-				context.beginPath();
-				context.arc((x*stepWidth) + this.size, (y*stepWidth) + this.size, radius, 0, 2 * Math.PI, false);
-				context.fillStyle = 'black';
-				context.fill();
-				context.lineWidth = 5;
-				context.strokeStyle = '#222222';
-				context.stroke();
+				this.drawLed(x, y, `rgb(0, 0, 0)`, stepWidth, context)
 			}
 		}
 	}
@@ -48,18 +40,10 @@ class LedMatrix {
 		this.canvas.width = this.xCount * stepWidth + this.size;
 		this.canvas.height = this.yCount * stepWidth + this.size;
 
-		var radius = this.size / 2;
-
 		for (let x = 0; x < this.xCount; x++) {
 			for (let y = 0; y < this.yCount; y++) {
-				context.beginPath();
-				context.arc((x*stepWidth) + this.size, (y*stepWidth) + this.size, radius, 0, 2 * Math.PI, false);
 				let color = ledState[x + y * this.xCount]
-				context.fillStyle = `rgb(${color.red}, ${color.green}, ${color.blue})`;
-				context.fill();
-				context.lineWidth = 5;
-				context.strokeStyle = '#222222';
-				context.stroke();
+				this.drawLed(x, y, `rgb(${color.red}, ${color.green}, ${color.blue})`, stepWidth, context)
 			}
 		}
 	}
@@ -71,24 +55,38 @@ class LedMatrix {
 		var margin = this.margin + this.lineWidth;
 		var stepWidth = this.size + margin;
 		var context = this.canvas.getContext("2d");
+
+
+		this.drawLed(x, y, `rgb(${color.red}, ${color.green}, ${color.blue})`, stepWidth, context);
+	}
+
+	drawLed(x, y, color, stepWidth, context) {
 		var radius = this.size / 2;
 
 		context.beginPath();
 		context.arc((x*stepWidth) + this.size, (y*stepWidth) + this.size, radius, 0, 2 * Math.PI, false);
-		context.fillStyle = `rgb(${color.red}, ${color.green}, ${color.blue})`;
+		context.fillStyle = color;
 		context.fill();
 		context.lineWidth = 5;
 		context.strokeStyle = '#222222';
 		context.stroke();
-
 	}
 }
 
-var canvas = document.createElement("canvas");
-document.body.appendChild(canvas)
+function resizeMatrix() {
+	canvas.style.width = `${ledSlider.value}%`
+	canvas.style.height = `${ledSlider.value}%`
+};
 
+var canvas = document.createElement("canvas");
+
+var ledDiv = document.getElementById("led_div")
+ledDiv.appendChild(canvas)
+var ledSlider = document.getElementById("ledsize")
 let ledMatrix = new LedMatrix(10, 10, 50, 2, 5, canvas)
 ledMatrix.drawEmpty()
+resizeMatrix()
+ledSlider.oninput = resizeMatrix
 
 // Handle the message inside the webview
 window.addEventListener('message', event => {
