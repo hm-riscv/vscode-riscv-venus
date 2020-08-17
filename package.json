@@ -65,7 +65,9 @@
 	"main": "./out/extension",
 	"activationEvents": [
 		"onDebug",
-		"onCommand:extension.riscv-venus.getProgramName"
+		"onCommand:extension.riscv-venus.getProgramName",
+		"onLanguage:riscv",
+		"workspaceContains:**/*.{s, S}"
 	],
 	"contributes": {
 		"configuration": {
