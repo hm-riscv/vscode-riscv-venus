@@ -21,7 +21,7 @@ const runMode: 'external' | 'server' | 'inline' = 'inline';
 
 export function activate(context: vscode.ExtensionContext) {
 
-	VenusUI.createNewInstance(new UIState(new LedMatrix(20, 20)))
+	VenusUI.createNewInstance(new UIState(new LedMatrix(10, 10)))
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.riscv-venus.getProgramName', config => {
 		return vscode.window.showInputBox({

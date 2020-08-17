@@ -223,7 +223,9 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		this._runtime.assemble(args.program, basename(args.program));
 
-		VenusRuntime.registerECallReceiver(this.receiveEcall)
+		VenusRuntime.registerECallReceiver(this.receiveEcall);
+		VenusUI.getInstance().resetLedMatrix();
+
 		// This is a workaround so we always stop execution and start debugging
 		// this._runtime.setBreakPoint(args.program, this.convertClientLineToDebugger(1));
 
@@ -655,20 +657,23 @@ export class VenusDebugSession extends LoggingDebugSession {
 			this._windowDisposable.dispose();
 		}
 
-
-
-		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()));
-		this._assemblyDocument = await workspace.openTextDocument(riscvAssemblyProvider.createUri("assembly")); // calls back into the provider
+		// Create Uri, set the text of our content provider and open the document.
+		// Opening the document doesn't show a window. Think of it like opening a file on the filesystem.
+		let assemblyUri = riscvAssemblyProvider.createUri("assembly")
+		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()), assemblyUri);
+		this._assemblyDocument = await workspace.openTextDocument(assemblyUri); // calls back into the provider
 		languages.setTextDocumentLanguage(this._assemblyDocument, "riscv")
-		this._assemblyViewEditor = await window.showTextDocument(this._assemblyDocument,{ preview: false , viewColumn: ViewColumn.Beside});
+
+		// If there is an assembly already open we try to get is viewcolumn and show the document in the same column.
+		// If there is already an editor open that one is shown. Otherwise a new one is created Beside
+		let viewColumn: ViewColumn | undefined;
+		viewColumn = this._assemblyViewEditor?.viewColumn
+		this._assemblyViewEditor = await window.showTextDocument(this._assemblyDocument, { preview: false , viewColumn: viewColumn ? viewColumn : ViewColumn.Beside});
 
 		/** If we have have the assembly editor in the background all it's decorators are destroyed.
-		 * So we create the decorators again if the assembly editor is brough to the foreground.
+		 * So we create the decorators again if the assembly editor is brought to the foreground.
 		*/
-
 		this.updateAssemblyViewDecorator();
-
-
 		this._windowDisposable =  window.onDidChangeActiveTextEditor((e) => {
 			if (e != null && e.document != null) {
 				if(e.document == this._assemblyViewEditor.document) {
