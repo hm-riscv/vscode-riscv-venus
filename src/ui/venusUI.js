@@ -1,4 +1,14 @@
 class LedMatrix {
+
+	/**
+	 *
+	 * @param {number} xCount x amount of leds
+	 * @param {number} yCount y amount of leds
+	 * @param {number} size	size/resolution of the leds
+	 * @param {number} margin margin between leds
+	 * @param {number} lineWidth line/edge width of leds
+	 * @param {canvas} canvas The html cnavas to draw on
+	 */
 	constructor(xCount, yCount, size, margin, lineWidth, canvas) {
 		this.xCount = xCount;
 		this.yCount = yCount;
@@ -47,7 +57,12 @@ class LedMatrix {
 			}
 		}
 	}
-
+	/**
+	 *
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {Color} color color class from led state
+	 */
 	setLed(x, y, color) {
 		if (x >= this.xCount || y >= this.yCount) {
 			return
@@ -60,6 +75,14 @@ class LedMatrix {
 		this.drawLed(x, y, `rgb(${color.red}, ${color.green}, ${color.blue})`, stepWidth, context);
 	}
 
+	/**
+	 *
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {number} color
+	 * @param {number} stepWidth
+	 * @param {CanvasRenderingContext2D} context
+	 */
 	drawLed(x, y, color, stepWidth, context) {
 		var radius = this.size / 2;
 

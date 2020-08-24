@@ -90,7 +90,7 @@ export class VenusRuntime extends EventEmitter {
 
 	public assemble(fpath: string, fName: string) {
 		let text: string = readFileSync(fpath).toString();
-		simulator.frontendAPI.setText(text);
+		// simulator.frontendAPI.setText(text);
 		// [Bool, Error, Warnings[]]
 		var[success, error, warnings] = simulator.driver.externalAssemble(text, fpath, fName); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
 		if (!success) {
