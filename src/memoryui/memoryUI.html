@@ -12,11 +12,18 @@
 			<div class="tile is-parent">
 				<article class="tile is-child" id="sidebar-listings-container">
 					<nav class="panel">
-						<p class="panel-tabs">
+						<!-- navigation bar gets removed programmatically, because there is only the memory view implemented, yet. Might be useful for future development, though.  -->
+						<p class="panel-tabs" id="navigation-bar">
 							<a id="register-tab" class="is-active" onclick="driver.openRegisterTab()">Registers</a>
 							<a id="memory-tab" onclick="driver.openMemoryTab()">Memory</a>
 							<a id="cache-tab" onclick="driver.openCacheTab()">Cache</a>
 						</p>
+						<!--
+							register-tab-view gets removed programmatically.
+							Up to now we only use the memory view.
+							Register-view is not implemented, yet.
+							Might be useful for future development, though.
+						-->
 						<nav id="register-tab-view" class="panel">
 							<p class="panel-tabs"></a>
 								<a id="regs-tab" onclick="driver.openRegsTab()" class="is-active">Integer (R)</a>
@@ -1021,6 +1028,12 @@
 								</div>
 							</div>
 						</div>
+						<!--
+							cache-tab-view gets removed programmatically.
+							Up to now we only use the memory view.
+							Cache-view is not implemented, yet.
+							Might be useful for future development, though.
+						-->
 						<div id="cache-tab-view">
 							<div id="numCacheLvls" class="panel-block">
 								<div class="field is-horizontal">
