@@ -1,12 +1,1213 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-	  <meta charset="UTF-8">
-	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	  <title>Memory</title>
-	  <link href="${styleSrc}" rel="stylesheet" type="text/css">
-  </head>
-  <body>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Memory</title>
+	<link href="${styleSrc}" rel="stylesheet" type="text/css">
+</head>
+<body>
+	<div class="tile is-ancestor">
+		<div class="tile is-vertical">
+			<div class="tile is-parent">
+				<article class="tile is-child" id="sidebar-listings-container">
+					<nav class="panel">
+						<p class="panel-tabs">
+							<a id="register-tab" class="is-active" onclick="driver.openRegisterTab()">Registers</a>
+							<a id="memory-tab" onclick="driver.openMemoryTab()">Memory</a>
+							<a id="cache-tab" onclick="driver.openCacheTab()">Cache</a>
+						</p>
+						<nav id="register-tab-view" class="panel">
+							<p class="panel-tabs"></a>
+								<a id="regs-tab" onclick="driver.openRegsTab()" class="is-active">Integer (R)</a>
+								<a id="fregs-tab" onclick="driver.openFRegsTab()">Floating (F)</a>
+							</p>
+							<div id="regs-tab-view">
+								<div id="reg-0" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-0-val">zero</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-0-val" class="input is-small"
+												onblur="driver.saveRegister(this, 0)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-1" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-1-val">ra (x1)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-1-val" class="input is-small"
+												onblur="driver.saveRegister(this, 1)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-2" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-2-val">sp (x2)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-2-val" class="input is-small"
+												onblur="driver.saveRegister(this, 2)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-3" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-3-val">gp (x3)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-3-val" class="input is-small"
+												onblur="driver.saveRegister(this, 3)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-4" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-4-val">tp (x4)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-4-val" class="input is-small"
+												onblur="driver.saveRegister(this, 4)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-5" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-5-val">t0 (x5)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-5-val" class="input is-small"
+												onblur="driver.saveRegister(this, 5)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-6" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-6-val">t1 (x6)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-6-val" class="input is-small"
+												onblur="driver.saveRegister(this, 6)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-7" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-7-val">t2 (x7)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-7-val" class="input is-small"
+												onblur="driver.saveRegister(this, 7)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-8" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-8-val">s0 (x8)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-8-val" class="input is-small"
+												onblur="driver.saveRegister(this, 8)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-9" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-9-val">s1 (x9)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-9-val" class="input is-small"
+												onblur="driver.saveRegister(this, 9)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-10" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-10-val">a0 (x10)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-10-val" class="input is-small"
+												onblur="driver.saveRegister(this, 10)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-11" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-11-val">a1 (x11)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-11-val" class="input is-small"
+												onblur="driver.saveRegister(this, 11)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-12" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-12-val">a2 (x12)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-12-val" class="input is-small"
+												onblur="driver.saveRegister(this, 12)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-13" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-13-val">a3 (x13)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-13-val" class="input is-small"
+												onblur="driver.saveRegister(this, 13)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-14" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-14-val">a4 (x14)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-14-val" class="input is-small"
+												onblur="driver.saveRegister(this, 14)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-15" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-15-val">a5 (x15)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-15-val" class="input is-small"
+												onblur="driver.saveRegister(this, 15)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-16" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-16-val">a6 (x16)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-16-val" class="input is-small"
+												onblur="driver.saveRegister(this, 16)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-17" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-17-val">a7 (x17)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-17-val" class="input is-small"
+												onblur="driver.saveRegister(this, 17)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-18" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-18-val">s2 (x18)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-18-val" class="input is-small"
+												onblur="driver.saveRegister(this, 18)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-19" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-19-val">s3 (x19)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-19-val" class="input is-small"
+												onblur="driver.saveRegister(this, 19)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-20" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-20-val">s4 (x20)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-20-val" class="input is-small"
+												onblur="driver.saveRegister(this, 20)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-21" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-21-val">s5 (x21)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-21-val" class="input is-small"
+												onblur="driver.saveRegister(this, 21)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-22" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-22-val">s6 (x22)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-22-val" class="input is-small"
+												onblur="driver.saveRegister(this, 22)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-23" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-23-val">s7 (x23)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-23-val" class="input is-small"
+												onblur="driver.saveRegister(this, 23)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-24" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-24-val">s8 (x24)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-24-val" class="input is-small"
+												onblur="driver.saveRegister(this, 24)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-25" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-25-val">s9 (x25)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-25-val" class="input is-small"
+												onblur="driver.saveRegister(this, 25)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-26" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-26-val">s10 (x26)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-26-val" class="input is-small"
+												onblur="driver.saveRegister(this, 26)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-27" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-27-val">s11 (x27)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-27-val" class="input is-small"
+												onblur="driver.saveRegister(this, 27)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-28" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-28-val">t3 (x28)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-28-val" class="input is-small"
+												onblur="driver.saveRegister(this, 28)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-29" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-29-val">t4 (x29)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-29-val" class="input is-small"
+												onblur="driver.saveRegister(this, 29)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-30" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-30-val">t5 (x30)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-30-val" class="input is-small"
+												onblur="driver.saveRegister(this, 30)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="reg-31" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="reg-31-val">t6 (x31)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="reg-31-val" class="input is-small"
+												onblur="driver.saveRegister(this, 31)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+							</div>
+							<div id="fregs-tab-view">
+								<div id="floatORdouble-div" class="panel-block">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<button id="fORd" class="button is-primary"
+												onclick="toggleThis(this);driver.FReginputAsFloat = (this.value === 'true');if(this.value === 'true') {this.innerHTML = 'Float'} else {this.innerHTML = 'Double' }"
+												value="true" style="text-align: center;height: auto;">Float</button>
+										</div>
+										<div class="field-body is-expanded">
+											<label class="label" for="fORd">Input type</label>
+										</div>
+									</div>
+								</div>
+								<div id="freg-0" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-0-val">ft0 (f0)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-0-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 0)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-1" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-1-val">ft1 (f1)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-1-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 1)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-2" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-2-val">ft2 (f2)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-2-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 2)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-3" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-3-val">ft3 (f3)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-3-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 3)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-4" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-4-val">ft4 (f4)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-4-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 4)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-5" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-5-val">ft5 (f5)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-5-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 5)" spellcheck="false">
+										</div>
+									</div>
+								</div>
+
+								<div id="freg-6" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-6-val">ft6 (f6)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-6-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 6)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-7" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-7-val">ft7 (f7)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-7-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 7)" spellcheck="false">
+										</div>
+									</div>
+								</div>
+
+								<div id="freg-8" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-8-val">fs0 (f8)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-8-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 8)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-9" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-9-val">fs1 (f9)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-9-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 9)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-10" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-10-val">fa0 (f10)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-10-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 10)" spellcheck="false">
+										</div>
+									</div>
+								</div>
+
+								<div id="freg-11" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-11-val">fa1 (f11)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-11-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 11)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-12" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-12-val">fa2 (f12)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-12-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 12)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-13" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-13-val">fa3 (f13)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-13-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 13)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-14" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-14-val">fa4 (f14)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-14-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 14)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-15" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-15-val">fa5 (f15)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-15-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 15)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-16" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-16-val">fa6 (f16)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-16-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 16)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-17" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-17-val">fa7 (f17)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-17-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 17)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-18" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-18-val">fs2 (f18)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-18-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 18)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-19" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-19-val">fs3 (f19)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-19-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 19)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-20" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-20-val">fs4 (f20)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-20-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 20)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-21" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-21-val">fs5 (f21)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-21-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 21)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-22" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-22-val">fs6 (f22)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-22-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 22)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-23" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-23-val">fs7 (f23)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-23-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 23)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-24" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-24-val">fs8 (f24)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-24-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 24)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-25" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-25-val">fs9 (f25)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-25-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 25)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-26" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-26-val">fs10 (f26)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-26-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 26)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-27" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-27-val">fs11 (f27)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-27-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 27)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-28" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-28-val">ft8 (f28)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-28-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 28)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-29" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-29-val">ft9 (f29)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-29-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 29)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-30" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-30-val">ft10 (f30)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-30-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 30)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+
+								<div id="freg-31" class="panel-block tile">
+									<div class="field is-horizontal content">
+										<div class="field-label">
+											<label class="label is-small" for="freg-31-val">ft11 (f31)</label>
+										</div>
+										<div class="field-body is-expanded">
+											<input id="freg-31-val" class="input is-small"
+												onblur="driver.saveFRegister(this, 31)" spellcheck="false">
+										</div>
+									</div>
+									<div class='scrubber'></div>
+								</div>
+							</div>
+						</nav>
+						<div id="memory-tab-view">
+							<div class="panel-block">
+								<table id="memory-table" class="table is-striped">
+									<colgroup>
+										<col id="addr-column">
+										<col id="byte0-column">
+										<col id="byte1-column">
+										<col id="byte2-column">
+										<col id="byte3-column">
+									</colgroup>
+									<thead>
+										<tr>
+											<th>Address</th>
+											<th>+0</th>
+											<th>+1</th>
+											<th>+2</th>
+											<th>+3</th>
+										</tr>
+									</thead>
+									<tr id="mem-row-6">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+									<tr id="mem-row-5">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+									<tr id="mem-row-4">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+									<tr id="mem-row-3">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+									<tr id="mem-row-2">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+									<tr id="mem-row-1">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+									<tr id="mem-row-0">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+									<tr id="mem-row--1">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+									<tr id="mem-row--2">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+									<tr id="mem-row--3">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+									<tr id="mem-row--4">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+									<tr id="mem-row--5">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+									<tr id="mem-row--6">
+										<td>0x00000000</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+										<td>0</td>
+									</tr>
+								</table>
+							</div>
+							<div class="panel-block">
+								<div class="field is-horizontal">
+									<div class="field-label is-normal">
+										<label class="label">Jump to</label>
+									</div>
+									<div class="field-body">
+										<div class="field is-narrow">
+											<div class="control">
+												<div class="select">
+													<select id="address-jump" onchange="driver.moveMemoryJump()">
+														<option value="" disabled selected hidden>-- choose --</option>
+														<option>Text</option>
+														<option>Data</option>
+														<option>Heap</option>
+														<option>Stack</option>
+													</select>
+												</div>
+											</div>
+										</div>
+										<div class="field">
+											<div class="control">
+												<input type="button" class="button" value="Up"
+													onclick="driver.moveMemoryUp()">
+												<input type="button" class="button" value="Down"
+													onclick="driver.moveMemoryDown()">
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="panel-block">
+								<div class="field is-horizontal">
+									<div class="field-label">
+										<label class="label is-small" for="memMove">Address:</label>
+									</div>
+									<div class="field-body is-expanded">
+										<input id="memMove" class="input is-small"
+											onblur="if (this.value !== ''){driver.moveMemoryLocation(this.value);this.value='';}"
+											spellcheck="false">
+									</div>
+								</div>
+							</div>
+						</div>
+						<div id="cache-tab-view">
+							<div id="numCacheLvls" class="panel-block">
+								<div class="field is-horizontal">
+									<div class="field-label">
+										<label class="label is-small" for="setNumCacheLvls">Cache Levels</label>
+									</div>
+									<div class="field-body is-expanded">
+										<input id="setNumCacheLvls" type="number" class="input"
+											onblur="driver.setNumberOfCacheLevels(parseInt(this.value))"
+											spellcheck="false" value="1"></li>
+									</div>
+								</div>
+							</div>
+							<div id="block-size" class="panel-block">
+								<div class="field is-horizontal">
+									<div class="field-label">
+										<label class="label is-small" for="block-size-val">Block Size (Bytes)</label>
+									</div>
+									<div class="field-body is-expanded">
+										<input id="block-size-val" class="input is-small" type="number"
+											onblur="driver.updateCacheBlockSize(this)" spellcheck="false">
+									</div>
+								</div>
+							</div>
+							<div id="numblocks" class="panel-block">
+								<div class="field is-horizontal">
+									<div class="field-label">
+										<label class="label is-small" for="numblocks-val">Number of Blocks</label>
+									</div>
+									<div class="field-body is-expanded">
+										<input id="numblocks-val" class="input is-small" type="number"
+											onblur="driver.updateCacheNumberOfBlocks(this)" spellcheck="false">
+									</div>
+								</div>
+							</div>
+							<div id="associativity" class="panel-block">
+								<div class="field is-horizontal">
+									<div class="field-label">
+										<label class="label is-small" for="associativity-val">Associativity</label>
+									</div>
+									<div class="field-body is-expanded">
+										<input id="associativity-val" class="input is-small" type="number"
+											onblur="driver.updateCacheAssociativity(this)" spellcheck="false">
+									</div>
+								</div>
+							</div>
+							<div id="cache-size" class="panel-block">
+								<div class="field is-horizontal">
+									<div class="field-label">
+										<label class="label is-small" for="cache-size-val">Cache Size (Bytes)</label>
+									</div>
+									<div class="field-body is-expanded">
+										<input id="cache-size-val" class="input is-small" spellcheck="false" disabled>
+									</div>
+								</div>
+							</div>
+							<div id="cacheEnabled-div" class="panel-block">
+								<div class="field is-horizontal">
+									<div class="field-label">
+										<button id="cacheEnabled" class="button is-primary"
+											onclick="toggleThis(this);driver.setCacheEnabled(this.value === 'true');"
+											value="true" style="text-align: center;height: 45px;">Enable?</button>
+									</div>
+									<div class="field-body is-expanded">
+										<label class="label" for="cacheEnabled">Enables current selected level of the
+											cache.</label>
+									</div>
+								</div>
+							</div>
+							<div class="panel-block">
+								<div class="field is-narrow" style="margin-bottom:0px;">
+									<div class="control">
+										<div class="select">
+											<select id="associativity-type"
+												onchange="driver.updateCachePlacementPolicy(this)">
+												<option selected>Direct Mapped</option>
+												<option>N-Way Set Associative</option>
+												<option>Fully Associative</option>
+											</select>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="panel-block">
+								<div class="field is-narrow" style="margin-bottom:0px;width:auto;">
+									<div class="control">
+										<div class="select">
+											<select id="replacementPolicy"
+												onchange="driver.updateCacheReplacementPolicy(this)">
+												<option selected>LRU</option>
+												<option>Random</option>
+											</select>
+										</div>
+									</div>
+								</div>
+								<div class="field is-narrow">
+									<div class="control">
+										<div class="select">
+											<select id="cacheLevel" onchange="driver.updateCacheLevel(this)">
+												<option selected="">L1</option>
+											</select>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div id="hit-count-div" class="panel-block">
+								<div class="field is-horizontal">
+									<div class="field-label">
+										<label class="label is-small" for="hit-count">Hit Count</label>
+									</div>
+									<div class="field-body is-expanded">
+										<input id="hit-count" class="input is-small" spellcheck="false" value="0"
+											disabled>
+									</div>
+								</div>
+							</div>
+							<div id="access-amt-div" class="panel-block">
+								<div class="field is-horizontal">
+									<div class="field-label">
+										<label class="label is-small" for="access-amt">Accesses</label>
+									</div>
+									<div class="field-body is-expanded">
+										<input id="access-amt" class="input is-small" spellcheck="false" value="0"
+											disabled>
+									</div>
+								</div>
+							</div>
+							<div id="hit-rate-div" class="panel-block">
+								<div class="field is-horizontal">
+									<div class="field-label">
+										<label class="label is-small" for="hit-rate">Hit Rate</label>
+									</div>
+									<div class="field-body is-expanded">
+										<input id="hit-rate" class="input is-small" spellcheck="false" value="???"
+											disabled>
+									</div>
+								</div>
+							</div>
+							<div id="cacheDebug-div" class="panel-block">
+								<div id="cacheBlocks" class="field is-horizontal">
+								</div>
+							</div>
+							<div id="notes-div" class="panel-block">
+								<div class="field is-horizontal">
+									<span><b>NOTE:</b> This is a write through, write allocate cache.</span>
+								</div>
+							</div>
+							<div id="cache-seed-div" class="panel-block">
+								<div class="field is-horizontal">
+									<div class="field-label">
+										<label class="label is-small" for="cache-seed">Seed</label>
+									</div>
+									<div class="field-body is-expanded">
+										<input id="cache-seed" class="input is-small" spellcheck="false"
+											onblur="driver.setCacheSeed(this.value)" value="">
+									</div>
+								</div>
+							</div>
+						</div>
+					</nav>
+				</article>
+			</div>
+			<div class="tile is-parent">
+				<article class="tile is-child">
+					<div class="field is-horizontal">
+						<div class="field-label is-small">
+							<label class="label">Display Settings</label>
+						</div>
+						<div class="field-body">
+							<div class="control">
+								<div class="field">
+									<div class="select is-small">
+										<select id="display-settings" onchange="driver.updateRegMemDisplay()">
+											<option selected>Hex</option>
+											<option>Decimal</option>
+											<option>Unsigned</option>
+											<option>ASCII</option>
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</article>
+			</div>
+		</div>
+	</div>
 	<script src="${scriptSrc}"></script>
-  </body>
+</body>
 </html>
