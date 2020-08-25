@@ -13,8 +13,8 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import { VenusBreakpoint, VenusRuntime } from './venusRuntime';
 import { workspace, languages, Disposable, window, ViewColumn, TextEditor, commands, Uri, TextDocument } from 'vscode';
-import { riscvAssemblyProvider } from './assemblyView';
-import { AssemblyDecoratorProvider } from './assemblyDecorator';
+import { riscvDisassemblyProvider } from './assemblyView';
+import { DisassemblyDecoratorProvider } from './assemblyDecorator';
 import { VenusRenderer } from './venusRenderer';
 import { VenusUI, Color } from './ui/venusUI';
 const { Subject } = require('await-notify');
@@ -82,12 +82,12 @@ export class VenusDebugSession extends LoggingDebugSession {
 	// a Mock runtime (or debugger)
 	private _runtime: VenusRuntime;
 	private _variableHandles = new Handles<string>();
-	private _riscvAssemblyProvider = new riscvAssemblyProvider();
+	private _riscvAssemblyProvider = new riscvDisassemblyProvider();
 	private _providerDisposable: Disposable;
 	private _windowDisposable: Disposable;
 	private _assemblyViewEditor: TextEditor;
 	private _assemblyDocument: TextDocument;
-	private _openAssemblyDisposable: Disposable;
+	private _openDisassemblyDisposable: Disposable;
 	private _configurationDone = new Subject();
 
 	private _cancelationTokens = new Map<number, boolean>();
@@ -110,8 +110,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.setDebuggerColumnsStartAt1(false);
 		this._runtime = new VenusRuntime();
 
-		this._openAssemblyDisposable = commands.registerCommand('riscv-venus.openAssembly', () =>
-		this.openAssemblyView());
+		this._openDisassemblyDisposable = commands.registerCommand('riscv-venus.openAssembly', () =>
+		this.openDisassemblyView());
 		this._providerDisposable = workspace.registerTextDocumentContentProvider(riscvAsmScheme, this._riscvAssemblyProvider);
 		workspace.onDidChangeConfiguration(e => {
 			if (e != null) {
@@ -194,6 +194,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 		// make VS Code send the breakpointLocations request
 		response.body.supportsBreakpointLocationsRequest = false;
 
+		// TODO implement
+		response.body.supportsRestartRequest = false;
 		// Doesn't seem to be supported for now
 		// response.body.supportsDisassembleRequest = true;
 
@@ -231,13 +233,16 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		// Add Instruction Information to Line
 
-
 		// wait until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(1000);
 		// start the program in the runtime
 		this._runtime.start(args.program, !!args.stopOnEntry);
 
-		this.openAssemblyView();
+		let doOpen = workspace.getConfiguration('riscv-venus').get('autoOpenDisassembly');
+
+		if (doOpen) {
+			this.openDisassemblyView();
+		}
 	}
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
@@ -637,12 +642,16 @@ export class VenusDebugSession extends LoggingDebugSession {
 				});
 			}
 		}
-		this._openAssemblyDisposable?.dispose();
+		this._openDisassemblyDisposable?.dispose();
 		this._providerDisposable?.dispose();
 		this._windowDisposable?.dispose();
 		this.sendResponse(response)
 	}
 
+	// TODO implement
+	protected restartRequest(response: DebugProtocol.RestartResponse, args: DebugProtocol.RestartArguments, request?: DebugProtocol.Request | undefined) {
+
+	}
 
 
 	//---- helpers
@@ -651,7 +660,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'venus-adapter-data');
 	}
 
-	private async openAssemblyView() {
+	private async openDisassemblyView() {
 
 		if (this._windowDisposable != null) {
 			this._windowDisposable.dispose();
@@ -659,8 +668,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		// Create Uri, set the text of our content provider and open the document.
 		// Opening the document doesn't show a window. Think of it like opening a file on the filesystem.
-		let assemblyUri = riscvAssemblyProvider.createUri("assembly")
-		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()), assemblyUri);
+		let assemblyUri = riscvDisassemblyProvider.createUri("assembly")
+		this._riscvAssemblyProvider.setText(riscvDisassemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()), assemblyUri);
 		this._assemblyDocument = await workspace.openTextDocument(assemblyUri); // calls back into the provider
 		languages.setTextDocumentLanguage(this._assemblyDocument, "riscv")
 
@@ -678,7 +687,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 			if (e != null && e.document != null) {
 				if(e.document == this._assemblyViewEditor.document) {
 					this._assemblyViewEditor = e;
-					AssemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo() - 1);
+					DisassemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo());
 				}
 			}
 		});
@@ -687,7 +696,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 	/** Updates the Decorators in Assemblyview. This means lines are marked, for example the current active line that is debugged. */
 	private updateAssemblyViewDecorator() {
 		if (this._assemblyViewEditor != null) {
-			AssemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo() - 1)
+			DisassemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo())
 		}
 	}
 

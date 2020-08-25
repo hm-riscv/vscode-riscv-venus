@@ -7,7 +7,7 @@ const debugLine: vscode.TextEditorDecorationType = vscode.window.createTextEdito
 /**
  * CodelensProvider
  */
-export class AssemblyDecoratorProvider {
+export class DisassemblyDecoratorProvider {
 
     public static updateDecorators(editor: vscode.TextEditor, line: number) {
 		if (line >= 0) {
@@ -16,6 +16,7 @@ export class AssemblyDecoratorProvider {
 			);
 
 			editor.setDecorations(debugLine, [range]);
+			editor.revealRange(range, vscode.TextEditorRevealType.InCenterIfOutsideViewport)
 		}
     }
 }

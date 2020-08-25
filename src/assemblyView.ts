@@ -8,7 +8,7 @@ export interface AssemblyLineInfo {
     basicCode: string;
 }
 
-export class riscvAssemblyProvider implements vscode.TextDocumentContentProvider {
+export class riscvDisassemblyProvider implements vscode.TextDocumentContentProvider {
 
 	onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
 	onDidChange = this.onDidChangeEmitter.event;
@@ -26,7 +26,7 @@ export class riscvAssemblyProvider implements vscode.TextDocumentContentProvider
 
 	static decoratorLineInfoToString(infos: Map<number, AssemblyLine>): string {
 
-		let lineNo = 1;
+		let lineNo = 0;
 		let uriText: string = "";
 
 		for (let info of infos.entries()) {
