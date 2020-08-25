@@ -1,5 +1,6 @@
 import * as vscode from 'vscode'
 import fs from 'fs'
+import simulator = require('../runtime/riscvSimulator');
 
 /**
  * Manages cat coding webview panels
@@ -14,33 +15,24 @@ export class MemoryUI {
 	private _panel: vscode.WebviewPanel;
 	private _extensionUri: vscode.Uri;
 	private _disposables: vscode.Disposable[] = [];
-	private static _uiState: UIState;
 
 
 	public static getInstance(): MemoryUI {
 		if (MemoryUI.instance) {
 			return MemoryUI.instance
 		} else {
-			MemoryUI.instance = new MemoryUI(MemoryUI._uiState)
+			MemoryUI.instance = new MemoryUI()
 			return MemoryUI.instance
 		}
 	}
 
 	/** Closes the old instance if available and opens a new one */
-	public static createNewInstance(uiState?: UIState): MemoryUI {
+	public static createNewInstance(): MemoryUI {
 		if (MemoryUI.instance) {
 			MemoryUI.instance.dispose();
 		}
-		MemoryUI.instance = new MemoryUI(uiState)
+		MemoryUI.instance = new MemoryUI()
 		return MemoryUI.instance
-	}
-
-	private constructor(uiState?: UIState) {
-		if (uiState) {
-			MemoryUI._uiState = uiState;
-		} else {
-			MemoryUI._uiState = new UIState(new LedMatrix(10, 10))
-		}
 	}
 
 	public dispose() {
@@ -64,6 +56,17 @@ export class MemoryUI {
 		} else {
 			this._addPanel(extensionUri);
 		}
+	}
+
+	public updateMemory(lines: any) {
+		this._panel.webview.postMessage({
+			command: "updateMemory",
+			lines: lines
+		})
+	}
+
+	public resetMemory() {
+
 	}
 
 	private _addPanel(extensionUri: vscode.Uri) {
@@ -108,16 +111,16 @@ export class MemoryUI {
 			message => {
 				switch (message.command) {
 					case 'moveMemoryJump':
-						vscode.window.showErrorMessage(message.segment);
+						simulator.driver.moveMemoryJump(message.segment);
 						return;
 					case 'moveMemoryLocation':
-						vscode.window.showErrorMessage(message.memAddress);
+						simulator.driver.moveMemoryLocation(message.memAddress);
 						return;
 					case 'moveMemoryUp':
-						vscode.window.showErrorMessage("Move memory up");
+						simulator.driver.moveMemoryUp();
 						return;
 					case 'moveMemoryDown':
-						vscode.window.showErrorMessage("Move memory down");
+						simulator.driver.moveMemoryDown();
 						return;
 				}
 			},
@@ -130,7 +133,7 @@ export class MemoryUI {
 		const webview = this._panel.webview;
 		this._panel.webview.html = this._getHtmlForWebview(webview);
 
-		this._panel.webview.postMessage({command: "loadState", uiState: MemoryUI._uiState})
+		// this._panel.webview.postMessage({command: "loadState", uiState: MemoryUI._uiState})
 	}
 
 	private _getHtmlForWebview(webview: vscode.Webview, ) {
@@ -150,68 +153,4 @@ export class MemoryUI {
 		return html;
 	}
 
-	public setLed(x: number, y: number, color: Color) {
-		MemoryUI._uiState.getLedMatrix().setLed(x, y, color)
-		if (this._panel?.visible) {
-			this._panel.webview.postMessage({command: "setLed", x: x, y: y, color: color})
-		}
-	}
-
-	public resetLedMatrix() {
-		MemoryUI._uiState.getLedMatrix().resetMatrix()
-	}
-}
-
-export class UIState {
-	private ledMatrix: LedMatrix
-
-	constructor(ledMatrix: LedMatrix){
-		this.ledMatrix = ledMatrix;
-	};
-
-	public getLedMatrix(): LedMatrix {
-		return this.ledMatrix
-	}
-}
-
-export class LedMatrix {
-	private ledState: Color[]
-	readonly xCount: number
-	readonly yCount: number
-
-	setLed(x: number, y: number, color: Color) {
-		if ((x + y*this.xCount) < this.ledState.length){
-			this.ledState[x + y*this.xCount] = color
-		}
-	}
-
-	resetMatrix() {
-		this.ledState = Array<Color>(this.xCount * this.yCount).fill(new Color(0,0,0))
-	}
-
-	/** The length of the led state needs to be xSize * ySize.
-	 * Otherwise the leds are initialized as all off/black.
-	 */
-	constructor(xSize: number, ySize: number, ledState?: Color[]){
-		this.xCount = xSize;
-		this.yCount = ySize;
-		if (ledState == null || ledState.length == (xSize * ySize)) {
-			this.resetMatrix();
-		} else {
-			this.ledState = ledState;
-		}
-	};
-}
-
-export class Color {
-
-	readonly red: number;
-	readonly green: number;
-	readonly blue: number;
-
-	constructor(red: number, green: number, blue: number) {
-		this.red = (red > 255) ? 255 : red;
-		this.green = (green > 255) ? 255 : green;
-		this.blue = (blue > 255) ? 255 : blue;
-	}
 }

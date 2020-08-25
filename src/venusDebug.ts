@@ -17,6 +17,7 @@ import { riscvAssemblyProvider } from './assemblyView';
 import { AssemblyDecoratorProvider } from './assemblyDecorator';
 import { VenusRenderer } from './venusRenderer';
 import { VenusUI, Color } from './ui/venusUI';
+import { MemoryUI } from './memoryui/memoryUI';
 const { Subject } = require('await-notify');
 
 const riscvAsmScheme = 'venus_asm';
@@ -225,6 +226,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		VenusRuntime.registerECallReceiver(this.receiveEcall);
 		VenusUI.getInstance().resetLedMatrix();
+		MemoryUI.getInstance().resetMemory();
 
 		// This is a workaround so we always stop execution and start debugging
 		// this._runtime.setBreakPoint(args.program, this.convertClientLineToDebugger(1));

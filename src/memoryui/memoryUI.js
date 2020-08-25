@@ -12,9 +12,14 @@
 
 const vscode = acquireVsCodeApi();
 
+/**
+ * Driver mainly communicates from the web view to the debug extension
+ */
 window.driver = {
 	moveMemoryJump: () => {
-		const memorySegment = document.getElementById('address-jump').value
+		const jumpSelect = document.getElementById('address-jump')
+		const memorySegment = jumpSelect.value
+		jumpSelect.selectedIndex = 0
 		vscode.postMessage({
 			command: 'moveMemoryJump',
 			segment: memorySegment
@@ -31,7 +36,9 @@ window.driver = {
 }
 
 
-// Handle the message inside the webview
+/**
+ * Handle communciation from debug extension to web view
+ */
 window.addEventListener('message', event => {
 
 	const message = event.data; // The JSON data our extension sent
@@ -41,6 +48,68 @@ window.addEventListener('message', event => {
 			let state = message.uiState;
 			console.log('Loading inital state')
 			break;
+		case 'updateMemory':
+			const { lines } = message
+			for (const {rowIdx, rowAddr, bytes} of lines) {
+				renderMemoryRow(rowIdx,rowAddr, bytes)
+			}
+			break;
 	}
 });
 
+/**
+ * Source: RendererOriginal.kt
+ */
+function cleanTableRow(row) {
+	for (const n of row.childNodes) {
+		if (!(n instanceof HTMLTableCellElement)) {
+			row.removeChild(n)
+		}
+	}
+	return row
+}
+
+function getDisplayType() {
+	return document.getElementById('display-settings').value
+}
+
+/**
+ * Source: RendererOriginal.kt
+ * slightly modified due to language differences (kt => js)
+ * @param {number} rowIdx
+ * @param {number} rowAddr
+ * @param {Array<number>} bytes
+ */
+function renderMemoryRow(rowIdx,rowAddr, bytes) {
+	let row = document.getElementById("mem-row-" + rowIdx)
+	row = cleanTableRow(row)
+	const tdAddress = row.childNodes[0]
+	if (rowAddr >= 0) {
+		tdAddress.innerText = rowAddr.toString(16)
+		for (let i = 0; i < 4; i++) {
+			const byte = bytes[i]
+			const tdByte = row.childNodes[i + 1]
+			tdByte.innerText = (function(displayType) {
+				switch(displayType) {
+				  case 'Hex':
+					return byte
+					// return byteToHex(byte) // TODO undo comment!
+				  case 'Decimal':
+					return byteToDec(byte)
+				  case 'Unsigned':
+					return byteToUsign(byte)
+				  case 'ASCII':
+					return toAscii(byte)
+				  default:
+					return byteToHex(byte)
+				}
+			  })(getDisplayType());
+		}
+	} else {
+		tdAddress.innerText = "----------"
+		for (i = 0; i < 4; i++) {
+			const tdByte = row.childNodes[i + 1]
+			tdByte.innerText = "--"
+		}
+	}
+}
