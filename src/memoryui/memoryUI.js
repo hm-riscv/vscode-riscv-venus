@@ -10,6 +10,26 @@
 	document.getElementById('navigation-bar').remove()
 })()
 
+const vscode = acquireVsCodeApi();
+
+window.driver = {
+	moveMemoryJump: () => {
+		const memorySegment = document.getElementById('address-jump').value
+		vscode.postMessage({
+			command: 'moveMemoryJump',
+			segment: memorySegment
+		})
+	},
+	moveMemoryLocation: (memAddress) => {
+		vscode.postMessage({
+			command: 'moveMemoryLocation',
+			memAddress
+		})
+	},
+	moveMemoryUp: () => vscode.postMessage({command: 'moveMemoryUp'}),
+	moveMemoryDown: () => vscode.postMessage({command: 'moveMemoryDown'})
+}
+
 
 // Handle the message inside the webview
 window.addEventListener('message', event => {

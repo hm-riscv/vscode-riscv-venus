@@ -107,8 +107,17 @@ export class MemoryUI {
 		this._panel.webview.onDidReceiveMessage(
 			message => {
 				switch (message.command) {
-					case 'alert':
-						vscode.window.showErrorMessage(message.text);
+					case 'moveMemoryJump':
+						vscode.window.showErrorMessage(message.segment);
+						return;
+					case 'moveMemoryLocation':
+						vscode.window.showErrorMessage(message.memAddress);
+						return;
+					case 'moveMemoryUp':
+						vscode.window.showErrorMessage("Move memory up");
+						return;
+					case 'moveMemoryDown':
+						vscode.window.showErrorMessage("Move memory down");
 						return;
 				}
 			},
