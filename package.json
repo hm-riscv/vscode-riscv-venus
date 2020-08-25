@@ -85,6 +85,10 @@
 						"decimal",
 						"ascii"
 					]
+				},
+				"riscv-venus.autoOpenDisassembly": {
+					"type": "boolean",
+					"default": true
 				}
 			}
 		},
@@ -92,6 +96,14 @@
 			{
 				"command": "riscv-venus.openAssembly",
 				"title": "Venus: Open Assembly",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
+			},
+			{
+				"command": "riscv-venus.openSettings",
+				"title": "Venus: Open Settings",
 				"icon": {
 					"light": "images/light/three-bars.svg",
 					"dark": "images/dark/three-bars.svg"
@@ -134,7 +146,7 @@
 		"viewsWelcome": [
 			{
 				"view": "riscv-venus.Assembly",
-				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)\n[Open UI](command:riscv-venus.openEcallUI)"
+				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)\n[Open UI](command:riscv-venus.openEcallUI)\n[Open Settings](command:riscv-venus.openSettings)"
 			}
 		],
 		"languages": [

@@ -42,6 +42,10 @@ export function activate(context: vscode.ExtensionContext) {
 		VenusUI.getInstance().show(context.extensionUri);
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openSettings', async config => {
+		vscode.commands.executeCommand('workbench.action.openSettings', 'riscv-venus');
+	}));
+
 	// register a configuration provider for 'venus' debug type
 	const venusProvider = new VenusConfigurationProvider();
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('venus', venusProvider));
@@ -177,18 +181,3 @@ class InlineDebugAdapterFactory implements vscode.DebugAdapterDescriptorFactory 
 		return new vscode.DebugAdapterInlineImplementation(new VenusDebugSession());
 	}
 }
-
-function getWebviewContent(scriptSrc: vscode.Uri, styleSrc: vscode.Uri) {
-	return `<!DOCTYPE html>
-  <html lang="en">
-  <head>
-	  <meta charset="UTF-8">
-	  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	  <title>Cat Coding</title>
-	  <link href="${styleSrc}" rel="stylesheet" type="text/css">
-  </head>
-  <body>
-	  <script src="${scriptSrc}"></script>
-  </body>
-  </html>`;
-  }
