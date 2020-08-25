@@ -318,6 +318,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		response.body = {
 			scopes: [
+				new Scope("PC", this._variableHandles.create("pc"), false),
 				new Scope("Integer", this._variableHandles.create("integer"), false),
 				new Scope("Float", this._variableHandles.create("float"), false)
 			]
@@ -419,6 +420,15 @@ export class VenusDebugSession extends LoggingDebugSession {
 					namedVariables: 0,
 				})
 			})
+		} else if (id == "pc") {
+			variables.push({
+				name: "PC",
+				type: "hex",
+				value: formatFunction(this._runtime.getPC()),
+				variablesReference: 0,
+				indexedVariables: 0,
+				namedVariables: 0,
+			 })
 		}
 
 		response.body = {

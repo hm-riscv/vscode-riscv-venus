@@ -140,6 +140,10 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
+	public getPC(): number {
+		return simulator.driver.sim.getPC();
+	}
+
 	/**
 	 * Returns the common registers
 	 * No float registeres included
