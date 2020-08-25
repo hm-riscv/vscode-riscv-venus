@@ -112,6 +112,14 @@
 					"light": "images/light/three-bars.svg",
 					"dark": "images/dark/three-bars.svg"
 				}
+			},
+			{
+				"command": "riscv-venus.openMemory",
+				"title": "Venus: Open Memory",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
 			}
 		],
 		"views": {
@@ -134,7 +142,7 @@
 		"viewsWelcome": [
 			{
 				"view": "riscv-venus.Assembly",
-				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)\n[Open UI](command:riscv-venus.openEcallUI)"
+				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)\n[Open UI](command:riscv-venus.openEcallUI)\n[Open Memory](command:riscv-venus.openMemory)"
 			}
 		],
 		"languages": [
