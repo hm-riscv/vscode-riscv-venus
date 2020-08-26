@@ -66,6 +66,7 @@
 	"activationEvents": [
 		"onDebug",
 		"onCommand:extension.riscv-venus.getProgramName",
+		"onCommand:riscv-venus.activate",
 		"onLanguage:riscv",
 		"workspaceContains:**/*.{s, S}"
 	],
@@ -96,6 +97,14 @@
 			{
 				"command": "riscv-venus.openAssembly",
 				"title": "Venus: Open Assembly",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
+			},
+			{
+				"command": "riscv-venus.activate",
+				"title": "Venus: Activate Extension",
 				"icon": {
 					"light": "images/light/three-bars.svg",
 					"dark": "images/dark/three-bars.svg"
