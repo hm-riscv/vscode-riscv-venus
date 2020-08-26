@@ -228,21 +228,23 @@ export class VenusDebugSession extends LoggingDebugSession {
 		VenusRuntime.registerECallReceiver(this.receiveEcall);
 		VenusUI.getInstance().resetLedMatrix();
 
-		// This is a workaround so we always stop execution and start debugging
-		// this._runtime.setBreakPoint(args.program, this.convertClientLineToDebugger(1));
-
 		// Add Instruction Information to Line
 
 		// wait until configuration has finished (and configurationDoneRequest has been called)
-		await this._configurationDone.wait(1000);
-		// start the program in the runtime
-		this._runtime.start(args.program, !!args.stopOnEntry);
+		await this._configurationDone.wait(100);
 
 		let doOpen = workspace.getConfiguration('riscv-venus').get('autoOpenDisassembly');
 
 		if (doOpen) {
 			this.openDisassemblyView();
 		}
+
+		// start the program in the runtime
+		this._runtime.start(args.stopOnEntry ? args.stopOnEntry : true);
+
+		response.success = true
+		this.sendResponse(response)
+
 	}
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
@@ -657,12 +659,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._windowDisposable?.dispose();
 		this.sendResponse(response)
 	}
-
-	// TODO implement
-	protected restartRequest(response: DebugProtocol.RestartResponse, args: DebugProtocol.RestartArguments, request?: DebugProtocol.Request | undefined) {
-
-	}
-
 
 	//---- helpers
 

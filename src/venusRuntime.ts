@@ -78,7 +78,7 @@ export class VenusRuntime extends EventEmitter {
 	/**
 	 * Start executing the given program.
 	 */
-	public start(program: string, stopOnEntry: boolean) {
+	public start(stopOnEntry: boolean) {
 		if (stopOnEntry) {
 			this.updateStack();
 			this.sendEvent('stopOnEntry');
