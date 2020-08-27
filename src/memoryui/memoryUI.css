@@ -1,0 +1,134 @@
+html {
+    overflow-y: auto;
+  }
+
+  body {
+    height: 100vh;
+  }
+
+  #sidebar-listings-container {
+    min-height: 80vh;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+
+  #sidebar-listings-container > .panel {
+    height: 100%;
+  }
+
+  #regs-tab-view {
+    font-family: Courier New, Courier, monospace;
+  }
+
+  #fregs-tab-view {
+    font-family: Courier New, Courier, monospace;
+    display: none;
+  }
+
+  #cache-tab-view {
+    display: none;
+  }
+
+  #memory-table {
+    font-family: Courier New, Courier, monospace;
+    margin: auto;
+  }
+
+  #memory-table th {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  #memory-table td {
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .tabs {
+    margin-top: 1em;
+  }
+
+  #regs-tab-view .input {
+    font-family: Courier New, Courier, monospace;
+    border-width: 2px;
+  }
+
+  #regs-tab-view .field.is-horizontal {
+    width: 100%;
+  }
+
+  #fregs-tab-view .input {
+    font-family: Courier New, Courier, monospace;
+    border-width: 2px;
+  }
+
+  #fregs-tab-view .field.is-horizontal {
+    width: 100%;
+  }
+
+  #cache-tab-view {
+    font-family: Courier New, Courier, monospace;
+    line-height: 1em;
+    font-size: 0.9em;
+  }
+
+  #cache-tab-view .input {
+    font-family: Courier New, Courier, monospace;
+    border-width: 2px;
+  }
+
+  #cache-tab-view .field.is-horizontal {
+    width: 100%;
+  }
+
+  #addr-column {
+    width: 40%;
+  }
+
+  .byte-column {
+    width: 15%;
+  }
+
+  .panel-block > .field {
+    width: 100%;
+  }
+
+  .tile {
+    position: relative;
+    /* only in order to make z-index used */
+  }
+
+  .tile {
+    clear: both;
+    /* display: table; not here */
+    margin-top: 0px;
+    padding: 0px;
+    /* any padding will screw up height calculation */
+  }
+
+  .tile:first-child {
+    /* margin-top: 0;  if you do this, when the top piece is no longer
+                         the top piece, it would need fixing in the code */
+  }
+
+  .tile .content {
+    /* this exists only so that we can have padding without messing up height calculations of tile */
+    padding: .5em;
+  }
+
+  .scrubber {
+    display: inline-block;
+    border-top: 2px solid #ccc;
+    width: 25px;
+    padding-top: 2px;
+    float: right;
+    cursor: -webkit-grab;
+    cursor: ns-resize;
+  }
+
+  .scrubber:before,.scrubber:after {
+    display: block;
+    content: "";
+    border-top: 2px solid #ccc;
+    padding-top: 2px;
+  }

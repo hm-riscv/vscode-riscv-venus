@@ -86,7 +86,7 @@ function renderMemoryRow(rowIdx,rowAddr, bytes) {
 	row = cleanTableRow(row)
 	const tdAddress = row.childNodes[0]
 	if (rowAddr >= 0) {
-		tdAddress.innerText = rowAddr.toString(16)
+		tdAddress.innerText = "0x" + rowAddr.toString(16).toUpperCase().padStart(8, "0")
 		for (let i = 0; i < 4; i++) {
 			const byte = bytes[i]
 			const tdByte = row.childNodes[i + 1]
