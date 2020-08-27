@@ -18,7 +18,6 @@ export class VenusRenderer {
 		emitter.on("error", (e) => {this.printError(e)});
 		emitter.on("stdout", (any) => {this.stdout(any)});
 		emitter.on("printConsole", (any) => {this.printConsole(any)});
-		emitter.on("updateMemory", (json) => this.updateMemory(json))
 		this.outputChannel = vscode.window.createOutputChannel("venus");
 	}
 
@@ -75,8 +74,4 @@ export class VenusRenderer {
 
 	}
 
-	updateMemory(json: string) {
-		const lines = JSON.parse(json)
-		this.memoryUI.updateMemory(lines)
-	}
 }
