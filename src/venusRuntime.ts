@@ -7,6 +7,7 @@ import { EventEmitter } from 'events';
 import simulator = require('./runtime/riscvSimulator');
 import range from 'lodash/range';
 import { VenusRenderer } from './venusRenderer';
+import { MemoryUI } from './memoryui/memoryUI';
 import { AssemblyLineInfo } from './assemblyView';
 import { StackFrame } from 'vscode-debugadapter';
 
@@ -199,6 +200,7 @@ export class VenusRuntime extends EventEmitter {
 			simulator.driver.step()
 			this.updateStack()
 		}
+		this.updateMemory()
 		if (simulator.driver.isFinished()) {
 			this.sendEvent('end')
 		} else {
@@ -216,7 +218,7 @@ export class VenusRuntime extends EventEmitter {
 			while (true) {
 				if (simulator.driver.sim.isDone() || (simulator.driver.sim.atBreakpoint())) {
 					simulator.driver.exitcodecheck()
-					return
+					break
 				}
 				simulator.driver.sim.step()
 				this.updateStack()
@@ -225,6 +227,7 @@ export class VenusRuntime extends EventEmitter {
 			simulator.driver.runEnd()
 			simulator.driver.handleError("RunStart", e, e == simulator.driver.AlignmentError || e == simulator.driver.StoreError || e == simulator.driver.ExceededAllowedCyclesError)
 		}
+		this.updateMemory()
 	}
 	/**
 	 * Continue execution to the end/beginning.
@@ -485,6 +488,10 @@ export class VenusRuntime extends EventEmitter {
 
 	public static registerECallReceiver(func: (json: string) => void) {
 		simulator.driver.registerECallReceiver(func);
+	}
+
+	private updateMemory() {
+		MemoryUI.getInstance().updateMemory()
 	}
 
 }

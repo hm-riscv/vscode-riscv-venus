@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
 import fs from 'fs'
 import simulator = require('../runtime/riscvSimulator');
+import range from 'lodash/range';
 
 /**
  * Manages cat coding webview panels
@@ -15,7 +16,7 @@ export class MemoryUI {
 	private _panel: vscode.WebviewPanel;
 	private _extensionUri: vscode.Uri;
 	private _disposables: vscode.Disposable[] = [];
-
+	private _uiState: UIState;
 
 	public static getInstance(): MemoryUI {
 		if (MemoryUI.instance) {
@@ -34,6 +35,11 @@ export class MemoryUI {
 		MemoryUI.instance = new MemoryUI()
 		return MemoryUI.instance
 	}
+
+	private constructor() {
+		this._uiState = new UIState();
+	}
+
 
 	public dispose() {
 		MemoryUI.instance = undefined;
@@ -58,7 +64,10 @@ export class MemoryUI {
 		}
 	}
 
-	public updateMemory(lines: any) {
+	public updateMemory() {
+		this._uiState.update()
+		const lines = this._uiState.getMemoryInDisplayFormat()
+
 		this._panel.webview.postMessage({
 			command: "updateMemory",
 			lines: lines
@@ -106,21 +115,34 @@ export class MemoryUI {
 			this._disposables
 		);
 
+		const moveMemoryBy = (rows: number) => {
+			const bytes = 4 * rows
+			if (this._uiState.activeMemoryAddress + bytes < 0) return
+			this._uiState.activeMemoryAddress += bytes
+			this.updateMemory()
+		}
+
 		// Handle messages from the webview
 		this._panel.webview.onDidReceiveMessage(
 			message => {
 				switch (message.command) {
 					case 'moveMemoryJump':
-						simulator.driver.moveMemoryJump(message.segment);
+						const segment = message.segment as MemorySegmentOption
+						const address = MemorySegmentAdresses.get(segment) || MemorySegments.TEXT_BEGIN
+						this._uiState.activeMemoryAddress = address
+						this.updateMemory()
 						return;
 					case 'moveMemoryLocation':
-						simulator.driver.moveMemoryLocation(message.memAddress);
+						let {memAddress} = message
+						memAddress = parseInt(memAddress, 16) // TODO parse with utils.kt's userStringToInt()
+						this._uiState.activeMemoryAddress = memAddress
+						this.updateMemory()
 						return;
 					case 'moveMemoryUp':
-						simulator.driver.moveMemoryUp();
+						moveMemoryBy(+this._uiState.MEMORY_CONTEXT)
 						return;
 					case 'moveMemoryDown':
-						simulator.driver.moveMemoryDown();
+						moveMemoryBy(-this._uiState.MEMORY_CONTEXT)
 						return;
 				}
 			},
@@ -154,3 +176,66 @@ export class MemoryUI {
 	}
 
 }
+
+class UIState {
+	public activeMemoryAddress = 0
+	public displayType = DisplayType.Hex
+	public memory: Array<MemoryLine>
+	public readonly MEMORY_CONTEXT = 6
+
+	constructor() {
+		this.memory = []
+	}
+
+	public getMemoryInDisplayFormat(): Array<MemoryLine> {
+		return this.memory
+	}
+
+	/**
+	 * Reads the memory cells from the simulator and updates the interal memory of the UIstate.
+	 * This depends on the active-memory-address (AMA)
+	 * and on how much words around the AMA should be displayed (Memory Context)
+	 */
+	public update() {
+		this.activeMemoryAddress = this.activeMemoryAddress >>> 2 << 2
+		this.memory = []
+		for (const rowIdx of range(-this.MEMORY_CONTEXT, this.MEMORY_CONTEXT)) {
+			const rowAddr = this.activeMemoryAddress + 4 * rowIdx
+			const bytes = range(0,4)
+				.map(i => simulator.driver.sim.loadByte_3p81yu$(rowAddr + i))
+			this.memory.push({rowIdx, rowAddr, bytes})
+		}
+	}
+}
+
+enum DisplayType {
+	Hex, Decimal, Unsigned, ASCII
+}
+
+interface MemoryLine {
+	rowIdx: number,
+	rowAddr: number,
+	bytes: Array<number>
+}
+
+enum MemorySegmentOption {
+	TEXT = "Text", DATA = "Data", HEAP = "Heap", STACK = "Stack"
+}
+
+enum MemorySegments {
+    // Memory address where the stack segment starts (growing downwards)
+    STACK_BEGIN = 0x7fff_fff0,
+    // Memory address where the heap segment starts
+    HEAP_BEGIN = 0x1000_8000,
+    // Memory address where the data segment starts
+    STATIC_BEGIN = 0x1000_0000,
+    // Memory address where the text segment starts
+    TEXT_BEGIN = 0x0000_0000
+}
+
+const MemorySegmentAdresses = new Map<string, number>([
+	[MemorySegmentOption.TEXT, MemorySegments.TEXT_BEGIN],
+	[MemorySegmentOption.DATA, MemorySegments.STATIC_BEGIN],
+	[MemorySegmentOption.HEAP, MemorySegments.HEAP_BEGIN],
+	[MemorySegmentOption.STACK, MemorySegments.STACK_BEGIN],
+])
