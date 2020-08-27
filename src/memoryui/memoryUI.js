@@ -32,7 +32,8 @@ window.driver = {
 		})
 	},
 	moveMemoryUp: () => vscode.postMessage({command: 'moveMemoryUp'}),
-	moveMemoryDown: () => vscode.postMessage({command: 'moveMemoryDown'})
+	moveMemoryDown: () => vscode.postMessage({command: 'moveMemoryDown'}),
+	updateRegMemDisplay: (displayType) => vscode.postMessage({command: 'updateDisplayType', displayType}),
 }
 
 
@@ -78,7 +79,7 @@ function getDisplayType() {
  * slightly modified due to language differences (kt => js)
  * @param {number} rowIdx
  * @param {number} rowAddr
- * @param {Array<number>} bytes
+ * @param {Array<string>} bytes in hex, dec, ascii or unsigned encoding
  */
 function renderMemoryRow(rowIdx,rowAddr, bytes) {
 	let row = document.getElementById("mem-row-" + rowIdx)
@@ -89,21 +90,7 @@ function renderMemoryRow(rowIdx,rowAddr, bytes) {
 		for (let i = 0; i < 4; i++) {
 			const byte = bytes[i]
 			const tdByte = row.childNodes[i + 1]
-			tdByte.innerText = (function(displayType) {
-				switch(displayType) {
-				  case 'Hex':
-					return byte
-					// return byteToHex(byte) // TODO undo comment!
-				  case 'Decimal':
-					return byteToDec(byte)
-				  case 'Unsigned':
-					return byteToUsign(byte)
-				  case 'ASCII':
-					return toAscii(byte)
-				  default:
-					return byteToHex(byte)
-				}
-			  })(getDisplayType());
+			tdByte.innerText = byte
 		}
 	} else {
 		tdAddress.innerText = "----------"

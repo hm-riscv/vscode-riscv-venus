@@ -144,6 +144,10 @@ export class MemoryUI {
 					case 'moveMemoryDown':
 						moveMemoryBy(-this._uiState.MEMORY_CONTEXT)
 						return;
+					case 'updateDisplayType':
+						const {displayType} = message
+						this._uiState.setDisplayType(displayType)
+						this.updateMemory()
 				}
 			},
 			null,
@@ -179,7 +183,7 @@ export class MemoryUI {
 
 class UIState {
 	public activeMemoryAddress = 0
-	public displayType = DisplayType.Hex
+	private displayType = DisplayType.HEX
 	public memory: Array<MemoryLine>
 	public readonly MEMORY_CONTEXT = 6
 
@@ -188,7 +192,42 @@ class UIState {
 	}
 
 	public getMemoryInDisplayFormat(): Array<MemoryLine> {
-		return this.memory
+		const toHex = (decimal) => (decimal >>> 0).toString(16).toUpperCase().padStart(2, "0")
+		const toDecimal = (decimal) => Int8Array.of(decimal)[0].toString(10)
+		const toUnsigned = (decimal) => (decimal >>> 0).toString(10)
+		const toAscii = (decimal) => {
+			if (decimal < 32 || 126 < decimal) {
+				return "0x" + toHex(decimal)
+			}
+			return String.fromCharCode(decimal >>> 0)
+		}
+
+		let formatter: (decimal: number) => string
+		switch (this.displayType) {
+			case DisplayType.HEX:
+				formatter = toHex
+				break
+			case DisplayType.DECIMAL:
+				formatter = toDecimal
+				break
+			case DisplayType.UNSIGNED:
+				formatter = toUnsigned
+				break
+			case DisplayType.ASCII:
+				formatter = toAscii
+				break
+		}
+		return this.memory.map(line => Object.assign(
+				{},
+				line,
+				{bytes: line.bytes.map(byte => formatter(byte))}
+			))
+	}
+
+	public setDisplayType(displayType: DisplayType) {
+		if (Object.values(DisplayType).includes(displayType)) {
+			this.displayType = displayType
+		}
 	}
 
 	/**
@@ -209,7 +248,7 @@ class UIState {
 }
 
 enum DisplayType {
-	Hex, Decimal, Unsigned, ASCII
+	HEX = "Hex", DECIMAL = "Decimal", UNSIGNED = "Unsigned", ASCII = "ASCII"
 }
 
 interface MemoryLine {
