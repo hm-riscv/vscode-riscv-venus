@@ -199,7 +199,7 @@ class UIState {
 	public update() {
 		this.activeMemoryAddress = this.activeMemoryAddress >>> 2 << 2
 		this.memory = []
-		for (const rowIdx of range(-this.MEMORY_CONTEXT, this.MEMORY_CONTEXT)) {
+		for (const rowIdx of range(-this.MEMORY_CONTEXT, this.MEMORY_CONTEXT + 1)) {
 			const rowAddr = this.activeMemoryAddress + 4 * rowIdx
 			const bytes = range(0,4)
 				.map(i => simulator.driver.sim.loadByte_3p81yu$(rowAddr + i))
