@@ -64,14 +64,16 @@ export class MemoryUI {
 		}
 	}
 
-	public updateMemory() {
-		this._uiState.update()
-		const lines = this._uiState.getMemoryInDisplayFormat()
+	public update() {
+		if (this._panel && this._panel.visible && this._panel.webview) {
+			this._uiState.update()
+			const lines = this._uiState.getMemoryInDisplayFormat()
 
-		this._panel.webview.postMessage({
-			command: "updateMemory",
-			lines: lines
-		})
+			this._panel.webview.postMessage({
+				command: "updateMemory",
+				lines: lines
+			})
+		}
 	}
 
 	public resetMemory() {
@@ -97,8 +99,11 @@ export class MemoryUI {
 		this._panel = panel;
 		this._extensionUri = extensionUri;
 
+		const webview = this._panel.webview;
+		this._panel.webview.html = this._getHtmlForWebview(webview);
+
 		// Set the webview's initial html content
-		this._update();
+		this.update();
 
 		// Listen for when the panel is disposed
 		// This happens when the user closes the panel or when the panel is closed programatically
@@ -108,7 +113,7 @@ export class MemoryUI {
 		this._panel.onDidChangeViewState(
 			e => {
 				if (this._panel.visible) {
-					this._update();
+					this.update();
 				}
 			},
 			null,
@@ -119,7 +124,7 @@ export class MemoryUI {
 			const bytes = 4 * rows
 			if (this._uiState.activeMemoryAddress + bytes < 0) return
 			this._uiState.activeMemoryAddress += bytes
-			this.updateMemory()
+			this.update()
 		}
 
 		// Handle messages from the webview
@@ -130,13 +135,13 @@ export class MemoryUI {
 						const segment = message.segment as MemorySegmentOption
 						const address = MemorySegmentAdresses.get(segment) || MemorySegments.TEXT_BEGIN
 						this._uiState.activeMemoryAddress = address
-						this.updateMemory()
+						this.update()
 						return;
 					case 'moveMemoryLocation':
 						let {memAddress} = message
 						memAddress = parseInt(memAddress, 16) // TODO parse with utils.kt's userStringToInt()
 						this._uiState.activeMemoryAddress = memAddress
-						this.updateMemory()
+						this.update()
 						return;
 					case 'moveMemoryUp':
 						moveMemoryBy(+this._uiState.MEMORY_CONTEXT)
@@ -147,19 +152,12 @@ export class MemoryUI {
 					case 'updateDisplayType':
 						const {displayType} = message
 						this._uiState.setDisplayType(displayType)
-						this.updateMemory()
+						this.update()
 				}
 			},
 			null,
 			this._disposables
 		);
-	}
-
-	private _update() {
-		const webview = this._panel.webview;
-		this._panel.webview.html = this._getHtmlForWebview(webview);
-
-		// this._panel.webview.postMessage({command: "loadState", uiState: MemoryUI._uiState})
 	}
 
 	private _getHtmlForWebview(webview: vscode.Webview, ) {

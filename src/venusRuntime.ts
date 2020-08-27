@@ -491,7 +491,7 @@ export class VenusRuntime extends EventEmitter {
 	}
 
 	private updateMemory() {
-		MemoryUI.getInstance().updateMemory()
+		MemoryUI.getInstance().update()
 	}
 
 }
