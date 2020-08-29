@@ -186,7 +186,7 @@ export class LedMatrix {
 	constructor(xSize: number, ySize: number, ledState?: Color[]){
 		this.xCount = xSize;
 		this.yCount = ySize;
-		if (ledState == null || ledState.length == (xSize * ySize)) {
+		if (ledState == null || ledState.length != (xSize * ySize)) {
 			this.resetMatrix();
 		} else {
 			this.ledState = ledState;
