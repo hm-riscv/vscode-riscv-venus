@@ -70,6 +70,7 @@ export class VenusRuntime extends EventEmitter {
 
 	constructor() {
 		super();
+		simulator.driver.setBreakBeforeInstruction(true);
 	}
 
 
