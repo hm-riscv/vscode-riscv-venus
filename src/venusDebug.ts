@@ -716,8 +716,12 @@ export class VenusDebugSession extends LoggingDebugSession {
 		let jString = json;
 		let jsonObj = JSON.parse(jString)
 		if (jsonObj.id == 50) {
-			let params = jsonObj.params
-			VenusUI.getInstance().setLed(params.x, params.y, new Color(params.red, params.green, params.blue))
+			let x = (jsonObj.params.a1 >> 16) & 0xFFFF
+			let y = jsonObj.params.a1 & 0xFFFF
+			let red = (jsonObj.params.a2 >> 16) & 0xFF
+			let green = (jsonObj.params.a2 >> 8) & 0xFF
+			let blue = jsonObj.params.a2 & 0xFF
+			VenusUI.getInstance().setLed(x, y, new Color(red, green, blue))
 		}
 	}
 }
