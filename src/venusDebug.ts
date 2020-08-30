@@ -16,7 +16,7 @@ import { workspace, languages, Disposable, window, ViewColumn, TextEditor, comma
 import { riscvDisassemblyProvider } from './assemblyView';
 import { DisassemblyDecoratorProvider } from './assemblyDecorator';
 import { VenusRenderer } from './venusRenderer';
-import { VenusUI, Color } from './ui/venusUI';
+import { VenusLedMatrixUI, Color } from './ledmatrix/venusLedMatrixUI';
 import { MemoryUI } from './memoryui/memoryUI';
 const { Subject } = require('await-notify');
 
@@ -227,7 +227,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._runtime.assemble(args.program, basename(args.program));
 
 		VenusRuntime.registerECallReceiver(this.receiveEcall);
-		VenusUI.getInstance().resetLedMatrix();
+		VenusLedMatrixUI.getInstance().resetLedMatrix();
 		MemoryUI.getInstance().resetMemory();
 
 		// This is a workaround so we always stop execution and start debugging
@@ -721,7 +721,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 			let red = (jsonObj.params.a2 >> 16) & 0xFF
 			let green = (jsonObj.params.a2 >> 8) & 0xFF
 			let blue = jsonObj.params.a2 & 0xFF
-			VenusUI.getInstance().setLed(x, y, new Color(red, green, blue))
+			VenusLedMatrixUI.getInstance().setLed(x, y, new Color(red, green, blue))
 		}
 	}
 }

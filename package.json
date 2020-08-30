@@ -127,8 +127,8 @@
 				}
 			},
 			{
-				"command": "riscv-venus.openEcallUI",
-				"title": "Venus: Open Ecall UI",
+				"command": "riscv-venus.openLedMatrixUI",
+				"title": "Venus: Open LED Matrix",
 				"icon": {
 					"light": "images/light/three-bars.svg",
 					"dark": "images/dark/three-bars.svg"
@@ -163,7 +163,7 @@
 		"viewsWelcome": [
 			{
 				"view": "riscv-venus.Assembly",
-				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)\n[Open UI](command:riscv-venus.openEcallUI)\n[Open Memory](command:riscv-venus.openMemory)\n[Open Settings](command:riscv-venus.openSettings)"
+				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)\n[LED Matrix](command:riscv-venus.openLedMatrixUI)\n[Open Memory](command:riscv-venus.openMemory)\n[Open Settings](command:riscv-venus.openSettings)"
 			}
 		],
 		"languages": [
