@@ -17,6 +17,7 @@ import { riscvDisassemblyProvider } from './assemblyView';
 import { DisassemblyDecoratorProvider } from './assemblyDecorator';
 import { VenusRenderer } from './venusRenderer';
 import { VenusLedMatrixUI, Color } from './ledmatrix/venusLedMatrixUI';
+import { VenusRobotUI } from './robot/venusRobotUI';
 import { MemoryUI } from './memoryui/memoryUI';
 const { Subject } = require('await-notify');
 
@@ -722,6 +723,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 			let green = (jsonObj.params.a2 >> 8) & 0xFF
 			let blue = jsonObj.params.a2 & 0xFF
 			VenusLedMatrixUI.getInstance().setLed(x, y, new Color(red, green, blue))
+		} else if (jsonObj.id == 0x110) {
+			VenusRobotUI.getInstance().setLedRow(jsonObj.params)
 		}
 	}
 }
