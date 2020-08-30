@@ -715,7 +715,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 	private receiveEcall(json: string) {
 		let jString = json;
 		let jsonObj = JSON.parse(jString)
-		VenusRenderer.getInstance().printConsole("Received Ecall: " + jString)
 		if (jsonObj.id == 50) {
 			let params = jsonObj.params
 			VenusUI.getInstance().setLed(params.x, params.y, new Color(params.red, params.green, params.blue))
