@@ -1,5 +1,5 @@
 class LedMatrix {
-
+	static offColor  = `rgb(0, 0, 0)`
 	/**
 	 *
 	 * @param {number} xCount x amount of leds
@@ -7,53 +7,75 @@ class LedMatrix {
 	 * @param {number} size	size/resolution of the leds
 	 * @param {number} margin margin between leds
 	 * @param {number} lineWidth line/edge width of leds
-	 * @param {canvas} canvas The html cnavas to draw on
+	 * @param {SVGElement} svg The svg to draw on
 	 */
-	constructor(xCount, yCount, size, margin, lineWidth, canvas) {
+	constructor(xCount, yCount, size, margin, lineWidth, svg) {
 		this.xCount = xCount;
 		this.yCount = yCount;
-		this.size = size;
 		this.margin = margin;
+		this.size = size;
 		this.lineWidth = lineWidth;
-		this.canvas = canvas;
+		this.svg = svg;
+		this.led = [];
+		this.createMatrix();
 	}
 
-	drawEmpty() {
-		var margin = this.margin + this.lineWidth;
+	createMatrix() {
 
-		var stepWidth = this.size + margin;
+		var stepWidth = this.size * 2 + this.margin;
 
-		var context = this.canvas.getContext("2d");
-		context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		this.canvas.width = this.xCount * stepWidth + this.size;
-		this.canvas.height = this.yCount * stepWidth + this.size;
+		this.svg.setAttribute("width", `100%`)
+		this.svg.setAttribute("viewBox", `0 0 ${stepWidth * (this.xCount + 1)} ${stepWidth * (this.yCount + 1)}`);
 
 		for (let x = 0; x < this.xCount; x++) {
+			this.led[x] = [];
 			for (let y = 0; y < this.yCount; y++) {
-				this.drawLed(x, y, `rgb(0, 0, 0)`, stepWidth, context)
+				var led = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+				this.led[x][y] = led;
+				led.setAttribute("cx", stepWidth*x + stepWidth);
+				led.setAttribute("cy", stepWidth*y + stepWidth);
+				led.setAttribute("r", this.size);
+				led.setAttribute("fill", LedMatrix.offColor);
+				this.svg.appendChild(led);
 			}
 		}
 	}
 
+	resetLeds() {
+		for (let x = 0; x < this.xCount; x++) {
+			for (let y = 0; y < this.yCount; y++) {
+				this.setLed(x, y, LedMatrix.offColor);
+			}
+		}
+	}
+
+	clear() {
+		var parentElement = this.svg.parentElement
+		var emptySvg = this.svg.cloneNode(false);
+		parentElement.removeChild(this.svg);
+		parentElement.appendChild(emptySvg);
+		this.svg = emptySvg;
+	}
+
 	drawFromState(uiState) {
-		let matrix = uiState.ledMatrix
-		this.xCount = matrix.xCount
-		this.yCount = matrix.yCount
-		let ledState = matrix.ledState
+		let matrix = uiState.ledMatrix;
+		let reset = false;
+		if (this.xCount != matrix.xCount || this.yCount != matrix.yCount) {
+			reset = true;
+		}
+		this.xCount = matrix.xCount;
+		this.yCount = matrix.yCount;
+		let ledState = matrix.ledState;
 
-		var margin = this.margin + this.lineWidth;
-
-		var stepWidth = this.size + margin;
-
-		var context = this.canvas.getContext("2d");
-		context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		this.canvas.width = this.xCount * stepWidth + this.size;
-		this.canvas.height = this.yCount * stepWidth + this.size;
+		if (reset) {
+			this.clear()
+			this.createMatrix();
+		}
 
 		for (let x = 0; x < this.xCount; x++) {
 			for (let y = 0; y < this.yCount; y++) {
 				let color = ledState[x + y * this.xCount]
-				this.drawLed(x, y, `rgb(${color.red}, ${color.green}, ${color.blue})`, stepWidth, context)
+				this.setLed(x, y, `rgb(${color.red}, ${color.green}, ${color.blue})`)
 			}
 		}
 	}
@@ -61,55 +83,22 @@ class LedMatrix {
 	 *
 	 * @param {number} x
 	 * @param {number} y
-	 * @param {Color} color color class from led state
+	 * @param {Color} color rgb string: rgb(155, 255, 0)
 	 */
 	setLed(x, y, color) {
 		if (x >= this.xCount || y >= this.yCount) {
 			return
 		}
-		var margin = this.margin + this.lineWidth;
-		var stepWidth = this.size + margin;
-		var context = this.canvas.getContext("2d");
-
-
-		this.drawLed(x, y, `rgb(${color.red}, ${color.green}, ${color.blue})`, stepWidth, context);
+		this.led[x][y].setAttribute("fill", color);
 	}
 
-	/**
-	 *
-	 * @param {number} x
-	 * @param {number} y
-	 * @param {number} color
-	 * @param {number} stepWidth
-	 * @param {CanvasRenderingContext2D} context
-	 */
-	drawLed(x, y, color, stepWidth, context) {
-		var radius = this.size / 2;
-
-		context.beginPath();
-		context.arc((x*stepWidth) + this.size, (y*stepWidth) + this.size, radius, 0, 2 * Math.PI, false);
-		context.fillStyle = color;
-		context.fill();
-		context.lineWidth = 5;
-		context.strokeStyle = '#222222';
-		context.stroke();
-	}
 }
 
-function resizeMatrix() {
-	canvas.style.width = `${ledSlider.value}%`
-	canvas.style.height = `${ledSlider.value}%`
-};
-
-var canvas = document.createElement("canvas");
+var svg_element = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
 var ledDiv = document.getElementById("led_div")
-ledDiv.appendChild(canvas)
-var ledSlider = document.getElementById("ledsize")
-let ledMatrix = new LedMatrix(10, 10, 50, 2, 5, canvas)
-ledMatrix.drawEmpty()
-resizeMatrix()
-ledSlider.oninput = resizeMatrix
+ledDiv.appendChild(svg_element)
+let ledMatrix = new LedMatrix(10, 10, 1, 0.1, 0.1, svg_element)
 
 // Handle the message inside the webview
 window.addEventListener('message', event => {
@@ -122,7 +111,7 @@ window.addEventListener('message', event => {
 			ledMatrix.drawFromState(state);
 			break;
 		case 'setLed':
-			ledMatrix.setLed(message.x, message.y, message.color);
+			ledMatrix.setLed(message.x, message.y, `rgb(${message.color.red}, ${message.color.green}, ${message.color.blue})`);
 			break;
 	}
 });
