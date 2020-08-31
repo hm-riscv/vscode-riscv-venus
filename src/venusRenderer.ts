@@ -1,16 +1,17 @@
 import * as vscode from 'vscode'
 import simulator = require('./runtime/riscvSimulator');
 import EventEmitter = require('events');
-
+import { MemoryUI } from './memoryui/memoryUI';
 /** This is a Singleton Class. Renders output to the specified Output Channel. Also listens for events from the venus.Renderer from KotlinJS
  * and displays the appropiate Response.
   */
 export class VenusRenderer {
 	private static instance: VenusRenderer;
 	private outputChannel: vscode.OutputChannel;
+	private memoryUI: MemoryUI;
 
 	private constructor() {
-
+		this.memoryUI = MemoryUI.getInstance();
 		var emitter: EventEmitter.EventEmitter = simulator.venus.venus.Renderer.setEmitter(new EventEmitter.EventEmitter());
 		emitter.on("assembler_error", (e) => {this.showErrorWithPopup(e)});
 		emitter.on("warning", (str) => {this.printWarning(str)});
@@ -72,4 +73,5 @@ export class VenusRenderer {
 		vscode.debug.activeDebugConsole.appendLine(any.toString());
 
 	}
+
 }

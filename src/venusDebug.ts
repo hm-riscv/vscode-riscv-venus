@@ -17,6 +17,7 @@ import { riscvDisassemblyProvider } from './assemblyView';
 import { DisassemblyDecoratorProvider } from './assemblyDecorator';
 import { VenusRenderer } from './venusRenderer';
 import { VenusUI, Color } from './ui/venusUI';
+import { MemoryUI } from './memoryui/memoryUI';
 const { Subject } = require('await-notify');
 
 const riscvAsmScheme = 'venus_asm';
@@ -227,6 +228,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		VenusRuntime.registerECallReceiver(this.receiveEcall);
 		VenusUI.getInstance().resetLedMatrix();
+		MemoryUI.getInstance().resetMemory();
 
 		// Add Instruction Information to Line
 

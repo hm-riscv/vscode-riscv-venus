@@ -12,6 +12,7 @@ import { VenusRenderer } from './venusRenderer';
 import path from 'path';
 import fs from 'fs'
 import { VenusUI, UIState, LedMatrix } from './ui/venusUI';
+import { MemoryUI } from './memoryui/memoryUI';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -22,6 +23,7 @@ const runMode: 'external' | 'server' | 'inline' = 'inline';
 export function activate(context: vscode.ExtensionContext) {
 
 	VenusUI.createNewInstance(new UIState(new LedMatrix(10, 10)))
+	MemoryUI.createNewInstance()
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.riscv-venus.getProgramName', config => {
 		return vscode.window.showInputBox({
@@ -52,6 +54,10 @@ export function activate(context: vscode.ExtensionContext) {
 		// Display a message box to the user
 		vscode.window.showInformationMessage('riscv-venus extension activated');
 	  }));
+
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openMemory', async config => {
+		MemoryUI.getInstance().show(context.extensionUri);
+	}));
 
 	// register a configuration provider for 'venus' debug type
 	const venusProvider = new VenusConfigurationProvider();
