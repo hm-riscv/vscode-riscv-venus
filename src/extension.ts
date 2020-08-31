@@ -23,8 +23,8 @@ const runMode: 'external' | 'server' | 'inline' = 'inline';
 
 export function activate(context: vscode.ExtensionContext) {
 
-	VenusLedMatrixUI.createNewInstance(new UIState(new LedMatrix(10, 10)))
-	VenusRobotUI.createNewInstance()
+	VenusLedMatrixUI.createNewInstance(context.extensionUri, new UIState(new LedMatrix(10, 10)))
+	VenusRobotUI.createNewInstance(context.extensionUri)
 	MemoryUI.createNewInstance()
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.riscv-venus.getProgramName', config => {
@@ -43,11 +43,11 @@ export function activate(context: vscode.ExtensionContext) {
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openLedMatrixUI', async config => {
-		VenusLedMatrixUI.getInstance().show(context.extensionUri);
+		VenusLedMatrixUI.getInstance().show();
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openRobotUI', async config => {
-		VenusRobotUI.getInstance().show(context.extensionUri);
+		VenusRobotUI.getInstance().show();
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openSettings', async config => {

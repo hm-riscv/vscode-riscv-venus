@@ -63,10 +63,10 @@ function timeout(ms: number) {
 }
 
 /**
- * This interface describes the mock-debug specific launch attributes
- * (which are not part of the Debug Adapter Protocol).
- * The schema for these attributes lives in the package.json of the mock-debug extension.
- * The interface should always match this schema.
+ * This interface describes the debug-specific launch attributes (which are not
+ * part of the Debug Adapter Protocol). The schema for these attributes lives in
+ * the package.json of the extension. The interface should always match this
+ * schema.
  */
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/** An absolute path to the "program" to debug. */
@@ -75,6 +75,8 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	stopOnEntry?: boolean;
 	/** enable logging the Debug Adapter Protocol */
 	trace?: boolean;
+	/** open views on start */
+	openViews?: string[];
 }
 
 export class VenusDebugSession extends LoggingDebugSession {
@@ -246,6 +248,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 		if (doOpen) {
 			this.openDisassemblyView();
 		}
+
+		args.openViews?.forEach(view => {
+			this.openView(view)
+		});
 	}
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
@@ -704,6 +710,23 @@ export class VenusDebugSession extends LoggingDebugSession {
 				}
 			}
 		});
+	}
+
+	private async openView(view: string) {
+
+		if (this._windowDisposable != null) {
+			this._windowDisposable.dispose();
+		}
+
+		// If there is an assembly open we try to get is viewcolumn and show the document in the same column.
+		let viewColumn: ViewColumn | undefined;
+		viewColumn = this._assemblyViewEditor?.viewColumn
+
+		if (view == "LED Matrix")
+			VenusLedMatrixUI.getInstance().show(viewColumn);
+		else if (view == "Robot")
+			VenusRobotUI.getInstance().show(viewColumn);
+
 	}
 
 	/** Updates the Decorators in Assemblyview. This means lines are marked, for example the current active line that is debugged. */

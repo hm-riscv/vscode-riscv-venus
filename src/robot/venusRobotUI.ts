@@ -12,7 +12,7 @@ export class VenusRobotUI {
 
 	public static readonly viewType = 'VenusRobotUI';
 	private _panel: vscode.WebviewPanel;
-	private _extensionUri: vscode.Uri;
+	private static _extensionUri: vscode.Uri;
 	private _disposables: vscode.Disposable[] = [];
 	private static _uiState: UIState;
 
@@ -21,21 +21,23 @@ export class VenusRobotUI {
 		if (VenusRobotUI.instance) {
 			return VenusRobotUI.instance
 		} else {
-			VenusRobotUI.instance = new VenusRobotUI(VenusRobotUI._uiState)
+			VenusRobotUI.instance = new VenusRobotUI(undefined, VenusRobotUI._uiState)
 			return VenusRobotUI.instance
 		}
 	}
 
 	/** Closes the old instance if available and opens a new one */
-	public static createNewInstance(uiState?: UIState): VenusRobotUI {
+	public static createNewInstance(extensionUri: vscode.Uri, uiState?: UIState): VenusRobotUI {
 		if (VenusRobotUI.instance) {
 			VenusRobotUI.instance.dispose();
 		}
-		VenusRobotUI.instance = new VenusRobotUI(uiState)
+		VenusRobotUI.instance = new VenusRobotUI(extensionUri, uiState)
 		return VenusRobotUI.instance
 	}
 
-	private constructor(uiState?: UIState) {
+	private constructor(extensionUri?: vscode.Uri, uiState?: UIState) {
+		if (extensionUri)
+			VenusRobotUI._extensionUri = extensionUri
 		if (uiState) {
 			VenusRobotUI._uiState = uiState;
 		} else {
@@ -57,33 +59,32 @@ export class VenusRobotUI {
 		}
 	}
 
-	public show(extensionUri: vscode.Uri) {
+	public show(column? : vscode.ViewColumn) {
 		// If we already have a panel, show it.
 		if (VenusRobotUI.instance?._panel) {
 			VenusRobotUI.instance._panel.reveal();
 		} else {
-			this._addPanel(extensionUri);
+			this._addPanel();
 		}
 	}
 
-	private _addPanel(extensionUri: vscode.Uri) {
+	private _addPanel(column? : vscode.ViewColumn) {
 
 		// Otherwise, create a new panel.
 		const panel = vscode.window.createWebviewPanel(
 			VenusRobotUI.viewType,
 			'Robot',
-			vscode.ViewColumn.Beside,
+			column ? column : vscode.ViewColumn.Beside,
 			{
 				// Enable javascript in the webview
 				enableScripts: true,
 
 				// And restrict the webview to only loading content from our extension's `ui` directory.
-				localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'src', 'robot')]
+				localResourceRoots: [vscode.Uri.joinPath(VenusRobotUI._extensionUri, 'src', 'robot')]
 			}
 		);
 
 		this._panel = panel;
-		this._extensionUri = extensionUri;
 
 		// Set the webview's initial html content
 		const webview = this._panel.webview;
@@ -124,15 +125,15 @@ export class VenusRobotUI {
 
 	private _getHtmlForWebview(webview: vscode.Webview, ) {
 
-		const htmlPathOnDisk = vscode.Uri.joinPath(this._extensionUri, '/src/robot/venusRobotUI.html');
+		const htmlPathOnDisk = vscode.Uri.joinPath(VenusRobotUI._extensionUri, '/src/robot/venusRobotUI.html');
 		var htmlpath = htmlPathOnDisk.fsPath;
 		var html = fs.readFileSync(htmlpath).toString();
 
-		const onDiskPath = vscode.Uri.joinPath(this._extensionUri, '/src/robot/venusRobotUI.js');
+		const onDiskPath = vscode.Uri.joinPath(VenusRobotUI._extensionUri, '/src/robot/venusRobotUI.js');
 		const scriptSrc = webview.asWebviewUri(onDiskPath);
 		html = html.replace('${scriptSrc}', scriptSrc.toString());
 
-		const stylePath = vscode.Uri.joinPath(this._extensionUri, '/src/robot/VenusRobotUI.css');
+		const stylePath = vscode.Uri.joinPath(VenusRobotUI._extensionUri, '/src/robot/VenusRobotUI.css');
 		const styleSrc = webview.asWebviewUri(stylePath);
 		html = html.replace('${styleSrc}', styleSrc.toString());
 
