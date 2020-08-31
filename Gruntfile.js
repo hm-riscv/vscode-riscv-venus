@@ -2,7 +2,7 @@ module.exports = function(grunt) {
     grunt.initConfig({
         exec: {
             build_venus: {
-                command: 'gradlew build',
+                command: './gradlew build',
                 cwd: 'src/runtime/venus'
             }
         },
