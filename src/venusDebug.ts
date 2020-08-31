@@ -739,18 +739,16 @@ export class VenusDebugSession extends LoggingDebugSession {
 		}
 	}
 
-	private receiveEcall(json: string) {
+	private receiveEcall(json: string) : string {
 		let jString = json;
 		let jsonObj = JSON.parse(jString)
-		if (jsonObj.id == 50) {
-			let x = (jsonObj.params.a1 >> 16) & 0xFFFF
-			let y = jsonObj.params.a1 & 0xFFFF
-			let red = (jsonObj.params.a2 >> 16) & 0xFF
-			let green = (jsonObj.params.a2 >> 8) & 0xFF
-			let blue = jsonObj.params.a2 & 0xFF
-			VenusLedMatrixUI.getInstance().setLed(x, y, new Color(red, green, blue))
+		let result = {}
+		if (jsonObj.id == 0x100) {
+			result = VenusLedMatrixUI.getInstance().ecall(jsonObj.id, jsonObj.params)
 		} else if (jsonObj.id == 0x110) {
-			VenusRobotUI.getInstance().setLedRow(jsonObj.params)
+			result = VenusRobotUI.getInstance().ecall(jsonObj.id, jsonObj.params)
 		}
+
+		return JSON.stringify(result)
 	}
 }

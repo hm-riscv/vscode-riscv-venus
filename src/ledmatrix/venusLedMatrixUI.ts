@@ -140,11 +140,22 @@ export class VenusLedMatrixUI {
 		return html;
 	}
 
-	public setLed(x: number, y: number, color: Color) {
+	public ecall(id: number, params: any) : object {
+		if (id != 0x100) return {}
+		let x = (params.a1 >> 16) & 0xFFFF
+		let y = params.a1 & 0xFFFF
+		let red = (params.a2 >> 16) & 0xFF
+		let green = (params.a2 >> 8) & 0xFF
+		let blue = params.a2 & 0xFF
+
+		var color = new Color(red, green, blue)
+
 		VenusLedMatrixUI._uiState.getLedMatrix().setLed(x, y, color)
 		if (this._panel?.visible) {
 			this._panel.webview.postMessage({command: "setLed", x: x, y: y, color: color})
 		}
+
+		return {}
 	}
 
 	public resetLedMatrix() {

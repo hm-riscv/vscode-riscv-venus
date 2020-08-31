@@ -133,20 +133,22 @@ export class VenusRobotUI {
 		const scriptSrc = webview.asWebviewUri(onDiskPath);
 		html = html.replace('${scriptSrc}', scriptSrc.toString());
 
-		const stylePath = vscode.Uri.joinPath(VenusRobotUI._extensionUri, '/src/robot/VenusRobotUI.css');
+		const stylePath = vscode.Uri.joinPath(VenusRobotUI._extensionUri, '/src/robot/venusRobotUI.css');
 		const styleSrc = webview.asWebviewUri(stylePath);
 		html = html.replace('${styleSrc}', styleSrc.toString());
 
 		return html;
 	}
 
-	public setLedRow(param) {
-		let row : number = param.a1;
-		let values : number = param.a2;
+	public ecall(id : number, params : any) : object {
+		if (id != 0x110) return {};
+		let row : number = params.a1;
+		let values : number = params.a2;
 		VenusRobotUI._uiState.getLedMatrix().setLedRow(row, values)
 		if (this._panel?.visible) {
 			this._panel.webview.postMessage({command: "setLedRow", row: row, values: values})
 		}
+		return {}
 	}
 
 	public resetLedMatrix() {
