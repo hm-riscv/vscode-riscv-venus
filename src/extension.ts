@@ -11,7 +11,8 @@ import * as Net from 'net';
 import { VenusRenderer } from './venusRenderer';
 import path from 'path';
 import fs from 'fs'
-import { VenusUI, UIState, LedMatrix } from './ui/venusUI';
+import { VenusLedMatrixUI, UIState, LedMatrix } from './ledmatrix/venusLedMatrixUI';
+import { VenusRobotUI } from './robot/venusRobotUI';
 import { MemoryUI } from './memoryui/memoryUI';
 
 /*
@@ -22,7 +23,8 @@ const runMode: 'external' | 'server' | 'inline' = 'inline';
 
 export function activate(context: vscode.ExtensionContext) {
 
-	VenusUI.createNewInstance(new UIState(new LedMatrix(10, 10)))
+	VenusLedMatrixUI.createNewInstance(context.extensionUri, new UIState(new LedMatrix(10, 10)))
+	VenusRobotUI.createNewInstance(context.extensionUri)
 	MemoryUI.createNewInstance()
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.riscv-venus.getProgramName', config => {
@@ -40,8 +42,12 @@ export function activate(context: vscode.ExtensionContext) {
 		return vscode.window.showInformationMessage(`Changed Variable Format to ${result}`)
 	}));
 
-	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openEcallUI', async config => {
-		VenusUI.getInstance().show(context.extensionUri);
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openLedMatrixUI', async config => {
+		VenusLedMatrixUI.getInstance().show();
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openRobotUI', async config => {
+		VenusRobotUI.getInstance().show();
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openSettings', async config => {

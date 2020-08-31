@@ -16,7 +16,8 @@ import { workspace, languages, Disposable, window, ViewColumn, TextEditor, comma
 import { riscvDisassemblyProvider } from './assemblyView';
 import { DisassemblyDecoratorProvider } from './assemblyDecorator';
 import { VenusRenderer } from './venusRenderer';
-import { VenusUI, Color } from './ui/venusUI';
+import { VenusLedMatrixUI, Color } from './ledmatrix/venusLedMatrixUI';
+import { VenusRobotUI } from './robot/venusRobotUI';
 import { MemoryUI } from './memoryui/memoryUI';
 const { Subject } = require('await-notify');
 
@@ -62,10 +63,10 @@ function timeout(ms: number) {
 }
 
 /**
- * This interface describes the mock-debug specific launch attributes
- * (which are not part of the Debug Adapter Protocol).
- * The schema for these attributes lives in the package.json of the mock-debug extension.
- * The interface should always match this schema.
+ * This interface describes the debug-specific launch attributes (which are not
+ * part of the Debug Adapter Protocol). The schema for these attributes lives in
+ * the package.json of the extension. The interface should always match this
+ * schema.
  */
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/** An absolute path to the "program" to debug. */
@@ -74,6 +75,8 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	stopOnEntry?: boolean;
 	/** enable logging the Debug Adapter Protocol */
 	trace?: boolean;
+	/** open views on start */
+	openViews?: string[];
 }
 
 export class VenusDebugSession extends LoggingDebugSession {
@@ -227,7 +230,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._runtime.assemble(args.program, basename(args.program));
 
 		VenusRuntime.registerECallReceiver(this.receiveEcall);
-		VenusUI.getInstance().resetLedMatrix();
+		VenusLedMatrixUI.getInstance().resetLedMatrix();
 		MemoryUI.getInstance().resetMemory();
 
 		// Add Instruction Information to Line
@@ -241,11 +244,16 @@ export class VenusDebugSession extends LoggingDebugSession {
 			this.openDisassemblyView();
 		}
 
+		args.openViews?.forEach(view => {
+			this.openView(view)
+		});
+
 		// start the program in the runtime
 		this._runtime.start(args.stopOnEntry ? args.stopOnEntry : true);
 
 		response.success = true
 		this.sendResponse(response)
+
 
 	}
 
@@ -701,6 +709,23 @@ export class VenusDebugSession extends LoggingDebugSession {
 		});
 	}
 
+	private async openView(view: string) {
+
+		if (this._windowDisposable != null) {
+			this._windowDisposable.dispose();
+		}
+
+		// If there is an assembly open we try to get is viewcolumn and show the document in the same column.
+		let viewColumn: ViewColumn | undefined;
+		viewColumn = this._assemblyViewEditor?.viewColumn
+
+		if (view == "LED Matrix")
+			VenusLedMatrixUI.getInstance().show(viewColumn);
+		else if (view == "Robot")
+			VenusRobotUI.getInstance().show(viewColumn);
+
+	}
+
 	/** Updates the Decorators in Assemblyview. This means lines are marked, for example the current active line that is debugged. */
 	private updateAssemblyViewDecorator() {
 		if (this._assemblyViewEditor != null) {
@@ -711,10 +736,15 @@ export class VenusDebugSession extends LoggingDebugSession {
 	private receiveEcall(json: string) {
 		let jString = json;
 		let jsonObj = JSON.parse(jString)
-		VenusRenderer.getInstance().printConsole("Received Ecall: " + jString)
 		if (jsonObj.id == 50) {
-			let params = jsonObj.params
-			VenusUI.getInstance().setLed(params.x, params.y, new Color(params.red, params.green, params.blue))
+			let x = (jsonObj.params.a1 >> 16) & 0xFFFF
+			let y = jsonObj.params.a1 & 0xFFFF
+			let red = (jsonObj.params.a2 >> 16) & 0xFF
+			let green = (jsonObj.params.a2 >> 8) & 0xFF
+			let blue = jsonObj.params.a2 & 0xFF
+			VenusLedMatrixUI.getInstance().setLed(x, y, new Color(red, green, blue))
+		} else if (jsonObj.id == 0x110) {
+			VenusRobotUI.getInstance().setLedRow(jsonObj.params)
 		}
 	}
 }

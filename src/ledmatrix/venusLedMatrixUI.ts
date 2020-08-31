@@ -4,47 +4,49 @@ import fs from 'fs'
 /**
  * Manages cat coding webview panels
  */
-export class VenusUI {
+export class VenusLedMatrixUI {
 	/**
 	 * Track the currently panel. Only allow a single panel to exist at a time.
 	 */
-	public static instance: VenusUI | undefined;
+	public static instance: VenusLedMatrixUI | undefined;
 
-	public static readonly viewType = 'venusUI';
+	public static readonly viewType = 'VenusLedMatrixUI';
 	private _panel: vscode.WebviewPanel;
-	private _extensionUri: vscode.Uri;
+	private static _extensionUri: vscode.Uri;
 	private _disposables: vscode.Disposable[] = [];
 	private static _uiState: UIState;
 
 
-	public static getInstance(): VenusUI {
-		if (VenusUI.instance) {
-			return VenusUI.instance
+	public static getInstance(): VenusLedMatrixUI {
+		if (VenusLedMatrixUI.instance) {
+			return VenusLedMatrixUI.instance
 		} else {
-			VenusUI.instance = new VenusUI(VenusUI._uiState)
-			return VenusUI.instance
+			VenusLedMatrixUI.instance = new VenusLedMatrixUI(undefined, VenusLedMatrixUI._uiState)
+			return VenusLedMatrixUI.instance
 		}
 	}
 
 	/** Closes the old instance if available and opens a new one */
-	public static createNewInstance(uiState?: UIState): VenusUI {
-		if (VenusUI.instance) {
-			VenusUI.instance.dispose();
+	public static createNewInstance(extensionUri?: vscode.Uri, uiState?: UIState): VenusLedMatrixUI {
+		if (VenusLedMatrixUI.instance) {
+			VenusLedMatrixUI.instance.dispose();
 		}
-		VenusUI.instance = new VenusUI(uiState)
-		return VenusUI.instance
+		VenusLedMatrixUI.instance = new VenusLedMatrixUI(extensionUri, uiState)
+		return VenusLedMatrixUI.instance
 	}
 
-	private constructor(uiState?: UIState) {
+	private constructor(extensionUri?: vscode.Uri, uiState?: UIState) {
+		if (extensionUri)
+			VenusLedMatrixUI._extensionUri = extensionUri
 		if (uiState) {
-			VenusUI._uiState = uiState;
+			VenusLedMatrixUI._uiState = uiState;
 		} else {
-			VenusUI._uiState = new UIState(new LedMatrix(10, 10))
+			VenusLedMatrixUI._uiState = new UIState(new LedMatrix(10, 10))
 		}
 	}
 
 	public dispose() {
-		VenusUI.instance = undefined;
+		VenusLedMatrixUI.instance = undefined;
 
 		// Clean up our resources
 		this._panel.dispose();
@@ -57,33 +59,32 @@ export class VenusUI {
 		}
 	}
 
-	public show(extensionUri: vscode.Uri) {
+	public show(column? : vscode.ViewColumn) {
 		// If we already have a panel, show it.
-		if (VenusUI.instance?._panel) {
-			VenusUI.instance._panel.reveal();
+		if (VenusLedMatrixUI.instance?._panel) {
+			VenusLedMatrixUI.instance._panel.reveal();
 		} else {
-			this._addPanel(extensionUri);
+			this._addPanel(column);
 		}
 	}
 
-	private _addPanel(extensionUri: vscode.Uri) {
+	private _addPanel(column? : vscode.ViewColumn) {
 
 		// Otherwise, create a new panel.
 		const panel = vscode.window.createWebviewPanel(
-			VenusUI.viewType,
-			'Venus UI',
-			vscode.ViewColumn.Beside,
+			VenusLedMatrixUI.viewType,
+			'LED Matrix',
+			column ? column : vscode.ViewColumn.Beside,
 			{
 				// Enable javascript in the webview
 				enableScripts: true,
 
-				// And restrict the webview to only loading content from our extension's `ui` directory.
-				localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'src', 'ui')]
+				// And restrict the webview to only loading content from our extension's `ledmatrix` directory.
+				localResourceRoots: [vscode.Uri.joinPath(VenusLedMatrixUI._extensionUri, 'src', 'ledmatrix')]
 			}
 		);
 
 		this._panel = panel;
-		this._extensionUri = extensionUri;
 
 		// Set the webview's initial html content
 		this._update();
@@ -121,20 +122,20 @@ export class VenusUI {
 		const webview = this._panel.webview;
 		this._panel.webview.html = this._getHtmlForWebview(webview);
 
-		this._panel.webview.postMessage({command: "loadState", uiState: VenusUI._uiState})
+		this._panel.webview.postMessage({command: "loadState", uiState: VenusLedMatrixUI._uiState})
 	}
 
 	private _getHtmlForWebview(webview: vscode.Webview, ) {
 
-		const htmlPathOnDisk = vscode.Uri.joinPath(this._extensionUri, '/src/ui/venusUI.html');
+		const htmlPathOnDisk = vscode.Uri.joinPath(VenusLedMatrixUI._extensionUri, '/src/ledmatrix/venusLedMatrixUI.html');
 		var htmlpath = htmlPathOnDisk.fsPath;
 		var html = fs.readFileSync(htmlpath).toString();
 
-		const onDiskPath = vscode.Uri.joinPath(this._extensionUri, '/src/ui/venusUI.js');
+		const onDiskPath = vscode.Uri.joinPath(VenusLedMatrixUI._extensionUri, '/src/ledmatrix/venusLedMatrixUI.js');
 		const scriptSrc = webview.asWebviewUri(onDiskPath);
 		html = html.replace('${scriptSrc}', scriptSrc.toString());
 
-		const stylePath = vscode.Uri.joinPath(this._extensionUri, '/src/ui/venusUI.css');
+		const stylePath = vscode.Uri.joinPath(VenusLedMatrixUI._extensionUri, '/src/ledmatrix/venusLedMatrixUI.css');
 		const styleSrc = webview.asWebviewUri(stylePath);
 		html = html.replace('${styleSrc}', styleSrc.toString());
 
@@ -142,14 +143,14 @@ export class VenusUI {
 	}
 
 	public setLed(x: number, y: number, color: Color) {
-		VenusUI._uiState.getLedMatrix().setLed(x, y, color)
+		VenusLedMatrixUI._uiState.getLedMatrix().setLed(x, y, color)
 		if (this._panel?.visible) {
 			this._panel.webview.postMessage({command: "setLed", x: x, y: y, color: color})
 		}
 	}
 
 	public resetLedMatrix() {
-		VenusUI._uiState.getLedMatrix().resetMatrix()
+		VenusLedMatrixUI._uiState.getLedMatrix().resetMatrix()
 	}
 }
 
