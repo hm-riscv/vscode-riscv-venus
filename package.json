@@ -231,10 +231,15 @@
 								"description": "Automatically stop after launch.",
 								"default": true
 							},
-							"trace": {
-								"type": "boolean",
-								"description": "Enable logging of the Debug Adapter Protocol.",
-								"default": true
+							"openViews": {
+								"description": "Which views to open on launch.",
+								"type": "array",
+								"default": [],
+								"items": {
+									"type": "string",
+									"enum": ["Robot", "LED Matrix"]
+								},
+								"uniqueItems": true
 							}
 						}
 					}
@@ -245,7 +250,8 @@
 						"request": "launch",
 						"name": "Debug current file",
 						"program": "${file}",
-						"stopOnEntry": true
+						"stopOnEntry": true,
+						"openViews": []
 					}
 				],
 				"configurationSnippets": [
@@ -257,7 +263,8 @@
 							"request": "launch",
 							"name": "${2:Launch Program}",
 							"program": "^\"\\${workspaceFolder}/${1:Program}\"",
-							"stopOnEntry": true
+							"stopOnEntry": true,
+							"openViews": []
 						}
 					},
 					{
@@ -268,7 +275,8 @@
 							"request": "launch",
 							"name": "${1:Debug Current File}",
 							"program": "^\"\\${file}\"",
-							"stopOnEntry": true
+							"stopOnEntry": true,
+							"openViews": []
 						}
 					},
 					{
@@ -279,7 +287,20 @@
 							"request": "launch",
 							"name": "Ask for file name",
 							"program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
-							"stopOnEntry": true
+							"stopOnEntry": true,
+							"openViews": []
+						}
+					},
+					{
+						"label": "Venus Debug: Launch with Led Views",
+						"description": "Asks the user which assembler file to debug",
+						"body": {
+							"type": "venus",
+							"request": "launch",
+							"name": "Launch with led",
+							"program": "^\"\\${file}\"",
+							"stopOnEntry": true,
+							"openViews": ["Robot", "LED Matrix"]
 						}
 					}
 				],
