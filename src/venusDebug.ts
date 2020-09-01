@@ -18,6 +18,7 @@ import { DisassemblyDecoratorProvider } from './assemblyDecorator';
 import { VenusRenderer } from './venusRenderer';
 import { VenusLedMatrixUI, Color } from './ledmatrix/venusLedMatrixUI';
 import { VenusRobotUI } from './robot/venusRobotUI';
+import { VenusSevenSegBoardUI } from './sevensegboard/venusSevenSegBoardUI';
 import { MemoryUI } from './memoryui/memoryUI';
 const { Subject } = require('await-notify');
 
@@ -729,6 +730,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 			VenusLedMatrixUI.getInstance().show(viewColumn);
 		else if (view == "Robot")
 			VenusRobotUI.getInstance().show(viewColumn);
+		else if (view == "Seven Segment Board")
+			VenusSevenSegBoardUI.getInstance().show(viewColumn);
 
 	}
 
@@ -747,6 +750,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 			result = VenusLedMatrixUI.getInstance().ecall(jsonObj.id, jsonObj.params)
 		} else if (jsonObj.id == 0x110) {
 			result = VenusRobotUI.getInstance().ecall(jsonObj.id, jsonObj.params)
+		} else if ((jsonObj.id >= 0x120) && (jsonObj.id < 0x123)) {
+			result = VenusSevenSegBoardUI.getInstance().ecall(jsonObj.id, jsonObj.params);
 		}
 
 		return JSON.stringify(result)
