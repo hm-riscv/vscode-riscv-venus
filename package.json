@@ -154,7 +154,7 @@
 		"views": {
 			"debug": [
 				{
-					"when": "resourceLangId == riscv",
+					"when": "venus:showOptionsMenu",
 					"id": "riscv-venus.Assembly",
 					"name": "Venus Options"
 				}

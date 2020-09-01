@@ -65,6 +65,11 @@ export function activate(context: vscode.ExtensionContext) {
 		MemoryUI.getInstance().show(context.extensionUri);
 	}));
 
+	// This block makes sure that the Venus Options View is shown in the debugger
+	// See: https://stackoverflow.com/questions/61555532/conditional-view-contribution-with-vscode-extension-api
+	vscode.commands.executeCommand('setContext', 'venus:showOptionsMenu',
+		vscode.window.activeTextEditor?.document.languageId == 'riscv');
+
 	// register a configuration provider for 'venus' debug type
 	const venusProvider = new VenusConfigurationProvider();
 	context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('venus', venusProvider));
@@ -109,7 +114,9 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-	// nothing to do
+	// Dont show Venus Options if the extension is not activated
+	vscode.commands.executeCommand('setContext', 'venus:showOptionsMenu',
+		false);
 }
 
 class VenusConfigurationProvider implements vscode.DebugConfigurationProvider {
