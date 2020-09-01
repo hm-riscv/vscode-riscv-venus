@@ -87,7 +87,8 @@ export class VenusLedMatrixUI {
 		this._panel = panel;
 
 		// Set the webview's initial html content
-		this._update();
+		const webview = this._panel.webview;
+		this._panel.webview.html = this._getHtmlForWebview(webview);
 
 		// Listen for when the panel is disposed
 		// This happens when the user closes the panel or when the panel is closed programatically
@@ -119,10 +120,7 @@ export class VenusLedMatrixUI {
 	}
 
 	private _update() {
-		const webview = this._panel.webview;
-		this._panel.webview.html = this._getHtmlForWebview(webview);
-
-		this._panel.webview.postMessage({command: "loadState", uiState: VenusLedMatrixUI._uiState})
+		this._panel?.webview.postMessage({command: "loadState", uiState: VenusLedMatrixUI._uiState})
 	}
 
 	private _getHtmlForWebview(webview: vscode.Webview, ) {
@@ -150,7 +148,8 @@ export class VenusLedMatrixUI {
 	}
 
 	public resetLedMatrix() {
-		VenusLedMatrixUI._uiState.getLedMatrix().resetMatrix()
+		VenusLedMatrixUI._uiState.getLedMatrix().resetMatrix();
+		this._update();
 	}
 }
 

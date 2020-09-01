@@ -120,7 +120,7 @@ export class VenusRobotUI {
 	}
 
 	private _update() {
-		this._panel.webview.postMessage({command: "loadState", uiState: VenusRobotUI._uiState})
+		this._panel?.webview.postMessage({command: "loadState", uiState: VenusRobotUI._uiState})
 	}
 
 	private _getHtmlForWebview(webview: vscode.Webview, ) {
@@ -147,6 +147,11 @@ export class VenusRobotUI {
 		if (this._panel?.visible) {
 			this._panel.webview.postMessage({command: "setLedRow", row: row, values: values})
 		}
+	}
+
+	public resetLedMatrix() {
+		VenusRobotUI._uiState.getLedMatrix().resetMatrix()
+		this._update();
 	}
 }
 

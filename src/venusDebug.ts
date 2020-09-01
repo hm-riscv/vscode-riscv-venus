@@ -230,8 +230,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._runtime.assemble(args.program, basename(args.program));
 
 		VenusRuntime.registerECallReceiver(this.receiveEcall);
-		VenusLedMatrixUI.getInstance().resetLedMatrix();
-		MemoryUI.getInstance().resetMemory();
+		this.resetViews();
+
 
 		// Add Instruction Information to Line
 
@@ -707,6 +707,12 @@ export class VenusDebugSession extends LoggingDebugSession {
 				}
 			}
 		});
+	}
+
+	private async resetViews() {
+		VenusLedMatrixUI.getInstance().resetLedMatrix();
+		MemoryUI.getInstance().resetMemory();
+		VenusRobotUI.getInstance().resetLedMatrix();
 	}
 
 	private async openView(view: string) {

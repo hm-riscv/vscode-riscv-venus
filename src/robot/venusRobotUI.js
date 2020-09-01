@@ -5,8 +5,8 @@ class LedMatrix {
 	 * @param {element} svg The svg to draw in
 	 */
 	constructor(svg) {
-		this.xCount = 12;
-		this.yCount = 16;
+		this.xCount = 16;
+		this.yCount = 12;
 		this.svg = svg;
 		this.offColor = "#3a3a3a";
 		this.onColor = "#9ecb36";
@@ -18,8 +18,8 @@ class LedMatrix {
 			for (let y = 0; y < this.yCount; y++) {
 				var led = document.createElementNS("http://www.w3.org/2000/svg", "circle");
 				this.led[x][y] = led;
-				led.setAttribute("cx", 250-11*y);
-				led.setAttribute("cy", 220-11*x);
+				led.setAttribute("cx", 250-11*x);
+				led.setAttribute("cy", 220-11*y);
 				led.setAttribute("r", 5);
 				led.setAttribute("fill", this.offColor);
 				this.svg.appendChild(led);
@@ -36,7 +36,11 @@ class LedMatrix {
 	}
 
 	drawFromState(uiState) {
-
+		let leds = uiState.ledMatrix.ledState;
+		for (let y = 0; y < this.yCount; y++) {
+			let row = leds[y]
+			this.setLedRow(y, row);
+		}
 	}
 	/**
 	 *
@@ -54,12 +58,12 @@ class LedMatrix {
 	}
 
 	setLedRow(row, values) {
-		if (row >= this.xCount) {
+		if (row >= this.yCount) {
 			return
 		}
 
-		for (let y = 0; y < this.yCount; y++) {
-			this.setLed(row, y, (values >> y) & 1);
+		for (let x = 0; x < this.xCount; x++) {
+			this.setLed(x, row, (values >> x) & 1);
 		}
 	}
 }
