@@ -60,6 +60,7 @@ export class VenusSevenSegBoardUI {
 	}
 
 	public show(column? : vscode.ViewColumn) {
+		VenusSevenSegBoardUI._uiState.reset()
 		// If we already have a panel, show it.
 		if (VenusSevenSegBoardUI.instance?._panel) {
 			VenusSevenSegBoardUI.instance._panel.reveal();
