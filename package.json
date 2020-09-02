@@ -1,7 +1,7 @@
 {
 	"name": "riscv-venus",
 	"displayName": "RISC-V Venus Simulator",
-	"version": "0.0.5",
+	"version": "1.0.0",
 	"publisher": "hm",
 	"description": "RISC-V Venus Simulator embedded in VS Code",
 	"author": {
@@ -22,12 +22,12 @@
 	"private": true,
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/hm-riscv/vscode-venus-dap.git"
+		"url": "https://github.com/hm-riscv/vscode-riscv-venus"
 	},
 	"bugs": {
-		"url": "https://github.com/hm-riscv/vscode-venus-dap/issues"
+		"url": "https://github.com/hm-riscv/vscode-riscv-venus/issues"
 	},
-	"preview": true,
+	"preview": false,
 	"scripts": {
 		"prepublish": "tsc -p ./src",
 		"compile": "tsc -p ./src",
