@@ -9,6 +9,12 @@ import { WorkspaceFolder, DebugConfiguration, ProviderResult, CancellationToken,
 import { VenusDebugSession } from './venusDebug';
 import * as Net from 'net';
 import { VenusRenderer } from './venusRenderer';
+import path from 'path';
+import fs from 'fs'
+import { VenusLedMatrixUI, UIState, LedMatrix } from './ledmatrix/venusLedMatrixUI';
+import { VenusRobotUI } from './robot/venusRobotUI';
+import { VenusSevenSegBoardUI } from './sevensegboard/venusSevenSegBoardUI';
+import { MemoryUI } from './memoryui/memoryUI';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -17,6 +23,11 @@ import { VenusRenderer } from './venusRenderer';
 const runMode: 'external' | 'server' | 'inline' = 'inline';
 
 export function activate(context: vscode.ExtensionContext) {
+
+	VenusLedMatrixUI.createNewInstance(context.extensionUri, new UIState(new LedMatrix(10, 10)))
+	VenusRobotUI.createNewInstance(context.extensionUri)
+	VenusSevenSegBoardUI.createNewInstance(context.extensionUri)
+	MemoryUI.createNewInstance()
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.riscv-venus.getProgramName', config => {
 		return vscode.window.showInputBox({
@@ -32,6 +43,38 @@ export function activate(context: vscode.ExtensionContext) {
 		await vscode.workspace.getConfiguration('riscv-venus').update('variableFormat', result, false)
 		return vscode.window.showInformationMessage(`Changed Variable Format to ${result}`)
 	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openLedMatrixUI', async config => {
+		VenusLedMatrixUI.getInstance().show();
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openRobotUI', async config => {
+		VenusRobotUI.getInstance().show();
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openSevenSegBoardUI', async config => {
+		VenusSevenSegBoardUI.getInstance().show();
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openSettings', async config => {
+		vscode.commands.executeCommand('workbench.action.openSettings', 'riscv-venus');
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.activate', () => {
+		// The code you place here will be executed every time your command is executed
+
+		// Display a message box to the user
+		vscode.window.showInformationMessage('riscv-venus extension activated');
+	  }));
+
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openMemory', async config => {
+		MemoryUI.getInstance().show(context.extensionUri);
+	}));
+
+	// This block makes sure that the Venus Options View is shown in the debugger
+	// See: https://stackoverflow.com/questions/61555532/conditional-view-contribution-with-vscode-extension-api
+	vscode.commands.executeCommand('setContext', 'venus:showOptionsMenu',
+		vscode.window.activeTextEditor?.document.languageId == 'riscv');
 
 	// register a configuration provider for 'venus' debug type
 	const venusProvider = new VenusConfigurationProvider();
@@ -77,7 +120,9 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-	// nothing to do
+	// Dont show Venus Options if the extension is not activated
+	vscode.commands.executeCommand('setContext', 'venus:showOptionsMenu',
+		false);
 }
 
 class VenusConfigurationProvider implements vscode.DebugConfigurationProvider {

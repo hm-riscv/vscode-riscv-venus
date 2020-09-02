@@ -7,27 +7,67 @@ import {
 	LoggingDebugSession,
 	InitializedEvent, TerminatedEvent, StoppedEvent, BreakpointEvent, OutputEvent,
 	ProgressStartEvent, ProgressUpdateEvent, ProgressEndEvent,
-	Thread, StackFrame, Scope, Source, Handles, Breakpoint
+	Thread, StackFrame, Scope, Source, Handles, Breakpoint, Variable
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import { VenusBreakpoint, VenusRuntime } from './venusRuntime';
 import { workspace, languages, Disposable, window, ViewColumn, TextEditor, commands, Uri, TextDocument } from 'vscode';
-import { riscvAssemblyProvider } from './assemblyView';
-import { AssemblyDecoratorProvider } from './assemblyDecorator';
+import { riscvDisassemblyProvider } from './assemblyView';
+import { DisassemblyDecoratorProvider } from './assemblyDecorator';
+import { VenusRenderer } from './venusRenderer';
+import { VenusLedMatrixUI, Color } from './ledmatrix/venusLedMatrixUI';
+import { VenusRobotUI } from './robot/venusRobotUI';
+import { VenusSevenSegBoardUI } from './sevensegboard/venusSevenSegBoardUI';
+import { MemoryUI } from './memoryui/memoryUI';
 const { Subject } = require('await-notify');
 
 const riscvAsmScheme = 'venus_asm';
+
+const regNames = new Map([
+	["0", "zero"],
+	["1", "ra"],
+	["2", "sp"],
+	["3", "gp"],
+	["4", "tp"],
+	["5", "t0"],
+	["6", "t1"],
+	["7", "t2"],
+	["8", "s0"],
+	["9", "s1"],
+	["10", "a0"],
+	["11", "a1"],
+	["12", "a2"],
+	["13", "a3"],
+	["14", "a4"],
+	["15", "a5"],
+	["16", "a6"],
+	["17", "a7"],
+	["18", "s2"],
+	["19", "s3"],
+	["20", "s4"],
+	["21", "s5"],
+	["22", "s6"],
+	["23", "s7"],
+	["24", "s8"],
+	["25", "s9"],
+	["26", "s10"],
+	["27", "s11"],
+	["28", "t3"],
+	["29", "t4"],
+	["30", "t5"],
+	["31", "t6"],
+]);
 
 function timeout(ms: number) {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 /**
- * This interface describes the mock-debug specific launch attributes
- * (which are not part of the Debug Adapter Protocol).
- * The schema for these attributes lives in the package.json of the mock-debug extension.
- * The interface should always match this schema.
+ * This interface describes the debug-specific launch attributes (which are not
+ * part of the Debug Adapter Protocol). The schema for these attributes lives in
+ * the package.json of the extension. The interface should always match this
+ * schema.
  */
 interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	/** An absolute path to the "program" to debug. */
@@ -36,27 +76,27 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	stopOnEntry?: boolean;
 	/** enable logging the Debug Adapter Protocol */
 	trace?: boolean;
+	/** open views on start */
+	openViews?: string[];
 }
 
 export class VenusDebugSession extends LoggingDebugSession {
-
 
 	// we don't support multiple threads, so we can use a hardcoded ID for the default thread
 	private static THREAD_ID = 1;
 	// a Mock runtime (or debugger)
 	private _runtime: VenusRuntime;
 	private _variableHandles = new Handles<string>();
-	private _riscvAssemblyProvider = new riscvAssemblyProvider();
+	private _riscvAssemblyProvider = new riscvDisassemblyProvider();
 	private _providerDisposable: Disposable;
 	private _windowDisposable: Disposable;
 	private _assemblyViewEditor: TextEditor;
 	private _assemblyDocument: TextDocument;
-	private _openAssemblyDisposable: Disposable;
-
+	private _openDisassemblyDisposable: Disposable;
 	private _configurationDone = new Subject();
 
 	private _cancelationTokens = new Map<number, boolean>();
-	private _isLongrunning = new Map<number, boolean>();
+	//private _isLongrunning = new Map<number, boolean>();
 
 	private _reportProgress = false;
 	private _progressId = 10000;
@@ -75,15 +115,14 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.setDebuggerColumnsStartAt1(false);
 		this._runtime = new VenusRuntime();
 
-		this._openAssemblyDisposable = commands.registerCommand('riscv-venus.openAssembly', () =>
-		this.openAssemblyView());
+		this._openDisassemblyDisposable = commands.registerCommand('riscv-venus.openAssembly', () =>
+		this.openDisassemblyView());
 		this._providerDisposable = workspace.registerTextDocumentContentProvider(riscvAsmScheme, this._riscvAssemblyProvider);
 		workspace.onDidChangeConfiguration(e => {
 			if (e != null) {
 				this.sendEvent(new StoppedEvent('settings changed', VenusDebugSession.THREAD_ID))
 			}
 		})
-
 		// setup event handlers
 		this._runtime.on('stopOnEntry', () => {
 			this.sendEvent(new StoppedEvent('entry', VenusDebugSession.THREAD_ID));
@@ -160,6 +199,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 		// make VS Code send the breakpointLocations request
 		response.body.supportsBreakpointLocationsRequest = false;
 
+		// TODO implement
+		response.body.supportsRestartRequest = false;
 		// Doesn't seem to be supported for now
 		// response.body.supportsDisassembleRequest = true;
 
@@ -188,20 +229,33 @@ export class VenusDebugSession extends LoggingDebugSession {
 		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
 
 		this._runtime.assemble(args.program, basename(args.program));
-		// This is a workaround so we always stop execution and start debugging
-		// this._runtime.setBreakPoint(args.program, this.convertClientLineToDebugger(1));
+
+		VenusRuntime.registerECallReceiver(this.receiveEcall);
+		this.resetViews();
+
 
 		// Add Instruction Information to Line
 
-
 		// wait until configuration has finished (and configurationDoneRequest has been called)
-		await this._configurationDone.wait(1000);
+		await this._configurationDone.wait(100);
 
+		let doOpen = workspace.getConfiguration('riscv-venus').get('autoOpenDisassembly');
+
+		if (doOpen) {
+			this.openDisassemblyView();
+		}
+
+		args.openViews?.forEach(view => {
+			this.openView(view)
+		});
 
 		// start the program in the runtime
-		this._runtime.start(args.program, !!args.stopOnEntry);
+		this._runtime.start(args.stopOnEntry ? args.stopOnEntry : true);
 
-		this.openAssemblyView();
+		response.success = true
+		this.sendResponse(response)
+
+
 	}
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
@@ -277,8 +331,9 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		response.body = {
 			scopes: [
+				new Scope("PC", this._variableHandles.create("pc"), false),
 				new Scope("Integer", this._variableHandles.create("integer"), false),
-				new Scope("Float", this._variableHandles.create("float"), true)
+				new Scope("Float", this._variableHandles.create("float"), false)
 			]
 		};
 		this.sendResponse(response);
@@ -287,13 +342,13 @@ export class VenusDebugSession extends LoggingDebugSession {
 	protected async variablesRequest(response: DebugProtocol.VariablesResponse, args: DebugProtocol.VariablesArguments, request?: DebugProtocol.Request) {
 
 		const variables: DebugProtocol.Variable[] = [];
-		let test = workspace.getConfiguration('riscv-venus').get('variableFormat');
+		let format = workspace.getConfiguration('riscv-venus').get('variableFormat');
 		let formatFunction: (para: number) => string;
 		let floatFormatFunction: (decimal: any) => string;
-		switch (test) {
+		switch (format) {
 			case "hex": {
 				formatFunction = (para: number) => {
-					return "0x" + para.toString(16);
+					return "0x" + ((para >>> 0).toString(16).toUpperCase().padStart(8, '0'));
 				}
 				floatFormatFunction = (decimal: any) => {
 					return decimal.toHex();
@@ -302,7 +357,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 			}
 			case "binary": {
 				formatFunction = (para: number) => {
-					return (para.toString(2).padStart(32, '0'));
+					return ((para >>> 0).toString(2).padStart(32, '0'));
 				}
 				floatFormatFunction = (decimal: any) => {
 					return decimal.toHex();
@@ -320,7 +375,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 			}
 			case "ascii": {
 				formatFunction = (para: number) => {
-					let binary = para.toString(2).padStart(32, '0')
+					let binary = (para >>> 0).toString(2).padStart(32, '0')
 					// Split string into
 					let asciiBin = binary.match(/.{8}/g);
 					if (asciiBin != null) {
@@ -336,7 +391,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 			}
 			default: {
 				formatFunction = (para: number) => {
-					return "0x" + para.toString(16);
+					return "0x" + (para >>> 0).toString(16);
 				}
 				floatFormatFunction = (decimal: any) => {
 					return decimal.toHex();
@@ -344,84 +399,49 @@ export class VenusDebugSession extends LoggingDebugSession {
 				break;
 			}
 		}
-		if (this._isLongrunning.get(args.variablesReference)) {
-			// long running
 
-			if (request) {
-				this._cancelationTokens.set(request.seq, false);
-			}
+		const id = this._variableHandles.get(args.variablesReference);
 
-			for (let i = 0; i < 100; i++) {
-				await timeout(1000);
+		if (id == "integer") {
+			const registers = this._runtime.getRegisters()
+			registers.forEach(reg => {
 				variables.push({
-					name: `i_${i}`,
-					type: "integer",
-					value: `${i}`,
-					variablesReference: 0
-				});
-				if (request && this._cancelationTokens.get(request.seq)) {
-					break;
+					name: "x" + reg.id.toString().padStart(2,'0') + (" (" + regNames.get(reg.id.toString()) + ")").padEnd(7, " "),
+					type: "hex",
+					value: formatFunction(reg.value),
+					variablesReference: 0,
+					indexedVariables: 0,
+					namedVariables: 0,
+				})
+			})
+		} else if (id == "float") {
+
+			const f_registers = this._runtime.getFRegisters()
+			var value;
+			f_registers.forEach(reg => {
+				if (reg.value.isFloat) {
+					value = reg.value.float
+				} else {
+					value = reg.value.double
 				}
-			}
-
-			if (request) {
-				this._cancelationTokens.delete(request.seq);
-			}
-
-		} else {
-
-			const id = this._variableHandles.get(args.variablesReference);
-
-			if (id == "integer") {
-				const registers = this._runtime.getRegisters()
-				registers.forEach(reg => {
-					variables.push({
-						name: "x" + reg.id.toString().padStart(2,'0'),
-						type: "hex",
-						value: formatFunction(reg.value),
-						variablesReference: reg.id
-					})
-				})
-
-				// cancelation support for long running requests
-				const nm = id + "_long_running";
-				const ref = this._variableHandles.create(id + "_lr");
 				variables.push({
-					name: nm,
-					type: "object",
-					value: "Object",
-					variablesReference: ref
-				});
-				this._isLongrunning.set(ref, true);
-			} else if (id == "float") {
-
-				const f_registers = this._runtime.getFRegisters()
-				var value;
-				f_registers.forEach(reg => {
-					if (reg.value.isFloat) {
-						value = reg.value.float
-					} else {
-						value = reg.value.double
-					}
-					variables.push({
-						name: "f" + reg.id.toString().padStart(2,'0'),
-						type: "hex",
-						value: floatFormatFunction(reg.value),
-						variablesReference: reg.id + 32
-					})
+					name: "f" + reg.id.toString().padStart(2,'0'),
+					type: "hex",
+					value: floatFormatFunction(reg.value),
+					variablesReference: 0,
+					indexedVariables: 0,
+					namedVariables: 0,
 				})
-
-				// cancelation support for long running requests
-				const nm = id + "_long_running";
-				const ref = this._variableHandles.create(id + "_lr");
-				variables.push({
-					name: nm,
-					type: "object",
-					value: "Object",
-					variablesReference: ref
-				});
-				this._isLongrunning.set(ref, true);
-			}
+			})
+		} else if (id == "pc") {
+			variables.push({
+				name: "PC",
+				type: "hex",
+				value: formatFunction(this._runtime.getPC()),
+				variablesReference: 0,
+				indexedVariables: 0,
+				namedVariables: 0,
+			 })
 		}
 
 		response.body = {
@@ -433,7 +453,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 	protected setVariableRequest(response: DebugProtocol.SetVariableResponse, args: DebugProtocol.SetVariableArguments, request?: DebugProtocol.Request): void {
 		if (args.name.startsWith("x")) {
 			if (Number.isInteger(parseInt(args.value))) {
-				this._runtime.setRegister(parseInt(args.name.replace("x", "")), parseInt(args.value));
+				this._runtime.setRegister(parseInt(args.name.replace(new RegExp("\s(.*)", "i"), "").replace("x", "")), parseInt(args.value));
 			} else {
 				response.success = false;
 				response.message = "The specified value for register could not be interpreted as an integer"
@@ -645,13 +665,11 @@ export class VenusDebugSession extends LoggingDebugSession {
 				});
 			}
 		}
-		this._openAssemblyDisposable?.dispose();
+		this._openDisassemblyDisposable?.dispose();
 		this._providerDisposable?.dispose();
 		this._windowDisposable?.dispose();
 		this.sendResponse(response)
 	}
-
-
 
 	//---- helpers
 
@@ -659,40 +677,83 @@ export class VenusDebugSession extends LoggingDebugSession {
 		return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'venus-adapter-data');
 	}
 
-	private async openAssemblyView() {
+	private async openDisassemblyView() {
 
 		if (this._windowDisposable != null) {
 			this._windowDisposable.dispose();
 		}
 
-
-
-		this._riscvAssemblyProvider.setText(riscvAssemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()));
-		this._assemblyDocument = await workspace.openTextDocument(riscvAssemblyProvider.createUri("assembly")); // calls back into the provider
+		// Create Uri, set the text of our content provider and open the document.
+		// Opening the document doesn't show a window. Think of it like opening a file on the filesystem.
+		let assemblyUri = riscvDisassemblyProvider.createUri("assembly")
+		this._riscvAssemblyProvider.setText(riscvDisassemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()), assemblyUri);
+		this._assemblyDocument = await workspace.openTextDocument(assemblyUri); // calls back into the provider
 		languages.setTextDocumentLanguage(this._assemblyDocument, "riscv")
-		this._assemblyViewEditor = await window.showTextDocument(this._assemblyDocument,{ preview: false , viewColumn: ViewColumn.Beside});
+
+		// If there is an assembly already open we try to get is viewcolumn and show the document in the same column.
+		// If there is already an editor open that one is shown. Otherwise a new one is created Beside
+		let viewColumn: ViewColumn | undefined;
+		viewColumn = this._assemblyViewEditor?.viewColumn
+		this._assemblyViewEditor = await window.showTextDocument(this._assemblyDocument, { preview: false , viewColumn: viewColumn ? viewColumn : ViewColumn.Beside});
 
 		/** If we have have the assembly editor in the background all it's decorators are destroyed.
-		 * So we create the decorators again if the assembly editor is brough to the foreground.
+		 * So we create the decorators again if the assembly editor is brought to the foreground.
 		*/
-
 		this.updateAssemblyViewDecorator();
-
-
 		this._windowDisposable =  window.onDidChangeActiveTextEditor((e) => {
 			if (e != null && e.document != null) {
 				if(e.document == this._assemblyViewEditor.document) {
 					this._assemblyViewEditor = e;
-					AssemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo() - 1);
+					DisassemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo());
 				}
 			}
 		});
 	}
 
+	private async resetViews() {
+		VenusLedMatrixUI.getInstance().resetLedMatrix();
+		MemoryUI.getInstance().resetMemory();
+		VenusRobotUI.getInstance().resetLedMatrix();
+	}
+
+	private async openView(view: string) {
+
+		if (this._windowDisposable != null) {
+			this._windowDisposable.dispose();
+		}
+
+		// If there is an assembly open we try to get is viewcolumn and show the document in the same column.
+		let viewColumn: ViewColumn | undefined;
+		viewColumn = this._assemblyViewEditor?.viewColumn
+
+		if (view == "LED Matrix")
+			VenusLedMatrixUI.getInstance().show(viewColumn);
+		else if (view == "Robot")
+			VenusRobotUI.getInstance().show(viewColumn);
+		else if (view == "Seven Segment Board")
+			VenusSevenSegBoardUI.getInstance().show(viewColumn);
+
+	}
+
 	/** Updates the Decorators in Assemblyview. This means lines are marked, for example the current active line that is debugged. */
 	private updateAssemblyViewDecorator() {
 		if (this._assemblyViewEditor != null) {
-			AssemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo() - 1)
+			DisassemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo())
 		}
+	}
+
+	private receiveEcall(json: string) : string {
+		let jString = json;
+		let jsonObj = JSON.parse(jString)
+		let result = {}
+		if (jsonObj.id == 0x100) {
+			result = VenusLedMatrixUI.getInstance().ecall(jsonObj.id, jsonObj.params)
+		} else if (jsonObj.id == 0x110) {
+			result = VenusRobotUI.getInstance().ecall(jsonObj.id, jsonObj.params)
+		} else if ((jsonObj.id >= 0x120) && (jsonObj.id < 0x123)) {
+			result = VenusSevenSegBoardUI.getInstance().ecall(jsonObj.id, jsonObj.params);
+		}
+
+		return JSON.stringify(result)
 	}
 }

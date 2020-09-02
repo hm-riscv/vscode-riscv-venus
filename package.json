@@ -1,7 +1,7 @@
 {
 	"name": "riscv-venus",
 	"displayName": "RISC-V Venus Simulator",
-	"version": "0.0.5",
+	"version": "1.0.0",
 	"publisher": "hm",
 	"description": "RISC-V Venus Simulator embedded in VS Code",
 	"author": {
@@ -13,7 +13,7 @@
 		"multi-root ready"
 	],
 	"engines": {
-		"vscode": "^1.46.0"
+		"vscode": "^1.48.0"
 	},
 	"icon": "images/riscv-venus-icon.png",
 	"categories": [
@@ -22,50 +22,58 @@
 	"private": true,
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/hm-riscv/vscode-venus-dap.git"
+		"url": "https://github.com/hm-riscv/vscode-riscv-venus"
 	},
 	"bugs": {
-		"url": "https://github.com/hm-riscv/vscode-venus-dap/issues"
+		"url": "https://github.com/hm-riscv/vscode-riscv-venus/issues"
 	},
-	"preview": true,
+	"preview": false,
 	"scripts": {
-		"prepublish": "tsc -p ./src",
 		"compile": "tsc -p ./src",
 		"eslint": "eslint ./src/**/*.ts",
 		"watch": "tsc -w -p ./src",
 		"test": "mocha -u tdd ./out/tests/",
 		"package": "vsce package",
-		"publish": "vsce publish"
+		"publish": "vsce publish",
+		"vscode:prepublish": "webpack --mode production",
+		"webpack": "webpack --mode development",
+		"webpack-dev": "webpack --mode development --watch",
+		"test-compile": "tsc -p ./"
 	},
 	"dependencies": {
 		"await-notify": "1.0.1",
 		"bufferutil": "^4.0.1",
-		"jsdom": "^16.2.2",
-		"kotlin": "^1.3.61",
-		"lodash": "^4.17.19",
+		"jsdom": "^16.4.0",
+		"kotlin": "^1.4.0",
+		"lodash": "^4.17.20",
 		"node-localstorage": "^2.1.6",
-		"typescript": "^3.9.5",
+		"typescript": "^4.0.2",
 		"utf-8-validate": "^5.0.2",
-		"vscode-debugadapter": "1.40.0"
+		"vscode-debugadapter": "1.41.1"
 	},
 	"devDependencies": {
-		"@types/mocha": "5.2.7",
-		"@types/node": "^14.0.13",
-		"@types/vscode": "^1.46.0",
-		"eslint": "7.2.0",
-		"grunt": "1.0.4",
-		"grunt-cli": "^1.2.0",
+		"@types/mocha": "8.0.3",
+		"@types/node": "^14.6.2",
+		"@types/vscode": "^1.48.0",
+		"eslint": "7.8.1",
+		"grunt": "1.3.0",
+		"grunt-cli": "^1.3.2",
 		"grunt-contrib-copy": "^1.0.0",
 		"grunt-exec": "^3.0.0",
-		"mocha": "6.2.0",
-		"npx": "^10.2.2",
-		"vsce": "^1.76.1",
-		"vscode-debugadapter-testsupport": "1.40.3"
+		"mocha": "8.1.3",
+		"ts-loader": "^8.0.3",
+		"vsce": "^1.79.5",
+		"vscode-debugadapter-testsupport": "1.41.0",
+		"webpack": "^4.44.1",
+		"webpack-cli": "^3.3.12"
 	},
-	"main": "./out/extension",
+	"main": "./dist/extension",
 	"activationEvents": [
 		"onDebug",
-		"onCommand:extension.riscv-venus.getProgramName"
+		"onCommand:extension.riscv-venus.getProgramName",
+		"onCommand:riscv-venus.activate",
+		"onLanguage:riscv",
+		"workspaceContains:**/*.{s, S}"
 	],
 	"contributes": {
 		"configuration": {
@@ -77,14 +85,39 @@
 				"riscv-venus.variableFormat": {
 					"type": "string",
 					"default": "hex",
-					"enum": ["hex", "binary", "decimal", "ascii"]
+					"enum": [
+						"hex",
+						"binary",
+						"decimal",
+						"ascii"
+					]
+				},
+				"riscv-venus.autoOpenDisassembly": {
+					"type": "boolean",
+					"default": true
 				}
 			}
 		},
 		"commands": [
 			{
 				"command": "riscv-venus.openAssembly",
-				"title": "Open Assembly",
+				"title": "Venus: Open Assembly",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
+			},
+			{
+				"command": "riscv-venus.activate",
+				"title": "Venus: Activate Extension",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
+			},
+			{
+				"command": "riscv-venus.openSettings",
+				"title": "Venus: Open Settings",
 				"icon": {
 					"light": "images/light/three-bars.svg",
 					"dark": "images/dark/three-bars.svg"
@@ -92,7 +125,39 @@
 			},
 			{
 				"command": "riscv-venus.setVariableFormat",
-				"title": "Set Variable Format",
+				"title": "Venus: Set Variable Format",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
+			},
+			{
+				"command": "riscv-venus.openLedMatrixUI",
+				"title": "Venus: Open LED Matrix",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
+			},
+			{
+				"command": "riscv-venus.openRobotUI",
+				"title": "Venus: Open Robot UI",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
+			},
+			{
+				"command": "riscv-venus.openSevenSegBoardUI",
+				"title": "Venus: Open Seven Segment Board UI",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
+			},
+			{
+				"command": "riscv-venus.openMemory",
+				"title": "Venus: Open Memory",
 				"icon": {
 					"light": "images/light/three-bars.svg",
 					"dark": "images/dark/three-bars.svg"
@@ -102,7 +167,7 @@
 		"views": {
 			"debug": [
 				{
-					"when": "resourceLangId == riscv",
+					"when": "venus:showOptionsMenu",
 					"id": "riscv-venus.Assembly",
 					"name": "Venus Options"
 				}
@@ -111,15 +176,15 @@
 		"menus": {
 			"view/title": [
 				{
-				  "command": "riscv-venus.openAssembly",
-				  "when": "view == venusAssembly"
+					"command": "riscv-venus.openAssembly",
+					"when": "view == venusAssembly"
 				}
 			]
 		},
 		"viewsWelcome": [
 			{
 				"view": "riscv-venus.Assembly",
-				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)"
+				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)\n[LED Matrix](command:riscv-venus.openLedMatrixUI)\n[Open Memory](command:riscv-venus.openMemory)\n[Open Settings](command:riscv-venus.openSettings)"
 			}
 		],
 		"languages": [
@@ -179,10 +244,19 @@
 								"description": "Automatically stop after launch.",
 								"default": true
 							},
-							"trace": {
-								"type": "boolean",
-								"description": "Enable logging of the Debug Adapter Protocol.",
-								"default": true
+							"openViews": {
+								"description": "Which views to open on launch.",
+								"type": "array",
+								"default": [],
+								"items": {
+									"type": "string",
+									"enum": [
+										"Robot",
+										"LED Matrix",
+										"Seven Segment Board"
+									]
+								},
+								"uniqueItems": true
 							}
 						}
 					}
@@ -193,7 +267,8 @@
 						"request": "launch",
 						"name": "Debug current file",
 						"program": "${file}",
-						"stopOnEntry": true
+						"stopOnEntry": true,
+						"openViews": []
 					}
 				],
 				"configurationSnippets": [
@@ -205,7 +280,8 @@
 							"request": "launch",
 							"name": "${2:Launch Program}",
 							"program": "^\"\\${workspaceFolder}/${1:Program}\"",
-							"stopOnEntry": true
+							"stopOnEntry": true,
+							"openViews": []
 						}
 					},
 					{
@@ -216,7 +292,8 @@
 							"request": "launch",
 							"name": "${1:Debug Current File}",
 							"program": "^\"\\${file}\"",
-							"stopOnEntry": true
+							"stopOnEntry": true,
+							"openViews": []
 						}
 					},
 					{
@@ -227,7 +304,24 @@
 							"request": "launch",
 							"name": "Ask for file name",
 							"program": "^\"\\${workspaceFolder}/\\${command:AskForProgramName}\"",
-							"stopOnEntry": true
+							"stopOnEntry": true,
+							"openViews": []
+						}
+					},
+					{
+						"label": "Venus Debug: Launch with Led Views",
+						"description": "Asks the user which assembler file to debug",
+						"body": {
+							"type": "venus",
+							"request": "launch",
+							"name": "Launch with led",
+							"program": "^\"\\${file}\"",
+							"stopOnEntry": true,
+							"openViews": [
+								"Robot",
+								"LED Matrix",
+								"Seven Segment Board"
+							]
 						}
 					}
 				],

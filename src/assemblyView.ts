@@ -8,16 +8,17 @@ export interface AssemblyLineInfo {
     basicCode: string;
 }
 
-export class riscvAssemblyProvider implements vscode.TextDocumentContentProvider {
+export class riscvDisassemblyProvider implements vscode.TextDocumentContentProvider {
 
 	onDidChangeEmitter = new vscode.EventEmitter<vscode.Uri>();
 	onDidChange = this.onDidChangeEmitter.event;
 	private text: string = "";
 
-	setText(text: string) {
+	setText(text: string, uri: vscode.Uri) {
 		this.text = text
+		// This line is crucial to inform VSCode that the content of the Uri changed. It then updates all Documents with that uri.
+		this.onDidChangeEmitter.fire(uri)
 	}
-
 
 	provideTextDocumentContent(uri: vscode.Uri, token: vscode.CancellationToken): string {
 		return this.text;
@@ -25,7 +26,7 @@ export class riscvAssemblyProvider implements vscode.TextDocumentContentProvider
 
 	static decoratorLineInfoToString(infos: Map<number, AssemblyLine>): string {
 
-		let lineNo = 1;
+		let lineNo = 0;
 		let uriText: string = "";
 
 		for (let info of infos.entries()) {
@@ -41,6 +42,6 @@ export class riscvAssemblyProvider implements vscode.TextDocumentContentProvider
 	}
 
 	static createUri(title: string): vscode.Uri {
-		return vscode.Uri.parse('venus_asm:' + title + Date.now().toString())
+		return vscode.Uri.parse('venus_asm:' + title)
 	}
 }

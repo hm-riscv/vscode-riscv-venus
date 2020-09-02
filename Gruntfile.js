@@ -1,9 +1,19 @@
 module.exports = function(grunt) {
+    // See: https://stackoverflow.com/questions/41700798/gradlew-command-not-found
+    // If permission denied run in terminal (for MacOS): chmod 755 gradlew
+    let command;
+    if (process.platform === "win32") {
+        command = 'gradlew build';
+    } else if (process.platform === "linux") {
+        command = './gradlew build'
+    } else if (process.platform === "darwin") {
+        command = '.\\gradlew build'
+    }
     grunt.initConfig({
         exec: {
             build_venus: {
-                command: 'gradlew build',
-                cwd: 'src/runtime/venus'
+                command: command,
+                cwd: 'src/runtime/venus',
             }
         },
         copy: {

@@ -7,6 +7,7 @@ import { EventEmitter } from 'events';
 import simulator = require('./runtime/riscvSimulator');
 import range from 'lodash/range';
 import { VenusRenderer } from './venusRenderer';
+import { MemoryUI } from './memoryui/memoryUI';
 import { AssemblyLineInfo } from './assemblyView';
 import { StackFrame } from 'vscode-debugadapter';
 
@@ -69,6 +70,7 @@ export class VenusRuntime extends EventEmitter {
 
 	constructor() {
 		super();
+		simulator.driver.setBreakBeforeInstruction(true);
 	}
 
 
@@ -78,7 +80,7 @@ export class VenusRuntime extends EventEmitter {
 	/**
 	 * Start executing the given program.
 	 */
-	public start(program: string, stopOnEntry: boolean) {
+	public start(stopOnEntry: boolean) {
 		if (stopOnEntry) {
 			this.updateStack();
 			this.sendEvent('stopOnEntry');
@@ -90,7 +92,7 @@ export class VenusRuntime extends EventEmitter {
 
 	public assemble(fpath: string, fName: string) {
 		let text: string = readFileSync(fpath).toString();
-		simulator.frontendAPI.setText(text);
+		// simulator.frontendAPI.setText(text);
 		// [Bool, Error, Warnings[]]
 		var[success, error, warnings] = simulator.driver.externalAssemble(text, fpath, fName); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
 		if (!success) {
@@ -138,6 +140,10 @@ export class VenusRuntime extends EventEmitter {
 		} else {
 			return 0
 		}
+	}
+
+	public getPC(): number {
+		return simulator.driver.sim.getPC();
 	}
 
 	/**
@@ -199,6 +205,7 @@ export class VenusRuntime extends EventEmitter {
 			simulator.driver.step()
 			this.updateStack()
 		}
+		this.updateMemory()
 		if (simulator.driver.isFinished()) {
 			this.sendEvent('end')
 		} else {
@@ -216,7 +223,7 @@ export class VenusRuntime extends EventEmitter {
 			while (true) {
 				if (simulator.driver.sim.isDone() || (simulator.driver.sim.atBreakpoint())) {
 					simulator.driver.exitcodecheck()
-					return
+					break
 				}
 				simulator.driver.sim.step()
 				this.updateStack()
@@ -225,6 +232,7 @@ export class VenusRuntime extends EventEmitter {
 			simulator.driver.runEnd()
 			simulator.driver.handleError("RunStart", e, e == simulator.driver.AlignmentError || e == simulator.driver.StoreError || e == simulator.driver.ExceededAllowedCyclesError)
 		}
+		this.updateMemory()
 	}
 	/**
 	 * Continue execution to the end/beginning.
@@ -482,4 +490,13 @@ export class VenusRuntime extends EventEmitter {
 			this.emit(event, ...args);
 		});
 	}
+
+	public static registerECallReceiver(func: (json: string) => void) {
+		simulator.driver.registerECallReceiver(func);
+	}
+
+	private updateMemory() {
+		MemoryUI.getInstance().update()
+	}
+
 }
