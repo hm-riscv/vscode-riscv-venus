@@ -5,7 +5,7 @@ This Visual Studio Code extension embeds the popular
 learning environment as no other tools are needed. It runs RISC-V assembly code
 with the standard debugging capabilities of VS Code.
 
-To use it as educational tool, further views
+To use it as educational tool, further views are added as described below.
 
 ## Installation
 
@@ -36,6 +36,28 @@ The basic [Venus environmental
 calls](https://github.com/ThaumicMekanism/venus/wiki/Environmental-Calls) are
 also supported. Further environment calls are also supported for educational toy
 examples are described in the following.
+
+### View memory
+
+You can view the memory contents by opening the memory view with `CTRL+P` and
+"Venus: Open Memory".
+
+![Memory View](docs/memory.gif "Memory View")
+
+You can select which segment to view and scroll through the memory words (as in
+the online Venus version).
+
+### Accessing registers
+
+You can change the registers by clicking on their value, update the value and
+press enter.
+
+![Register Changing](docs/registerchange.gif "Register Changing")
+
+To change to format of the registers, click on "Venus Options" or press `CTRL+P`
+and enter "Venus: Set Variable Format".
+
+![Register Format](docs/registerformat.gif "Register Format")
 
 ## LED Matrix
 
