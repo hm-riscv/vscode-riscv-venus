@@ -3,8 +3,8 @@ on: [push, pull_request]
 name: Build extension
 
 jobs:
-  publish:
-    name: Publish to marketplace
+  build:
+    name: Build and package
     runs-on: windows-latest
     steps:
     - name: Checkout code
@@ -17,5 +17,5 @@ jobs:
       run: npm install
     - name: Build venus
       run: npx grunt buildvenus
-    - name: Build
+    - name: Build and package
       run: npm run package
