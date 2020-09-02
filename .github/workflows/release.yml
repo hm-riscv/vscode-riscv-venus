@@ -3,11 +3,11 @@ on:
     tags:
       - "v*"
 
-name: Upload Release Asset
+name: Release extension
 
 jobs:
   build:
-    name: Upload Release Asset
+    name: Release extension
     runs-on: windows-latest
     steps:
       - name: Checkout code
