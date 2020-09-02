@@ -32,18 +32,8 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
-      - name: Rename vsix
-        run: mv *.vsix extension.vsix
-      - name: Get Tag
-        id: get_tag
-        run: echo ::set-output name=tag_version::${GITHUB_REF/refs\/tags\//}
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
+      - name: Vscode release plugin
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: extension.vsix
-          asset_name: vscode-riscv-venus_${{ steps.get_tag.outputs.tag_version }}.vsix
-          asset_content_type: application/zip
+          PUBLISHER_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
+        run: |
+          npm run publish -- -p "$env:PUBLISHER_TOKEN"
