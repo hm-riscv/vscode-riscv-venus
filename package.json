@@ -245,7 +245,7 @@
 								"default": [],
 								"items": {
 									"type": "string",
-									"enum": ["Robot", "LED Matrix"]
+									"enum": ["Robot", "LED Matrix", "Seven Segment Board"]
 								},
 								"uniqueItems": true
 							}
@@ -308,7 +308,7 @@
 							"name": "Launch with led",
 							"program": "^\"\\${file}\"",
 							"stopOnEntry": true,
-							"openViews": ["Robot", "LED Matrix"]
+							"openViews": ["Robot", "LED Matrix", "Seven Segment Board"]
 						}
 					}
 				],
