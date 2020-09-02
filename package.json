@@ -34,7 +34,11 @@
 		"watch": "tsc -w -p ./src",
 		"test": "mocha -u tdd ./out/tests/",
 		"package": "vsce package",
-		"publish": "vsce publish"
+		"publish": "vsce publish",
+		"vscode:prepublish": "webpack --mode production",
+		"webpack": "webpack --mode development",
+		"webpack-dev": "webpack --mode development --watch",
+		"test-compile": "tsc -p ./"
 	},
 	"dependencies": {
 		"await-notify": "1.0.1",
@@ -57,10 +61,13 @@
 		"grunt-contrib-copy": "^1.0.0",
 		"grunt-exec": "^3.0.0",
 		"mocha": "8.1.3",
+		"ts-loader": "^8.0.3",
 		"vsce": "^1.79.5",
-		"vscode-debugadapter-testsupport": "1.41.0"
+		"vscode-debugadapter-testsupport": "1.41.0",
+		"webpack": "^4.44.1",
+		"webpack-cli": "^3.3.12"
 	},
-	"main": "./out/extension",
+	"main": "./dist/extension",
 	"activationEvents": [
 		"onDebug",
 		"onCommand:extension.riscv-venus.getProgramName",

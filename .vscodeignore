@@ -1,7 +1,8 @@
-.vscode/**/*
-.gitignore
-.travis.yml
-appveyor.yml
-src/**/*
-out/tests/**/*
-**/*.js.map
+.vscode
+node_modules
+out/
+src/
+tsconfig.json
+webpack.config.js
+
+
