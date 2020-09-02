@@ -143,6 +143,14 @@
 				}
 			},
 			{
+				"command": "riscv-venus.openSevenSegBoardUI",
+				"title": "Venus: Open Seven Segment Board UI",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
+			},
+			{
 				"command": "riscv-venus.openMemory",
 				"title": "Venus: Open Memory",
 				"icon": {

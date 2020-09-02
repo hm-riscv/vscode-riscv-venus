@@ -1,4 +1,4 @@
-li a0, 50
+li a0, 0x100
 la s0, logo
 li s2, 0
 li s3, 10

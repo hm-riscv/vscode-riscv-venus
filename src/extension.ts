@@ -13,6 +13,7 @@ import path from 'path';
 import fs from 'fs'
 import { VenusLedMatrixUI, UIState, LedMatrix } from './ledmatrix/venusLedMatrixUI';
 import { VenusRobotUI } from './robot/venusRobotUI';
+import { VenusSevenSegBoardUI } from './sevensegboard/venusSevenSegBoardUI';
 import { MemoryUI } from './memoryui/memoryUI';
 
 /*
@@ -25,6 +26,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	VenusLedMatrixUI.createNewInstance(context.extensionUri, new UIState(new LedMatrix(10, 10)))
 	VenusRobotUI.createNewInstance(context.extensionUri)
+	VenusSevenSegBoardUI.createNewInstance(context.extensionUri)
 	MemoryUI.createNewInstance()
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.riscv-venus.getProgramName', config => {
@@ -48,6 +50,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openRobotUI', async config => {
 		VenusRobotUI.getInstance().show();
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openSevenSegBoardUI', async config => {
+		VenusSevenSegBoardUI.getInstance().show();
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openSettings', async config => {
