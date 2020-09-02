@@ -1,7 +1,7 @@
 {
 	"name": "riscv-venus",
 	"displayName": "RISC-V Venus Simulator",
-	"version": "1.0.0",
+	"version": "1.0.2",
 	"publisher": "hm",
 	"description": "RISC-V Venus Simulator embedded in VS Code",
 	"author": {
@@ -60,7 +60,7 @@
 		"vsce": "^1.79.5",
 		"vscode-debugadapter-testsupport": "1.41.0"
 	},
-	"main": "./out/extension",
+	"main": "./out/extension.js",
 	"activationEvents": [
 		"onDebug",
 		"onCommand:extension.riscv-venus.getProgramName",
