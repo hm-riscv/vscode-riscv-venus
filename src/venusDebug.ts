@@ -7,7 +7,7 @@ import {
 	LoggingDebugSession,
 	InitializedEvent, TerminatedEvent, StoppedEvent, BreakpointEvent, OutputEvent,
 	ProgressStartEvent, ProgressUpdateEvent, ProgressEndEvent,
-	Thread, StackFrame, Scope, Source, Handles, Breakpoint, Variable
+	Thread, StackFrame, Scope, Source, Handles, Breakpoint, Variable, ContinuedEvent
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
@@ -142,6 +142,9 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._runtime.on('breakpointValidated', (bp: VenusBreakpoint) => {
 			this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
 		});
+		this._runtime.on('continue', () => {
+			this.sendEvent(new ContinuedEvent(VenusDebugSession.THREAD_ID, true))
+		})
 		this._runtime.on('output', (text, filePath, line, column) => {
 			const e: DebugProtocol.OutputEvent = new OutputEvent(`${text}\n`);
 
@@ -178,7 +181,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		// the adapter supports changing register values.
 		response.body.supportsSetVariable = true;
-
 
 		// make VS Code to use 'evaluate' when hovering over source
 		response.body.supportsEvaluateForHovers = true;
@@ -232,7 +234,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		VenusRuntime.registerECallReceiver(this.receiveEcall);
 		this.resetViews();
-
 
 		// Add Instruction Information to Line
 
@@ -473,8 +474,13 @@ export class VenusDebugSession extends LoggingDebugSession {
 	}
 
 	protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
-		this._runtime.continue();
+		this._runtime.run();
 		this.updateAssemblyViewDecorator();
+		this.sendResponse(response);
+	}
+
+	protected pauseRequest(response: DebugProtocol.PauseResponse, args: DebugProtocol.PauseArguments) {
+		this._runtime.run();
 		this.sendResponse(response);
 	}
 
@@ -484,7 +490,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 	*/
 	protected reverseContinueRequest(response: DebugProtocol.ReverseContinueResponse, args: DebugProtocol.ReverseContinueArguments) : void {
 		console.warn("ReverseContinue is not supported yet (=> Continue)")
-		this._runtime.continue();
+		this._runtime.run();
 		this.sendResponse(response);
  	}
 

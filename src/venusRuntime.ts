@@ -10,6 +10,8 @@ import { VenusRenderer } from './venusRenderer';
 import { MemoryUI } from './memoryui/memoryUI';
 import { AssemblyLineInfo } from './assemblyView';
 import { StackFrame } from 'vscode-debugadapter';
+import { resolve } from 'path';
+import { clearTimeout } from 'timers';
 
 export interface VenusBreakpoint {
 	id: number;
@@ -86,7 +88,7 @@ export class VenusRuntime extends EventEmitter {
 			this.sendEvent('stopOnEntry');
 		} else {
 			// we just start to run until we hit a breakpoint or an exception
-			this.continue();
+			this.run();
 		}
 	}
 
@@ -213,39 +215,66 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
-	private continueRun() {
-		try {
-			if (!simulator.driver.sim.isDone()) {
-				simulator.driver.sim.step()
-				this.updateStack()
+	static readonly TIMEOUT_TIME = 10
+	static readonly TIMEOUT_CYCLES = 100
 
-			}
-			while (true) {
-				if (simulator.driver.sim.isDone() || (simulator.driver.sim.atBreakpoint())) {
-					simulator.driver.exitcodecheck()
-					break
-				}
-				simulator.driver.sim.step()
-				this.updateStack()
-			}
-		} catch (e) {
-			simulator.driver.runEnd()
-			simulator.driver.handleError("RunStart", e, e == simulator.driver.AlignmentError || e == simulator.driver.StoreError || e == simulator.driver.ExceededAllowedCyclesError)
-		}
+	public run() {
+        if (simulator.driver.timer != null) {
+            this.runEnd()
+        } else {
+            try {
+                //simulator.driver.Renderer.setRunButtonSpinning(true)
+                simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, true)
+                this.runStep() // walk past breakpoint
+            } catch (e) {
+                this.runEnd()
+                simulator.driver.handleError("RunStart", e)
+            }
+        }
+    }
+
+	private runStart(useBreakPoints: Boolean) {
+        try {
+            var cycles = 0
+            while (cycles < VenusRuntime.TIMEOUT_CYCLES) {
+                if (simulator.driver.sim.isDone() || (simulator.driver.sim.atBreakpoint() && useBreakPoints)) {
+                    simulator.driver.exitcodecheck()
+                    this.runEnd()
+                    //simulator.driver.Renderer.updateAll()
+                    return
+                }
+
+                simulator.driver.handleNotExitOver()
+                this.runStep()
+                //Renderer.updateCache(Address(0, MemSize.WORD))
+                cycles++
+            }
+
+            simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, useBreakPoints)
+        } catch (e) {
+            this.runEnd()
+            simulator.driver.handleError("RunStart", e)
+        }
+    }
+
+    private runEnd() {
+        simulator.driver.handleNotExitOver()
+		clearTimeout(simulator.driver.timer)
+
+		simulator.driver.timer = null
 		this.updateMemory()
-	}
-	/**
-	 * Continue execution to the end/beginning.
-	 */
-	public continue() {
-		//TODO this runs one execution too long
-		//simulator.driver.continue()
-		this.continueRun();
-		if (simulator.driver.isFinished()) {
+		if (simulator.driver.sim.isDone()) {
 			this.sendEvent('end')
-		} else {
+		} else if (simulator.driver.sim.atBreakpoint()) {
 			this.sendEvent('stopOnBreakpoint')
+		} else {
+			this.sendEvent('stopOnStep')
 		}
+	}
+
+	private runStep() {
+		simulator.driver.sim.step()
+		this.updateStack()
 	}
 
 	private updateStack() {
