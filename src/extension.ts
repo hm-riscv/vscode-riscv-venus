@@ -15,6 +15,7 @@ import { VenusLedMatrixUI, UIState, LedMatrix } from './ledmatrix/venusLedMatrix
 import { VenusRobotUI } from './robot/venusRobotUI';
 import { VenusSevenSegBoardUI } from './sevensegboard/venusSevenSegBoardUI';
 import { MemoryUI } from './memoryui/memoryUI';
+import { venusTerminal } from './terminal/venusTerminal';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -28,6 +29,7 @@ export function activate(context: vscode.ExtensionContext) {
 	VenusRobotUI.createNewInstance(context.extensionUri)
 	VenusSevenSegBoardUI.createNewInstance(context.extensionUri)
 	MemoryUI.createNewInstance()
+	venusTerminal.create();
 
 	context.subscriptions.push(vscode.commands.registerCommand('extension.riscv-venus.getProgramName', config => {
 		return vscode.window.showInputBox({
@@ -123,6 +125,8 @@ export function deactivate() {
 	// Dont show Venus Options if the extension is not activated
 	vscode.commands.executeCommand('setContext', 'venus:showOptionsMenu',
 		false);
+
+	venusTerminal.dispose();
 }
 
 class VenusConfigurationProvider implements vscode.DebugConfigurationProvider {
