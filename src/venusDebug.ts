@@ -20,6 +20,7 @@ import { VenusLedMatrixUI, Color } from './ledmatrix/venusLedMatrixUI';
 import { VenusRobotUI } from './robot/venusRobotUI';
 import { VenusSevenSegBoardUI } from './sevensegboard/venusSevenSegBoardUI';
 import { MemoryUI } from './memoryui/memoryUI';
+import { venusTerminal } from './terminal/venusTerminal';
 const { Subject } = require('await-notify');
 
 const riscvAsmScheme = 'venus_asm';
@@ -183,7 +184,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		response.body.supportsSetVariable = true;
 
 		// make VS Code to use 'evaluate' when hovering over source
-		response.body.supportsEvaluateForHovers = true;
+		response.body.supportsEvaluateForHovers = false;
 
 		// make VS Code to show a 'step back' button
 		response.body.supportsStepBack = false;
@@ -758,6 +759,21 @@ export class VenusDebugSession extends LoggingDebugSession {
 			result = VenusRobotUI.getInstance().ecall(jsonObj.id, jsonObj.params)
 		} else if ((jsonObj.id >= 0x120) && (jsonObj.id < 0x123)) {
 			result = VenusSevenSegBoardUI.getInstance().ecall(jsonObj.id, jsonObj.params);
+		} else if (jsonObj.id == 0x130) {
+			if (venusTerminal.getInputLine() != null) {
+				let input: string = venusTerminal.getInputLine()!
+				if (Number.isInteger(parseInt(input))) {
+					let number = parseInt(input)
+					result = { "a1": number}
+					venusTerminal.deactivateInput()
+				} else {
+					venusTerminal.appendLine(`${input} is not a number`)
+				}
+				venusTerminal.resetInputLine()
+			} else if (!venusTerminal.waitingForInput()) {
+				venusTerminal.activateInput()
+				venusTerminal.show()
+			}
 		}
 
 		return JSON.stringify(result)

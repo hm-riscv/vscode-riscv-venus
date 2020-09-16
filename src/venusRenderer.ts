@@ -2,6 +2,7 @@ import * as vscode from 'vscode'
 import simulator = require('./runtime/riscvSimulator');
 import EventEmitter = require('events');
 import { MemoryUI } from './memoryui/memoryUI';
+import { venusTerminal } from './terminal/venusTerminal';
 /** This is a Singleton Class. Renders output to the specified Output Channel. Also listens for events from the venus.Renderer from KotlinJS
  * and displays the appropiate Response.
   */
@@ -39,39 +40,42 @@ export class VenusRenderer {
 	showErrorWithPopup(e: any) {
 		vscode.window.showErrorMessage(e.toString());
 		console.error(e.toString());
-		this.outputChannel.appendLine(e.toString());
+		venusTerminal.show();
+		venusTerminal.appendLine(e.toString());
+		//this.outputChannel.appendLine(e.toString());
 		vscode.debug.activeDebugConsole.appendLine(e.toString());
-		this.outputChannel.show();
+		//this.outputChannel.show();
 	}
 
 	printWarning(warning: String) {
 		console.warn(warning);
-		this.outputChannel.appendLine(warning.toString());
+		venusTerminal.show();
+		venusTerminal.appendLine(warning.toString());
+		//this.outputChannel.appendLine(warning.toString());
 		vscode.debug.activeDebugConsole.appendLine(warning.toString());
 
 	}
 
 	printError(e: any) {
 		console.error(e.toString());
-		this.outputChannel.appendLine(e.toString());
+		venusTerminal.show();
+		venusTerminal.appendLine(e.toString());
+		//this.outputChannel.appendLine(e.toString());
 		vscode.debug.activeDebugConsole.appendLine(e.toString());
-
-
 	}
 
 	stdout(any: any) {
 		console.log(any.toString());
-		this.outputChannel.appendLine(any.toString());
+		venusTerminal.appendLine(any.toString());
+		//this.outputChannel.appendLine(any.toString());
 		vscode.debug.activeDebugConsole.appendLine(any.toString());
-
-
 	}
 
 	printConsole(any: any) {
 		console.log(any.toString());
-		this.outputChannel.appendLine(any.toString());
+		venusTerminal.appendLine(any.toString());
+		//this.outputChannel.appendLine(any.toString());
 		vscode.debug.activeDebugConsole.appendLine(any.toString());
-
 	}
 
 }
