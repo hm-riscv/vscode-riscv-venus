@@ -143,11 +143,13 @@ export class venusTerminal {
 
 	public static appendLine(text: string,) {
 		if (text.length > 0) {
+			let formerState = venusTerminal.inputActivated
 			venusTerminal.deactivateInput()
+			venusTerminal.resetInputLine()
 			venusTerminal.line = '';
 			venusTerminal.cursorPos = 0;
 			venusTerminal.pty.handleInput!(text + '\r')
-			venusTerminal.activateInput()
+			venusTerminal.inputActivated = formerState
 		}
 	}
 

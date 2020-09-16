@@ -765,12 +765,14 @@ export class VenusDebugSession extends LoggingDebugSession {
 				if (Number.isInteger(parseInt(input))) {
 					let number = parseInt(input)
 					result = { "a1": number}
+					venusTerminal.deactivateInput()
 				} else {
 					venusTerminal.appendLine(`${input} is not a number`)
 				}
 				venusTerminal.resetInputLine()
 			} else if (!venusTerminal.waitingForInput()) {
 				venusTerminal.activateInput()
+				venusTerminal.show()
 			}
 		}
 
