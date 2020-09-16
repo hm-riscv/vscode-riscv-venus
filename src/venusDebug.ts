@@ -184,7 +184,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		response.body.supportsSetVariable = true;
 
 		// make VS Code to use 'evaluate' when hovering over source
-		response.body.supportsEvaluateForHovers = false;
+		response.body.supportsEvaluateForHovers = true;
 
 		// make VS Code to show a 'step back' button
 		response.body.supportsStepBack = false;
@@ -345,62 +345,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		const variables: DebugProtocol.Variable[] = [];
 		let format = workspace.getConfiguration('riscv-venus').get('variableFormat');
-		let formatFunction: (para: number) => string;
-		let floatFormatFunction: (decimal: any) => string;
-		switch (format) {
-			case "hex": {
-				formatFunction = (para: number) => {
-					return "0x" + ((para >>> 0).toString(16).toUpperCase().padStart(8, '0'));
-				}
-				floatFormatFunction = (decimal: any) => {
-					return decimal.toHex();
-				}
-				break;
-			}
-			case "binary": {
-				formatFunction = (para: number) => {
-					return ((para >>> 0).toString(2).padStart(32, '0'));
-				}
-				floatFormatFunction = (decimal: any) => {
-					return decimal.toHex();
-				}
-				break;
-			}
-			case "decimal": {
-				formatFunction = (para: number) => {
-					return para.toString(10)
-				}
-				floatFormatFunction = (decimal: any) => {
-					return decimal.toDecimal();
-				}
-				break;
-			}
-			case "ascii": {
-				formatFunction = (para: number) => {
-					let binary = (para >>> 0).toString(2).padStart(32, '0')
-					// Split string into
-					let asciiBin = binary.match(/.{8}/g);
-					if (asciiBin != null) {
-						return String.fromCharCode(parseInt(asciiBin[0], 2)) + String.fromCharCode(parseInt(asciiBin[1], 2)) +
-							String.fromCharCode(parseInt(asciiBin[2], 2)) + String.fromCharCode(parseInt(asciiBin[3], 2))
-					}
-					return ''
-				}
-				floatFormatFunction = (decimal: any) => {
-					return decimal.toAscii();
-				}
-				break;
-			}
-			default: {
-				formatFunction = (para: number) => {
-					return "0x" + (para >>> 0).toString(16);
-				}
-				floatFormatFunction = (decimal: any) => {
-					return decimal.toHex();
-				}
-				break;
-			}
-		}
+		let formatFunction: (para: number) => string = this.getFormatFunction();
+		let floatFormatFunction: (decimal: any) => string = this.getFloatFormatFunction();
 
 		const id = this._variableHandles.get(args.variablesReference);
 
@@ -508,43 +454,38 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
 
-		let reply: string | undefined = undefined;
+		let reply: string | null = null;
+		let regId: number | null = null;
 
-		if (args.context === 'repl') {
-			// 'evaluate' supports to create and delete breakpoints from the 'repl':
-			const matches = /new +([0-9]+)/.exec(args.expression);
-			if (matches && matches.length === 2) {
-				const mbp = this._runtime.setBreakPoint(this._runtime.sourceFile, this.convertClientLineToDebugger(parseInt(matches[1])));
-				const bp = <DebugProtocol.Breakpoint> new Breakpoint(mbp.verified, this.convertDebuggerLineToClient(mbp.line), undefined, this.createSource(this._runtime.sourceFile));
-				bp.id= mbp.id;
-				this.sendEvent(new BreakpointEvent('new', bp));
-				reply = `breakpoint created`;
-			} else {
-				const matches = /del +([0-9]+)/.exec(args.expression);
-				if (matches && matches.length === 2) {
-					const mbp = this._runtime.clearBreakPoint(this._runtime.sourceFile, this.convertClientLineToDebugger(parseInt(matches[1])));
-					if (mbp) {
-						const bp = <DebugProtocol.Breakpoint> new Breakpoint(false);
-						bp.id= mbp.id;
-						this.sendEvent(new BreakpointEvent('removed', bp));
-						reply = `breakpoint deleted`;
+
+
+		if (args.context == 'hover') {
+			if (args.expression.startsWith('f')) { // float registers
+				if (!isNaN(parseInt(args.expression.replace("f", "")))) {
+					let formatFunction = this.getFloatFormatFunction()
+					reply = formatFunction(this._runtime.getFRegister(parseInt(args.expression.replace("f", ""))).value);
+				}
+			} else if (args.expression.startsWith('x')) { // starting with x
+				if (!isNaN(parseInt(args.expression.replace("x", "")))) {
+					let formatFunction = this.getFormatFunction()
+					reply = formatFunction(this._runtime.getRegister(parseInt(args.expression.replace("x", ""))).value);
+				}
+			} else if (!args.expression.match(new RegExp('^\d'))) { // Alternative register labels
+				for (let [key, value] of regNames.entries()) {
+					if (value === args.expression) {
+						regId = parseInt(key)
+						break
 					}
-				} else {
-					const matches = /progress/.exec(args.expression);
-					if (matches && matches.length === 1) {
-						if (this._reportProgress) {
-							reply = `progress started`;
-							this.progressSequence();
-						} else {
-							reply = `frontend doesn't support progress (capability 'supportsProgressReporting' not set)`;
-						}
-					}
+				}
+				if (regId != null) {
+					let formatFunction = this.getFormatFunction()
+					reply = formatFunction(this._runtime.getRegister(regId).value)
 				}
 			}
 		}
 
 		response.body = {
-			result: reply ? reply : `evaluate(context: '${args.context}', '${args.expression}')`,
+			result: reply ? reply : `${args.expression}`,
 			variablesReference: 0
 		};
 		this.sendResponse(response);
@@ -747,6 +688,90 @@ export class VenusDebugSession extends LoggingDebugSession {
 		if (this._assemblyViewEditor != null) {
 			DisassemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo())
 		}
+	}
+
+	private getFormatFunction(): (para: number) => string{
+		let format = workspace.getConfiguration('riscv-venus').get('variableFormat');
+		let formatFunction: (para: number) => string;
+		switch (format) {
+			case "hex": {
+				formatFunction = (para: number) => {
+					return "0x" + ((para >>> 0).toString(16).toUpperCase().padStart(8, '0'));
+				}
+				break;
+			}
+			case "binary": {
+				formatFunction = (para: number) => {
+					return ((para >>> 0).toString(2).padStart(32, '0'));
+				}
+				break;
+			}
+			case "decimal": {
+				formatFunction = (para: number) => {
+					return para.toString(10)
+				}
+				break;
+			}
+			case "ascii": {
+				formatFunction = (para: number) => {
+					let binary = (para >>> 0).toString(2).padStart(32, '0')
+					// Split string into
+					let asciiBin = binary.match(/.{8}/g);
+					if (asciiBin != null) {
+						return String.fromCharCode(parseInt(asciiBin[0], 2)) + String.fromCharCode(parseInt(asciiBin[1], 2)) +
+							String.fromCharCode(parseInt(asciiBin[2], 2)) + String.fromCharCode(parseInt(asciiBin[3], 2))
+					}
+					return ''
+				}
+				break;
+			}
+			default: {
+				formatFunction = (para: number) => {
+					return "0x" + (para >>> 0).toString(16);
+				}
+				break;
+			}
+		}
+
+		return formatFunction
+	}
+
+	private getFloatFormatFunction(): (decimal: any) => string{
+		let format = workspace.getConfiguration('riscv-venus').get('variableFormat');
+		let floatFormatFunction: (decimal: any) => string;
+		switch (format) {
+			case "hex": {
+				floatFormatFunction = (decimal: any) => {
+					return decimal.toHex();
+				}
+				break;
+			}
+			case "binary": {
+				floatFormatFunction = (decimal: any) => {
+					return decimal.toHex();
+				}
+				break;
+			}
+			case "decimal": {
+				floatFormatFunction = (decimal: any) => {
+					return decimal.toDecimal();
+				}
+				break;
+			}
+			case "ascii": {
+				floatFormatFunction = (decimal: any) => {
+					return decimal.toAscii();
+				}
+				break;
+			}
+			default: {
+				floatFormatFunction = (decimal: any) => {
+					return decimal.toHex();
+				}
+				break;
+			}
+		}
+		return floatFormatFunction
 	}
 
 	private receiveEcall(json: string) : string {
