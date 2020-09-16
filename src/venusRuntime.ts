@@ -161,6 +161,13 @@ export class VenusRuntime extends EventEmitter {
 		})
 	}
 
+	public getRegister(id: number): Register {
+		return {
+			id,
+			value: simulator.driver.getRegister(id)
+		}
+	}
+
 	/**
 	 * Returns the float registers
 	 */
@@ -171,6 +178,13 @@ export class VenusRuntime extends EventEmitter {
 				value: simulator.driver.getFRegister(id)
 			}
 		})
+	}
+
+	public getFRegister(id: number): Register {
+		return {
+			id,
+			value: simulator.driver.getFRegister(id)
+		}
 	}
 
 	/**
