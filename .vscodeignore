@@ -3,4 +3,4 @@
 out/tests/**/*
 **/*.js.map
 src/**/*
-!src/{ledmatrix,memoryui,robot,sevensegboard}/*{html,css,js}
+!src/{ledmatrix,memoryui,robot,sevensegboard}/*
