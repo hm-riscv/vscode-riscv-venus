@@ -73,6 +73,10 @@ export function activate(context: vscode.ExtensionContext) {
 		MemoryUI.getInstance().show(context.extensionUri);
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openTerminal', async config => {
+		venusTerminal.show();
+	}));
+
 	// This block makes sure that the Venus Options View is shown in the debugger
 	// See: https://stackoverflow.com/questions/61555532/conditional-view-contribution-with-vscode-extension-api
 	vscode.commands.executeCommand('setContext', 'venus:showOptionsMenu',
