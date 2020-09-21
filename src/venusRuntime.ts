@@ -45,7 +45,7 @@ export interface CallStackItem {
 }
 
 /**
- * A Mock runtime with minimal debugger functionality.
+ * This Runtime communicates between vscode and the venus Simulator
  */
 export class VenusRuntime extends EventEmitter {
 
@@ -93,20 +93,23 @@ export class VenusRuntime extends EventEmitter {
 	}
 
 	public assemble(fpath: string, fName: string) {
-		let text: string = readFileSync(fpath).toString();
-		// simulator.frontendAPI.setText(text);
-		// [Bool, Error, Warnings[]]
-		var[success, error, warnings] = simulator.driver.externalAssemble(text, fpath, fName); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
-		if (!success) {
-			VenusRenderer.getInstance().showErrorWithPopup(error);
-			this.sendEvent("end");
-			return;
-		}
-		for (let warn in warnings.toArray()) {
-			VenusRenderer.getInstance().printWarning(warn);
-		}
+		try {
+			let text: string = readFileSync(fpath).toString();
+			var[success, error, warnings] = simulator.driver.externalAssemble(text, fpath, fName); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
+			if (!success) {
+				VenusRenderer.getInstance().showErrorWithPopup(error);
+				this.sendEvent("end");
+				return;
+			}
+			for (let warn in warnings.toArray()) {
+				VenusRenderer.getInstance().printWarning(warn);
+			}
 
-		this.getAssemblyLines();
+			this.getAssemblyLines();
+		} catch (e: unknown) {
+			VenusRenderer.getInstance().showErrorWithPopup(e);
+			this.sendEvent('end')
+		}
 	}
 
 	private getAssemblyLines(){
