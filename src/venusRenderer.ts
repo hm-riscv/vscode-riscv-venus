@@ -19,7 +19,6 @@ export class VenusRenderer {
 		emitter.on("error", (e) => {this.printError(e)});
 		emitter.on("stdout", (any) => {this.stdout(any)});
 		emitter.on("printConsole", (any) => {this.printConsole(any)});
-		this.outputChannel = vscode.window.createOutputChannel("venus");
 	}
 
 	public static getInstance(): VenusRenderer {
@@ -42,16 +41,13 @@ export class VenusRenderer {
 		console.error(e.toString());
 		venusTerminal.show();
 		venusTerminal.appendLine(e.toString());
-		//this.outputChannel.appendLine(e.toString());
 		vscode.debug.activeDebugConsole.appendLine(e.toString());
-		//this.outputChannel.show();
 	}
 
 	printWarning(warning: String) {
 		console.warn(warning);
 		venusTerminal.show();
 		venusTerminal.appendLine(warning.toString());
-		//this.outputChannel.appendLine(warning.toString());
 		vscode.debug.activeDebugConsole.appendLine(warning.toString());
 
 	}
@@ -60,21 +56,18 @@ export class VenusRenderer {
 		console.error(e.toString());
 		venusTerminal.show();
 		venusTerminal.appendLine(e.toString());
-		//this.outputChannel.appendLine(e.toString());
 		vscode.debug.activeDebugConsole.appendLine(e.toString());
 	}
 
 	stdout(any: any) {
 		console.log(any.toString());
 		venusTerminal.appendLine(any.toString());
-		//this.outputChannel.appendLine(any.toString());
 		vscode.debug.activeDebugConsole.appendLine(any.toString());
 	}
 
 	printConsole(any: any) {
 		console.log(any.toString());
 		venusTerminal.appendLine(any.toString());
-		//this.outputChannel.appendLine(any.toString());
 		vscode.debug.activeDebugConsole.appendLine(any.toString());
 	}
 
