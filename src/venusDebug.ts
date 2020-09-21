@@ -13,7 +13,7 @@ import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
 import { VenusBreakpoint, VenusRuntime } from './venusRuntime';
 import { workspace, languages, Disposable, window, ViewColumn, TextEditor, commands, Uri, TextDocument } from 'vscode';
-import { riscvDisassemblyProvider } from './assemblyView';
+import { AssemblyView, riscvDisassemblyProvider } from './assemblyView';
 import { DisassemblyDecoratorProvider } from './assemblyDecorator';
 import { VenusRenderer } from './venusRenderer';
 import { VenusLedMatrixUI, Color } from './ledmatrix/venusLedMatrixUI';
@@ -88,7 +88,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 	// a Mock runtime (or debugger)
 	private _runtime: VenusRuntime;
 	private _variableHandles = new Handles<string>();
-	private _riscvAssemblyProvider = new riscvDisassemblyProvider();
+	//private _riscvAssemblyProvider = new riscvDisassemblyProvider();
 	private _providerDisposable: Disposable;
 	private _windowDisposable: Disposable;
 	private _assemblyViewEditor: TextEditor;
@@ -118,7 +118,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		this._openDisassemblyDisposable = commands.registerCommand('riscv-venus.openAssembly', () =>
 		this.openDisassemblyView());
-		this._providerDisposable = workspace.registerTextDocumentContentProvider(riscvAsmScheme, this._riscvAssemblyProvider);
+
 		workspace.onDidChangeConfiguration(e => {
 			if (e != null) {
 				this.sendEvent(new StoppedEvent('settings changed', VenusDebugSession.THREAD_ID))
@@ -126,12 +126,15 @@ export class VenusDebugSession extends LoggingDebugSession {
 		})
 		// setup event handlers
 		this._runtime.on('stopOnEntry', () => {
+			this.updateAssemblyViewDecorator();
 			this.sendEvent(new StoppedEvent('entry', VenusDebugSession.THREAD_ID));
 		});
 		this._runtime.on('stopOnStep', () => {
+			this.updateAssemblyViewDecorator();
 			this.sendEvent(new StoppedEvent('step', VenusDebugSession.THREAD_ID));
 		});
 		this._runtime.on('stopOnBreakpoint', () => {
+			this.updateAssemblyViewDecorator();
 			this.sendEvent(new StoppedEvent('breakpoint', VenusDebugSession.THREAD_ID));
 		});
 		this._runtime.on('stopOnDataBreakpoint', () => {
@@ -245,6 +248,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		if (doOpen) {
 			this.openDisassemblyView();
+		} else {
+			AssemblyView.getInstance().updateDisassemblyView(this._runtime, false)
 		}
 
 		args.openViews?.forEach(view => {
@@ -422,7 +427,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	protected continueRequest(response: DebugProtocol.ContinueResponse, args: DebugProtocol.ContinueArguments): void {
 		this._runtime.run();
-		this.updateAssemblyViewDecorator();
 		this.sendResponse(response);
 	}
 
@@ -443,7 +447,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
 		this._runtime.step();
-		this.updateAssemblyViewDecorator();
 		this.sendResponse(response);
 	}
 
@@ -456,8 +459,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		let reply: string | null = null;
 		let regId: number | null = null;
-
-
 
 		if (args.context == 'hover') {
 			if (args.expression.startsWith('f')) { // float registers
@@ -605,14 +606,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		}
 	}
 	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {
-		if (this._assemblyViewEditor != null) {
-			if (this._assemblyDocument != null) {
-				window.showTextDocument(this._assemblyDocument, {preview: false, viewColumn: this._assemblyViewEditor.viewColumn})
-				.then(() => {
-					return commands.executeCommand('workbench.action.closeActiveEditor');
-				});
-			}
-		}
+		AssemblyView.getInstance().close();
 		this._openDisassemblyDisposable?.dispose();
 		this._providerDisposable?.dispose();
 		this._windowDisposable?.dispose();
@@ -626,36 +620,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 	}
 
 	private async openDisassemblyView() {
-
-		if (this._windowDisposable != null) {
-			this._windowDisposable.dispose();
-		}
-
-		// Create Uri, set the text of our content provider and open the document.
-		// Opening the document doesn't show a window. Think of it like opening a file on the filesystem.
-		let assemblyUri = riscvDisassemblyProvider.createUri("assembly")
-		this._riscvAssemblyProvider.setText(riscvDisassemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()), assemblyUri);
-		this._assemblyDocument = await workspace.openTextDocument(assemblyUri); // calls back into the provider
-		languages.setTextDocumentLanguage(this._assemblyDocument, "riscv")
-
-		// If there is an assembly already open we try to get is viewcolumn and show the document in the same column.
-		// If there is already an editor open that one is shown. Otherwise a new one is created Beside
-		let viewColumn: ViewColumn | undefined;
-		viewColumn = this._assemblyViewEditor?.viewColumn
-		this._assemblyViewEditor = await window.showTextDocument(this._assemblyDocument, { preview: false , viewColumn: viewColumn ? viewColumn : ViewColumn.Beside});
-
-		/** If we have have the assembly editor in the background all it's decorators are destroyed.
-		 * So we create the decorators again if the assembly editor is brought to the foreground.
-		*/
-		this.updateAssemblyViewDecorator();
-		this._windowDisposable =  window.onDidChangeActiveTextEditor((e) => {
-			if (e != null && e.document != null) {
-				if(e.document == this._assemblyViewEditor.document) {
-					this._assemblyViewEditor = e;
-					DisassemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo());
-				}
-			}
-		});
+		AssemblyView.getInstance().updateDisassemblyView(this._runtime, true)
 	}
 
 	private async resetViews() {
@@ -670,7 +635,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 			this._windowDisposable.dispose();
 		}
 
-		// If there is an assembly open we try to get is viewcolumn and show the document in the same column.
 		let viewColumn: ViewColumn | undefined;
 		viewColumn = this._assemblyViewEditor?.viewColumn
 
@@ -685,9 +649,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	/** Updates the Decorators in Assemblyview. This means lines are marked, for example the current active line that is debugged. */
 	private updateAssemblyViewDecorator() {
-		if (this._assemblyViewEditor != null) {
-			DisassemblyDecoratorProvider.updateDecorators(this._assemblyViewEditor, this._runtime.getCurrentAssemlyLineNo())
-		}
+		AssemblyView.getInstance().updateDecorators()
 	}
 
 	private getFormatFunction(): (para: number) => string{
