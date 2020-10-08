@@ -16,6 +16,7 @@ import { VenusRobotUI } from './robot/venusRobotUI';
 import { VenusSevenSegBoardUI } from './sevensegboard/venusSevenSegBoardUI';
 import { MemoryUI } from './memoryui/memoryUI';
 import { venusTerminal } from './terminal/venusTerminal';
+import { VenusMenuProvider } from './menu/venusMenu';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -81,6 +82,11 @@ export function activate(context: vscode.ExtensionContext) {
 	// See: https://stackoverflow.com/questions/61555532/conditional-view-contribution-with-vscode-extension-api
 	vscode.commands.executeCommand('setContext', 'venus:showOptionsMenu',
 		vscode.window.activeTextEditor?.document.languageId == 'riscv');
+
+	vscode.window.registerTreeDataProvider(
+		'riscv-venus.venusMenu',
+		new VenusMenuProvider()
+		);
 
 	// register a configuration provider for 'venus' debug type
 	const venusProvider = new VenusConfigurationProvider();

@@ -71,10 +71,6 @@
 	"contributes": {
 		"configuration": {
 			"properties": {
-				"riscv-venus.enableCodeLens": {
-					"type": "boolean",
-					"default": true
-				},
 				"riscv-venus.variableFormat": {
 					"type": "string",
 					"default": "hex",
@@ -169,7 +165,7 @@
 			"debug": [
 				{
 					"when": "venus:showOptionsMenu",
-					"id": "riscv-venus.Assembly",
+					"id": "riscv-venus.venusMenu",
 					"name": "Venus Options"
 				}
 			]
@@ -182,12 +178,6 @@
 				}
 			]
 		},
-		"viewsWelcome": [
-			{
-				"view": "riscv-venus.Assembly",
-				"contents": "[Open Assembly](command:riscv-venus.openAssembly)\n[Set Variable Format](command:riscv-venus.setVariableFormat)\n[LED Matrix](command:riscv-venus.openLedMatrixUI)\n[Open Memory](command:riscv-venus.openMemory)\n[Open Settings](command:riscv-venus.openSettings)"
-			}
-		],
 		"languages": [
 			{
 				"id": "riscv",
