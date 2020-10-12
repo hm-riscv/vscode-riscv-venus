@@ -234,6 +234,9 @@ export class VenusDebugSession extends LoggingDebugSession {
 		// make sure to 'Stop' the buffered logging if 'trace' is not set
 		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
 
+		// Sometimes the Venus Options Menu is not shown.(Vscode Bug?) This makes sure it is shown at least when we start debug
+		commands.executeCommand('setContext', 'venus:showOptionsMenu', true);
+
 		this._runtime.assemble(args.program, basename(args.program));
 
 		VenusRuntime.registerECallReceiver(this.receiveEcall);

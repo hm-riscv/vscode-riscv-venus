@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
 
 export class VenusMenuProvider implements vscode.TreeDataProvider<VenusMenuItem> {
 	constructor() {}
@@ -10,11 +8,6 @@ export class VenusMenuProvider implements vscode.TreeDataProvider<VenusMenuItem>
 	}
 
 	getChildren(element?: VenusMenuItem): Thenable<VenusMenuItem[]> {
-		// if (!this.workspaceRoot) {
-		//   vscode.window.showInformationMessage('No dependency in empty workspace');
-		//   return Promise.resolve([]);
-		// }
-
 		if (element) {
 			if (element.label == 'Views') {
 				var items: VenusMenuItem[] = [];
@@ -38,7 +31,7 @@ export class VenusMenuProvider implements vscode.TreeDataProvider<VenusMenuItem>
 		items.push(new VenusMenuItem("Views", "All Views", 1))
 		items.push(new VenusMenuItem("Open Settings", "Settings", 0, {title: 'Open settings', command: 'riscv-venus.openSettings'} as vscode.Command))
 		items.push(new VenusMenuItem("Set Variable Format", "Set Variable Format", 0, {title: 'Set Variable Format', command: 'riscv-venus.setVariableFormat'} as vscode.Command))
-
+		items.push(new VenusMenuItem("Open Documentation", "Open Documentation", 0, {title: 'Open Documentation', command: 'riscv-venus.openDocumentation'} as vscode.Command))
 		return items;
 	}
 }

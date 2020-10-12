@@ -159,6 +159,14 @@
 					"light": "images/light/three-bars.svg",
 					"dark": "images/dark/three-bars.svg"
 				}
+			},
+			{
+				"command": "riscv-venus.openDocumentation",
+				"title": "Venus: Open Documentation",
+				"icon": {
+					"light": "images/light/three-bars.svg",
+					"dark": "images/dark/three-bars.svg"
+				}
 			}
 		],
 		"views": {

@@ -78,10 +78,17 @@ export function activate(context: vscode.ExtensionContext) {
 		venusTerminal.show();
 	}));
 
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openDocumentation', async config => {
+		// Taken from: https://stackoverflow.com/questions/63960216/from-vs-code-extension-api-open-file-in-markdown-preview
+		const uri = vscode.Uri.joinPath(context.extensionUri, 'src', 'documentation', 'manual.md')
+		await vscode.commands.executeCommand("markdown.showPreview", uri);
+		// let document =  await vscode.workspace.openTextDocument(vscode.Uri.joinPath(context.extensionUri, 'src', 'documentation', 'manual.md'))
+		// vscode.window.showTextDocument(document, vscode.ViewColumn.Active, false)
+	}));
+
 	// This block makes sure that the Venus Options View is shown in the debugger
 	// See: https://stackoverflow.com/questions/61555532/conditional-view-contribution-with-vscode-extension-api
-	vscode.commands.executeCommand('setContext', 'venus:showOptionsMenu',
-		vscode.window.activeTextEditor?.document.languageId == 'riscv');
+	vscode.commands.executeCommand('setContext', 'venus:showOptionsMenu', true);
 
 	vscode.window.registerTreeDataProvider(
 		'riscv-venus.venusMenu',
