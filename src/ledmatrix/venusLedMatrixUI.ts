@@ -2,7 +2,7 @@ import * as vscode from 'vscode'
 import fs from 'fs'
 
 /**
- * Manages cat coding webview panels
+ * Manages a LED Matrix
  */
 export class VenusLedMatrixUI {
 	/**
@@ -30,8 +30,10 @@ export class VenusLedMatrixUI {
 	public static createNewInstance(extensionUri?: vscode.Uri, uiState?: UIState): VenusLedMatrixUI {
 		if (VenusLedMatrixUI.instance) {
 			VenusLedMatrixUI.instance.dispose();
+			VenusLedMatrixUI.instance = new VenusLedMatrixUI(extensionUri, uiState)
+		} else {
+			VenusLedMatrixUI.instance = new VenusLedMatrixUI(extensionUri, uiState)
 		}
-		VenusLedMatrixUI.instance = new VenusLedMatrixUI(extensionUri, uiState)
 		return VenusLedMatrixUI.instance
 	}
 
@@ -49,7 +51,9 @@ export class VenusLedMatrixUI {
 		VenusLedMatrixUI.instance = undefined;
 
 		// Clean up our resources
-		this._panel.dispose();
+		if (this._panel != null) {
+			this._panel.dispose();
+		}
 
 		while (this._disposables.length) {
 			const x = this._disposables.pop();

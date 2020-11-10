@@ -243,6 +243,11 @@
 								"description": "Automatically stop after launch.",
 								"default": true
 							},
+							"stopAtBreakpoints": {
+								"type": "boolean",
+								"description": "If execution should stop at Breakpoints. If this is false execution runs until the program execution finishes.",
+								"default": true
+							},
 							"openViews": {
 								"description": "Which views to open on launch.",
 								"type": "array",
@@ -256,6 +261,11 @@
 									]
 								},
 								"uniqueItems": true
+							},
+							"ledMatrixSize": {
+								"type": "object",
+								"default": {"x": 10, "y": 10},
+								"description": "The wanted Size of the Led Matrix. The parameter must be in the format: {\"x\": 10, \"y\": 10}"
 							}
 						}
 					}

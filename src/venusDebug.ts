@@ -16,11 +16,12 @@ import { workspace, languages, Disposable, window, ViewColumn, TextEditor, comma
 import { AssemblyView, riscvDisassemblyProvider } from './assemblyView';
 import { DisassemblyDecoratorProvider } from './assemblyDecorator';
 import { VenusRenderer } from './venusRenderer';
-import { VenusLedMatrixUI, Color } from './ledmatrix/venusLedMatrixUI';
+import { VenusLedMatrixUI, Color, LedMatrix, UIState } from './ledmatrix/venusLedMatrixUI';
 import { VenusRobotUI } from './robot/venusRobotUI';
 import { VenusSevenSegBoardUI } from './sevensegboard/venusSevenSegBoardUI';
 import { MemoryUI } from './memoryui/memoryUI';
 import { venusTerminal } from './terminal/venusTerminal';
+import { JsonObjectExpression } from 'typescript';
 const { Subject } = require('await-notify');
 
 const riscvAsmScheme = 'venus_asm';
@@ -75,10 +76,14 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	program: string;
 	/** Automatically stop target after launch. If not specified, target does not stop. */
 	stopOnEntry?: boolean;
+	/** If we should stop at Breakpoints. If set false the program executes without debugging. */
+	stopAtBreakpoints?: boolean;
 	/** enable logging the Debug Adapter Protocol */
 	trace?: boolean;
 	/** open views on start */
 	openViews?: string[];
+	/** The ledMatrix Size as an Json Object in the format {"x": 10, "y": 10} */
+	ledMatrixSize?;
 }
 
 export class VenusDebugSession extends LoggingDebugSession {
@@ -238,6 +243,13 @@ export class VenusDebugSession extends LoggingDebugSession {
 		commands.executeCommand('setContext', 'venus:showOptionsMenu', true);
 
 		this._runtime.assemble(args.program, basename(args.program));
+		if (args.stopAtBreakpoints != null) {
+			this._runtime.setStopAtBreakpoint(args.stopAtBreakpoints);
+		}
+
+		if (args.ledMatrixSize != null) {
+			VenusLedMatrixUI.createNewInstance(undefined, new UIState(new LedMatrix(args.ledMatrixSize.x, args.ledMatrixSize.y)))
+		}
 
 		VenusRuntime.registerECallReceiver(this.receiveEcall);
 		this.resetViews();

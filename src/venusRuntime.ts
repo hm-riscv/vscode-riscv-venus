@@ -75,6 +75,7 @@ export class VenusRuntime extends EventEmitter {
 		simulator.driver.setBreakBeforeInstruction(true);
 	}
 
+	private _stopAtBreakpoint = true;
 
 	private sourceLine_to_pc: Map<string, number[]> = new Map<string, number[]>();
 	private pc_to_assemblyLine: Map<number, AssemblyLine> = new Map<number, AssemblyLine>();
@@ -211,6 +212,14 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
+	/**
+	 * Sets if the runtime should stop at Breakpoints
+	 * @param value If true the runtime stops at Breakpoints
+	 */
+	public setStopAtBreakpoint(value: boolean) {
+		this._stopAtBreakpoint = value
+	}
+
 	// MOCK RUNTIME DEFINED METHODS
 
 
@@ -241,7 +250,7 @@ export class VenusRuntime extends EventEmitter {
         } else {
             try {
                 //simulator.driver.Renderer.setRunButtonSpinning(true)
-                simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, true)
+                simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, this._stopAtBreakpoint)
                 this.runStep() // walk past breakpoint
             } catch (e) {
                 this.runEnd()
@@ -334,8 +343,7 @@ export class VenusRuntime extends EventEmitter {
 	}
 
 	/**
-	 * Returns a fake 'stacktrace' where every 'stackframe' is a word from the current line.
-	 * TODO: return a real stacktrace.
+	 * Returns a stacktrace which is build at each execution step. This function just returns it.
 	 */
 	public stack(startFrame: number, endFrame: number): any {
 
