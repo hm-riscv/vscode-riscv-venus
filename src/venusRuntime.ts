@@ -241,6 +241,20 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
+	public stepOver() {
+		const stackDepth = this._functionStack.length;
+		do {
+			simulator.driver.step()
+			this.updateStack()
+		} while (stackDepth < this._functionStack.length);
+		this.updateMemory()
+		if (simulator.driver.isFinished()) {
+			this.sendEvent('end')
+		} else {
+			this.sendEvent('stopOnStep')
+		}
+	}
+
 	static readonly TIMEOUT_TIME = 10
 	static readonly TIMEOUT_CYCLES = 100
 
