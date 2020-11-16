@@ -302,7 +302,7 @@ export class VenusRuntime extends EventEmitter {
                     return
                 }
 
-                simulator.driver.handleNotExitOver_0()
+                simulator.driver.handleNotExitOver()
                 this.runStep()
                 //Renderer.updateCache(Address(0, MemSize.WORD))
                 cycles++
@@ -316,7 +316,7 @@ export class VenusRuntime extends EventEmitter {
     }
 
     private runEnd() {
-        simulator.driver.handleNotExitOver_0()
+        simulator.driver.handleNotExitOver()
 		clearTimeout(simulator.driver.timer)
 
 		simulator.driver.timer = null
