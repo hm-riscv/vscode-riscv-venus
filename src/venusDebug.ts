@@ -455,6 +455,11 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
+	protected stepOutRequest(response: DebugProtocol.StepOutResponse, args: DebugProtocol.StepOutArguments) {
+		this._runtime.stepOut();
+		this.sendResponse(response);
+	}
+
 	/*
 		Not yet supported
 		see: https://gitlab.lrz.de/riscv/debugger/-/issues/9

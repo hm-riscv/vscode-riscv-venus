@@ -255,6 +255,24 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
+	public stepOut() {
+		const desiredStackDepth = this._functionStack.length - 1;
+		if (desiredStackDepth <= 0) {
+			this.run()
+		} else {
+			while (desiredStackDepth < this._functionStack.length) {
+				simulator.driver.step()
+				this.updateStack()
+			}
+			this.updateMemory()
+			if (simulator.driver.isFinished()) {
+				this.sendEvent('end')
+			} else {
+				this.sendEvent('stopOnStep')
+			}
+		}
+	}
+
 	static readonly TIMEOUT_TIME = 10
 	static readonly TIMEOUT_CYCLES = 100
 
@@ -284,7 +302,7 @@ export class VenusRuntime extends EventEmitter {
                     return
                 }
 
-                simulator.driver.handleNotExitOver()
+                simulator.driver.handleNotExitOver_0()
                 this.runStep()
                 //Renderer.updateCache(Address(0, MemSize.WORD))
                 cycles++
@@ -298,7 +316,7 @@ export class VenusRuntime extends EventEmitter {
     }
 
     private runEnd() {
-        simulator.driver.handleNotExitOver()
+        simulator.driver.handleNotExitOver_0()
 		clearTimeout(simulator.driver.timer)
 
 		simulator.driver.timer = null
