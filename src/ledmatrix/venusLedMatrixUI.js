@@ -94,11 +94,19 @@ class LedMatrix {
 
 }
 
+function resizeMatrix() {
+	ledDiv.style.width = `${ledSlider.value}%`
+	ledDiv.style.height = `${ledSlider.value}%`
+};
+
 var svg_element = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
 var ledDiv = document.getElementById("led_div")
 ledDiv.appendChild(svg_element)
 let ledMatrix = new LedMatrix(10, 10, 1, 0.1, 0.1, svg_element)
+
+var ledSlider = document.getElementById("led_size_slider")
+ledSlider.oninput = resizeMatrix
 
 // Handle the message inside the webview
 window.addEventListener('message', event => {
