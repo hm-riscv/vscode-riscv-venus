@@ -113,7 +113,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		case 'inline':
 			// run the debug adapter inside the extension and directly talk to it
-			factory = new InlineDebugAdapterFactory();
+			factory = new MockDebugAdapterDescriptorFactory();
 			break;
 
 		case 'external': default:
