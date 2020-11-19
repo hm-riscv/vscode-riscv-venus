@@ -236,6 +236,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
 
+		venusTerminal.appendLine(`-------------------------------------------------------------------------------------------`)
+		venusTerminal.appendLine(`Starting program ${args.program}`)
+		venusTerminal.appendLine(` `)
+
 		// make sure to 'Stop' the buffered logging if 'trace' is not set
 		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
 
@@ -762,19 +766,19 @@ export class VenusDebugSession extends LoggingDebugSession {
 		} else if ((jsonObj.id >= 0x120) && (jsonObj.id < 0x123)) {
 			result = VenusSevenSegBoardUI.getInstance().ecall(jsonObj.id, jsonObj.params);
 		} else if (jsonObj.id == 0x130) {
-			if (venusTerminal.getInputLine() != null) {
-				let input: string = venusTerminal.getInputLine()!
-				if (Number.isInteger(parseInt(input))) {
-					let number = parseInt(input)
-					result = { "a1": number}
-					venusTerminal.deactivateInput()
+			venusTerminal.activateInput()
+			venusTerminal.show()
+		} else if (jsonObj.id == 0x131) {
+			let char = venusTerminal.consumeInputBuffer()
+			if (char == null) {
+				if (venusTerminal.waitingForInput()) {
+					result = {"a1": 0x10000000}
 				} else {
-					venusTerminal.appendLine(`${input} is not a number`)
+					result = {"a1": 0x00000000}
 				}
-				venusTerminal.resetInputLine()
-			} else if (!venusTerminal.waitingForInput()) {
-				venusTerminal.activateInput()
-				venusTerminal.show()
+			} else {
+				let charCode = char.charCodeAt(0) & 0x0FFFFFFF
+				result = {"a1": charCode | 0x20000000}
 			}
 		}
 
