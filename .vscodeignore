@@ -1,6 +1,14 @@
-.vscode/**/*
-.gitignore
-out/tests/**/*
-**/*.js.map
-src/**/*
+# Ignore everything
+*
+*/**
+
+# Whitelist
+
+!out/*.js
+!out/*/{*.js,!venus}
+!out/runtime/venus/venus.js
 !src/{ledmatrix,memoryui,robot,sevensegboard}/*
+!extension/images/**
+!images
+
+!node_modules
