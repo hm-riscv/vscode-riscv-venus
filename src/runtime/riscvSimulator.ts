@@ -8,10 +8,11 @@ if (typeof kotlin !== "undefined" && typeof kotlin.kotlin !== "undefined" && typ
 const {LocalStorageManager} = require('./helpers')
 const {fakeDOM, document} = require('./fakeDOM')
 const {HTMLButtonElement, HTMLInputElement, HTMLSelectElement, HTMLElement, HTMLTextAreaElement} = fakeDOM.window
-const htmlClasses = [HTMLButtonElement, HTMLInputElement, HTMLSelectElement, HTMLElement, HTMLTextAreaElement]
-htmlClasses.forEach(htmlClass => {
-	global[htmlClass.name] = htmlClass
-});
+global.HTMLElement = HTMLElement
+global.HTMLButtonElement = HTMLButtonElement
+global.HTMLInputElement = HTMLInputElement
+global.HTMLSelectElement = HTMLSelectElement
+global.HTMLTextAreaElement = HTMLTextAreaElement
 
 global["LocalStorageManager"] = LocalStorageManager
 if (typeof localStorage === "undefined" || localStorage === null) {

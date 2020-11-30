@@ -4,11 +4,8 @@
 
 # Whitelist
 
-!out/*.js
-!out/*/{*.js,!venus}
-!out/runtime/venus/venus.js
+!dist/*.js
 !src/{ledmatrix,memoryui,robot,sevensegboard}/*
 !extension/images/**
 !images
 
-!node_modules
