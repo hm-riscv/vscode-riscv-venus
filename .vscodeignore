@@ -1,6 +1,12 @@
-.vscode/**/*
-.gitignore
-out/tests/**/*
-**/*.js.map
-src/**/*
+# Ignore everything
+*
+*/**
+
+# Whitelist
+
+!src/documentation
+!dist/*.js
 !src/{ledmatrix,memoryui,robot,sevensegboard}/*
+!extension/images/**
+!images
+

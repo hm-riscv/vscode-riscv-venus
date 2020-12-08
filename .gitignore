@@ -5,3 +5,4 @@ npm-debug.log
 *.vsix
 package-lock.json
 .gitignore
+dist
