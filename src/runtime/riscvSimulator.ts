@@ -7,6 +7,7 @@ if (typeof kotlin !== "undefined" && typeof kotlin.kotlin !== "undefined" && typ
 
 const {LocalStorageManager} = require('./helpers')
 const {fakeDOM, document} = require('./fakeDOM')
+import { StorageMock } from './mockLocalStorage'
 const {HTMLButtonElement, HTMLInputElement, HTMLSelectElement, HTMLElement, HTMLTextAreaElement} = fakeDOM.window
 global.HTMLElement = HTMLElement
 global.HTMLButtonElement = HTMLButtonElement
@@ -17,7 +18,8 @@ global.HTMLTextAreaElement = HTMLTextAreaElement
 global["LocalStorageManager"] = LocalStorageManager
 if (typeof localStorage === "undefined" || localStorage === null) {
 	const LocalStorage = require('node-localstorage').LocalStorage;
-	global["localStorage"] = new LocalStorage('./scratch');
+	global["localStorage"] = new StorageMock();
+	// global["localStorage"] = new LocalStorage('./scratch');
 }
 const load_update_message = (msg) => console.log(msg)
 const load_done = function () {
