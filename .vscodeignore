@@ -9,4 +9,5 @@
 !src/{ledmatrix,memoryui,robot,sevensegboard}/*
 !extension/images/**
 !images
-
+readme.md
+CHANGELOG.md
