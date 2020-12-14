@@ -284,10 +284,20 @@
 					{
 						"type": "venus",
 						"request": "launch",
-						"name": "Debug current file",
+						"name": "Launch with all views",
 						"program": "${file}",
 						"stopOnEntry": true,
-						"openViews": []
+						"stopAtBreakpoints": true,
+						"openViews": [
+							"Robot",
+							"LED Matrix",
+							"Seven Segment Board"
+						],
+						"ledMatrixSize": {
+							"x": 10,
+							"y": 10
+						}
+
 					}
 				],
 				"configurationSnippets": [
@@ -333,7 +343,7 @@
 						"body": {
 							"type": "venus",
 							"request": "launch",
-							"name": "Launch with led",
+							"name": "Launch with all views",
 							"program": "^\"\\${file}\"",
 							"stopOnEntry": true,
 							"stopAtBreakpoints": true,
