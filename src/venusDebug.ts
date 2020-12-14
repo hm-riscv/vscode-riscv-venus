@@ -782,14 +782,14 @@ export class VenusDebugSession extends LoggingDebugSession {
 			let char = venusTerminal.consumeInputBuffer()
 			if (char == null) {
 				if (venusTerminal.waitingForInput()) {
-					result = {"a1": 0x00000001}
+					result = {"a0": 0x00000001}
 				} else {
-					result = {"a1": 0x00000000}
+					result = {"a0": 0x00000000}
 				}
 			} else {
 				let charCode = char.charCodeAt(0) & 0x0FFFFFFF
-				result = {"a1": 0x00000002,
-						"a2": charCode | 0x00000000,}
+				result = {"a0": 0x00000002,
+						"a1": charCode | 0x00000000,}
 			}
 		}
 
