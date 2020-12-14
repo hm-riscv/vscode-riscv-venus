@@ -81,7 +81,7 @@ export class AssemblyView {
 		let _assemblyDocument = await vscode.workspace.openTextDocument(assemblyUri); // calls back into the provider
 		vscode.languages.setTextDocumentLanguage(_assemblyDocument, "riscv")
 
-		if (openWindow || !this._isOpen) {
+		if (openWindow) {
 			// If there is an assembly already open we try to get is viewcolumn and show the document in the same column.
 			// If there is already an editor open that one is shown. Otherwise a new one is created Beside
 			let viewColumn: vscode.ViewColumn | undefined;
