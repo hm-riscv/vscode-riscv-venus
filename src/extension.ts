@@ -26,9 +26,6 @@ const runMode: 'external' | 'server' | 'inline' = 'inline';
 
 export function activate(context: vscode.ExtensionContext) {
 
-	const LocalStorage = require('node-localstorage').LocalStorage;
-	global["localStorage"] = new LocalStorage(context.storagePath);
-
 	VenusLedMatrixUI.createNewInstance(context.extensionUri, new UIState(new LedMatrix(10, 10)))
 	VenusRobotUI.createNewInstance(context.extensionUri)
 	VenusSevenSegBoardUI.createNewInstance(context.extensionUri)
