@@ -328,19 +328,24 @@
 						}
 					},
 					{
-						"label": "Venus Debug: Launch with Led Views",
-						"description": "Asks the user which assembler file to debug",
+						"label": "Venus Debug: All Options",
+						"description": "This config list all the options available. You can delete the options you dont't need. This config debugs the current file",
 						"body": {
 							"type": "venus",
 							"request": "launch",
 							"name": "Launch with led",
 							"program": "^\"\\${file}\"",
 							"stopOnEntry": true,
+							"stopAtBreakpoints": true,
 							"openViews": [
 								"Robot",
 								"LED Matrix",
 								"Seven Segment Board"
-							]
+							],
+							"ledMatrixSize": {
+								"x": 10,
+								"y": 10
+							}
 						}
 					}
 				],
