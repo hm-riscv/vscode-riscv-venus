@@ -91,6 +91,36 @@
 				"riscv-venus.autoOpenDisassembly": {
 					"type": "boolean",
 					"default": true
+				},
+				"riscv-venus.forceAlignedAddressing": {
+					"type": "boolean",
+					"default": false,
+					"description": "Force Aligned Addressing?"
+				},
+				"riscv-venus.mutableText": {
+					"type": "boolean",
+					"default": true,
+					"description": "Mutable Text? Can't write into text segment if true."
+				},
+				"riscv-venus.ecallOnlyExit": {
+					"type": "boolean",
+					"default": false,
+					"description": "Can Exit only with ecall (10)?"
+				},
+				"riscv-venus.setRegesOnInit": {
+					"type": "boolean",
+					"default": true,
+					"description": "Initialize Registers with default Values?"
+				},
+				"riscv-venus.allowAccessBtnStackHeap": {
+					"type": "boolean",
+					"default": false,
+					"description": "Allow Access Between Stack and Heap?"
+				},
+				"riscv-venus.maxSteps": {
+					"type": "integer",
+					"default": -1,
+					"description": "Max number of steps: (Negative means ignored)"
 				}
 			}
 		},

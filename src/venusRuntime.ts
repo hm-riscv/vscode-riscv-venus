@@ -25,6 +25,14 @@ export interface Register {
 	value: number;
 }
 
+export class VenusSettings {
+	alignedAddress: boolean | undefined;
+    mutableText: boolean | undefined;
+    ecallOnlyExit: boolean | undefined;
+    setRegesOnInit: boolean | undefined;
+    maxSteps: number | undefined;
+    allowAccessBtnStackHeap: boolean | undefined;
+}
 /**
  * This interface holds the data that a AssemblyLine contains
  */
@@ -93,10 +101,11 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
-	public assemble(fpath: string, fName: string) {
+	public assemble(fpath: string, fName: string, settings: VenusSettings) {
 		try {
+			this.applySettings(settings)
 			let text: string = readFileSync(fpath).toString();
-			var[success, error, warnings] = simulator.driver.externalAssemble(text, fpath, fName); // TODO usually Renderer fires a popup on error (e.g. malformed instruction) that something went wrong
+			var[success, error, warnings] = simulator.driver.externalAssemble(text, fpath, fName);
 			if (!success) {
 				VenusRenderer.getInstance().showErrorWithPopup(error);
 				this.sendEvent("end");
@@ -112,6 +121,29 @@ export class VenusRuntime extends EventEmitter {
 			this.sendEvent('end')
 		}
 	}
+
+	private applySettings(settings: VenusSettings) {
+		if (settings.alignedAddress != undefined) {
+			simulator.driver.simSettings.alignedAddress = settings.alignedAddress;
+		}
+		if (settings.mutableText != undefined) {
+			simulator.driver.simSettings.mutableText = settings.mutableText;
+		}
+		if (settings.ecallOnlyExit != undefined) {
+			simulator.driver.simSettings.ecallOnlyExit = settings.ecallOnlyExit;
+		}
+		if (settings.setRegesOnInit != undefined) {
+			simulator.driver.simSettings.setRegesOnInit = settings.setRegesOnInit;
+		}
+		if (settings.maxSteps != undefined) {
+			simulator.driver.simSettings.maxSteps = settings.maxSteps;
+		}
+		if (settings.allowAccessBtnStackHeap != undefined) {
+			simulator.driver.simSettings.allowAccessBtnStackHeap = settings.allowAccessBtnStackHeap;
+		}
+	}
+
+
 
 	private getAssemblyLines(){
 		this.pc_to_assemblyLine.clear();
