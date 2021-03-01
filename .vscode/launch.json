@@ -10,9 +10,9 @@
 				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"outFiles": [
-				"${workspaceFolder}/out/**/*.js"
+				"${workspaceFolder}/dist/**/*.js"
 			],
-			"preLaunchTask": "npm: watch"
+			"preLaunchTask": "npm: webpack"
 		},
 		{
 			"name": "Server",
@@ -24,9 +24,10 @@
 				"--server=4711"
 			],
 			"outFiles": [
-				"${workspaceFolder}/out/**/*.js"
+				"${workspaceFolder}/dist/**/*.js"
 			]
 		},
+
 		{
 			"name": "Tests",
 			"type": "node",
@@ -44,13 +45,6 @@
 			],
 			"internalConsoleOptions": "openOnSessionStart"
 		},
-		{
-			"name": "Mock Sample",
-			"type": "mock",
-			"request": "launch",
-			"program": "${workspaceFolder}/${command:AskForProgramName}",
-			"stopOnEntry": true
-		}
 	],
 	"compounds": [
 		{
