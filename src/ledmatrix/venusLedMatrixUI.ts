@@ -155,9 +155,6 @@ export class VenusLedMatrixUI {
 			var color = new Color(red, green, blue)
 
 			VenusLedMatrixUI._uiState.getLedMatrix().setLed(x, y, color)
-			if (this._panel?.visible) {
-				this._panel.webview.postMessage({command: "setLed", x: x, y: y, color: color})
-			}
 		} else if (id == 0x101) {
 			let red = (params.a1 >> 16) & 0xFF
 			let green = (params.a1 >> 8) & 0xFF
@@ -166,10 +163,9 @@ export class VenusLedMatrixUI {
 			var color = new Color(red, green, blue)
 
 			VenusLedMatrixUI._uiState.getLedMatrix().setAllLed(color)
-			if (this._panel?.visible) {
-				this._panel.webview.postMessage({command: "drawFromState", uiState: VenusLedMatrixUI._uiState})
-			}
 		}
+
+		this._update()
 
 		return {}
 	}
