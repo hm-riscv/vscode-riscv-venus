@@ -91,6 +91,36 @@
 				"riscv-venus.autoOpenDisassembly": {
 					"type": "boolean",
 					"default": true
+				},
+				"riscv-venus.forceAlignedAddressing": {
+					"type": "boolean",
+					"default": false,
+					"description": "Force Aligned Addressing?"
+				},
+				"riscv-venus.mutableText": {
+					"type": "boolean",
+					"default": true,
+					"description": "Mutable Text? Can't write into text segment if true."
+				},
+				"riscv-venus.ecallOnlyExit": {
+					"type": "boolean",
+					"default": false,
+					"description": "Can Exit only with ecall (10)?"
+				},
+				"riscv-venus.setRegesOnInit": {
+					"type": "boolean",
+					"default": true,
+					"description": "Initialize Registers with default Values?"
+				},
+				"riscv-venus.allowAccessBtnStackHeap": {
+					"type": "boolean",
+					"default": false,
+					"description": "Allow Access Between Stack and Heap?"
+				},
+				"riscv-venus.maxSteps": {
+					"type": "integer",
+					"default": -1,
+					"description": "Max number of steps: (Negative means ignored)"
 				}
 			}
 		},
@@ -284,10 +314,20 @@
 					{
 						"type": "venus",
 						"request": "launch",
-						"name": "Debug current file",
+						"name": "Launch with all views",
 						"program": "${file}",
 						"stopOnEntry": true,
-						"openViews": []
+						"stopAtBreakpoints": true,
+						"openViews": [
+							"Robot",
+							"LED Matrix",
+							"Seven Segment Board"
+						],
+						"ledMatrixSize": {
+							"x": 10,
+							"y": 10
+						}
+
 					}
 				],
 				"configurationSnippets": [
@@ -328,19 +368,24 @@
 						}
 					},
 					{
-						"label": "Venus Debug: Launch with Led Views",
-						"description": "Asks the user which assembler file to debug",
+						"label": "Venus Debug: All Options",
+						"description": "This config list all the options available. You can delete the options you dont't need. This config debugs the current file",
 						"body": {
 							"type": "venus",
 							"request": "launch",
-							"name": "Launch with led",
+							"name": "Launch with all views",
 							"program": "^\"\\${file}\"",
 							"stopOnEntry": true,
+							"stopAtBreakpoints": true,
 							"openViews": [
 								"Robot",
 								"LED Matrix",
 								"Seven Segment Board"
-							]
+							],
+							"ledMatrixSize": {
+								"x": 10,
+								"y": 10
+							}
 						}
 					}
 				],

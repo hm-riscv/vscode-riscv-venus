@@ -29,13 +29,49 @@ Just start debugging with "Run and Debug" to debug the current file:
 ![Quick Start](docs/quickstart.gif "Quick Start")
 
 You can step through the code and pseudo-operations are expanded automatically.
-The actually executed instructions are displayed in an assembly view.
+The actually executed instructions are displayed in an assembly view (auto-opens if set in extension-settings).
 Breakpoints are of course also supported.
 
 The basic [Venus environmental
 calls](https://github.com/ThaumicMekanism/venus/wiki/Environmental-Calls) are
 also supported. Further environment calls are also supported for educational toy
 examples are described in the following.
+
+## UI and launch paramters
+From, the Debugger you can open the "Venus Options". From there you can open settings, views, documentation and more. Also there are commands for all these actions which you can execute with `CTRL+P` and typing "Venus: ..."
+
+![Venus Options](docs/VenusOptions.gif "Venus Options")
+
+There is also Support for the VSCode-Inherent [launch.json](https://go.microsoft.com/fwlink/?linkid=830387). There are pre-made configs availale which you can access by typing "Venus...". Alternitavely a full launch.json currently looks like this.
+```
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "venus",
+            "request": "launch",
+            "name": "Launch current file with all options",
+            "program": "${file}",
+            "stopOnEntry": true,
+            "stopAtBreakpoints": true,
+            "openViews": [
+                "Robot",
+                "LED Matrix",
+                "Seven Segment Board"
+            ],
+            "ledMatrixSize": {
+                "x": 10,
+                "y": 10
+            }
+        }
+    ]
+}
+```
+
+![Venus Launch](docs/VenusLaunch.gif "Venus Launch")
 
 ### View memory
 
@@ -61,7 +97,7 @@ and enter "Venus: Set Variable Format".
 
 ## LED Matrix
 
-The LED matrix is a 10x10 RGB LED matrix. Each LED is set individually by the
+The LED matrix is by default a 10x10 RGB LED matrix which size can be changed with launch parameters. Each LED is set individually by the
 environment call `0x100`.
 
 ![LED Matrix](docs/ledmatrix.gif "LED Matrix")
@@ -242,6 +278,18 @@ Alternatively, you can have it open automatically by adding
     }
 
 You can find an example [here](https://github.com/hm-riscv/vscode-riscv-venus/blob/master/examples/sevensegboard/).
+
+### Terminal: Ecall `0x130` and `0x131`
+There is a Terminal which supports the standard Venus Ecalls for printing integers and strings and error output. In addition also Input is supported (currently only via polling until Interrupts are supported).
+
+To activate Input the Ecall 0x130 must be called. After that you can ecall 0x131 to read the input. After sending your input with enter in the console, internally the input is buffered and can be read one by one with calling 0x131. There are 3 states when calling 0x131(read Input):
+- a0 == 0x00000001: Still waiting for input.
+- a0 == 0x00000000: All Input has been read. Buffer is empty.
+- a0 == 0x00000002: Input has been detected and one character has been read. a1 == input in UTF-16 code.
+
+For an example see terminal.s in examples in the repository.
+
+![Venus Terminal](docs/VenusTerminal.gif "Venus Terminal")
 
 ### Example assignment
 

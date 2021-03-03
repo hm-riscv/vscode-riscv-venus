@@ -11,7 +11,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 import { basename } from 'path';
-import { VenusBreakpoint, VenusRuntime } from './venusRuntime';
+import { VenusBreakpoint, VenusRuntime, VenusSettings } from './venusRuntime';
 import { workspace, languages, Disposable, window, ViewColumn, TextEditor, commands, Uri, TextDocument } from 'vscode';
 import { AssemblyView, riscvDisassemblyProvider } from './assemblyView';
 import { DisassemblyDecoratorProvider } from './assemblyDecorator';
@@ -246,7 +246,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		// Sometimes the Venus Options Menu is not shown.(Vscode Bug?) This makes sure it is shown at least when we start debug
 		commands.executeCommand('setContext', 'venus:showOptionsMenu', true);
 
-		this._runtime.assemble(args.program, basename(args.program));
+		this._runtime.assemble(args.program, basename(args.program), this.getSettings());
 		if (args.stopAtBreakpoints != null) {
 			this._runtime.setStopAtBreakpoint(args.stopAtBreakpoints);
 		}
@@ -782,16 +782,30 @@ export class VenusDebugSession extends LoggingDebugSession {
 			let char = venusTerminal.consumeInputBuffer()
 			if (char == null) {
 				if (venusTerminal.waitingForInput()) {
-					result = {"a1": 0x10000000}
+					result = {"a0": 0x00000001}
 				} else {
-					result = {"a1": 0x00000000}
+					result = {"a0": 0x00000000}
 				}
 			} else {
 				let charCode = char.charCodeAt(0) & 0x0FFFFFFF
-				result = {"a1": charCode | 0x20000000}
+				result = {"a0": 0x00000002,
+						"a1": charCode | 0x00000000,}
 			}
 		}
 
 		return JSON.stringify(result)
+	}
+
+	private getSettings(): VenusSettings{
+		let simSettings: VenusSettings = new VenusSettings();
+
+		simSettings.alignedAddress = workspace.getConfiguration('riscv-venus').get('forceAlignedAddressing');
+		simSettings.mutableText = workspace.getConfiguration('riscv-venus').get('mutableText');
+		simSettings.ecallOnlyExit = workspace.getConfiguration('riscv-venus').get('ecallOnlyExit');
+		simSettings.setRegesOnInit = workspace.getConfiguration('riscv-venus').get('setRegesOnInit');
+		simSettings.allowAccessBtnStackHeap = workspace.getConfiguration('riscv-venus').get('allowAccessBtnStackHeap');
+		simSettings.maxSteps = workspace.getConfiguration('riscv-venus').get('maxSteps');
+
+		return simSettings
 	}
 }
