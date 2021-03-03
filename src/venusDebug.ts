@@ -769,7 +769,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		let jString = json;
 		let jsonObj = JSON.parse(jString)
 		let result = {}
-		if (jsonObj.id == 0x100) {
+		if ((jsonObj.id >= 0x100) && (jsonObj.id <= 0x101)) {
 			result = VenusLedMatrixUI.getInstance().ecall(jsonObj.id, jsonObj.params)
 		} else if (jsonObj.id == 0x110) {
 			result = VenusRobotUI.getInstance().ecall(jsonObj.id, jsonObj.params)

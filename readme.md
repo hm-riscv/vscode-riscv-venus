@@ -116,6 +116,18 @@ For example to set a red pixel at position (2,4):
     li a2, 0x00FF0000
     ecall
 
+### Ecall `0x101`: Set All Pixels
+
+This sets all pixels to an RGB color `(r,g,b)`:
+
+- `a1` contains `r` in bits 23-16, `g` in bits 15-8 and `b` in bits 7-0
+
+For example to set all pixels to red:
+
+    li a0, 0x101
+    li a1, 0x00FF0000
+    ecall
+
 ### Using the LED matrix view
 
 You can open the board view by pressing `CTRL+P` and then select/enter "Venus:

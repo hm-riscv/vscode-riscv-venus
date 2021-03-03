@@ -145,18 +145,30 @@ export class VenusLedMatrixUI {
 	}
 
 	public ecall(id: number, params: any) : object {
-		if (id != 0x100) return {}
-		let x = (params.a1 >> 16) & 0xFFFF
-		let y = params.a1 & 0xFFFF
-		let red = (params.a2 >> 16) & 0xFF
-		let green = (params.a2 >> 8) & 0xFF
-		let blue = params.a2 & 0xFF
+		if (id == 0x100) {
+			let x = (params.a1 >> 16) & 0xFFFF
+			let y = params.a1 & 0xFFFF
+			let red = (params.a2 >> 16) & 0xFF
+			let green = (params.a2 >> 8) & 0xFF
+			let blue = params.a2 & 0xFF
 
-		var color = new Color(red, green, blue)
+			var color = new Color(red, green, blue)
 
-		VenusLedMatrixUI._uiState.getLedMatrix().setLed(x, y, color)
-		if (this._panel?.visible) {
-			this._panel.webview.postMessage({command: "setLed", x: x, y: y, color: color})
+			VenusLedMatrixUI._uiState.getLedMatrix().setLed(x, y, color)
+			if (this._panel?.visible) {
+				this._panel.webview.postMessage({command: "setLed", x: x, y: y, color: color})
+			}
+		} else if (id == 0x101) {
+			let red = (params.a1 >> 16) & 0xFF
+			let green = (params.a1 >> 8) & 0xFF
+			let blue = params.a1 & 0xFF
+
+			var color = new Color(red, green, blue)
+
+			VenusLedMatrixUI._uiState.getLedMatrix().setAllLed(color)
+			if (this._panel?.visible) {
+				this._panel.webview.postMessage({command: "drawFromState", uiState: VenusLedMatrixUI._uiState})
+			}
 		}
 
 		return {}
@@ -189,6 +201,10 @@ export class LedMatrix {
 		if ((x + y*this.xCount) < this.ledState.length){
 			this.ledState[x + y*this.xCount] = color
 		}
+	}
+
+	setAllLed(color: Color) {
+		this.ledState = Array<Color>(this.xCount * this.yCount).fill(color)
 	}
 
 	resetMatrix() {
