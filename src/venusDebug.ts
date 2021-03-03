@@ -276,7 +276,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		});
 
 		// start the program in the runtime
-		this._runtime.start(args.stopOnEntry ? args.stopOnEntry : true);
+		this._runtime.start(args.stopOnEntry ? args.stopOnEntry : false);
 
 		response.success = true
 		this.sendResponse(response)
