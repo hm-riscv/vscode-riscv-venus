@@ -10,11 +10,12 @@ import {
 	Thread, StackFrame, Scope, Source, Handles, Breakpoint, Variable, ContinuedEvent
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import { basename } from 'path';
+import path, { basename } from 'path';
 import { VenusBreakpoint, VenusRuntime, VenusSettings } from './venusRuntime';
 import { workspace, languages, Disposable, window, ViewColumn, TextEditor, commands, Uri, TextDocument } from 'vscode';
 import { AssemblyView, riscvDisassemblyProvider } from './assemblyView';
 import { DisassemblyDecoratorProvider } from './assemblyDecorator';
+import * as helpers from './venusHelpers'
 import { VenusRenderer } from './venusRenderer';
 import { VenusLedMatrixUI, Color, LedMatrix, UIState } from './ledmatrix/venusLedMatrixUI';
 import { VenusRobotUI } from './robot/venusRobotUI';
@@ -286,7 +287,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
 
-		const path = <string>args.source.path;
+		const path = helpers.toPosixPath(<string>args.source.path);
 		const clientLines = args.lines || [];
 
 		// clear all breakpoints for this file
@@ -764,6 +765,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 		}
 		return floatFormatFunction
 	}
+
+
 
 	private receiveEcall(json: string) : string {
 		let jString = json;

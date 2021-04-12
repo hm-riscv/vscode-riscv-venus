@@ -12,6 +12,9 @@ import { AssemblyLineInfo } from './assemblyView';
 import { StackFrame } from 'vscode-debugadapter';
 import { resolve } from 'path';
 import { clearTimeout } from 'timers';
+import { pathToFileURL } from 'url';
+import * as path from 'path'
+import * as helpers from './venusHelpers'
 
 export interface VenusBreakpoint {
 	id: number;
@@ -105,7 +108,8 @@ export class VenusRuntime extends EventEmitter {
 		try {
 			this.applySettings(settings)
 			let text: string = readFileSync(fpath).toString();
-			var[success, error, warnings] = simulator.driver.externalAssemble(text, fpath, fName);
+			let posixPath = helpers.toPosixPath(fpath)
+			var[success, error, warnings] = simulator.driver.externalAssemble(text, posixPath, fName);
 			if (!success) {
 				VenusRenderer.getInstance().showErrorWithPopup(error);
 				this.sendEvent("end");

@@ -1,0 +1,6 @@
+import * as path from 'path'
+
+export function toPosixPath(p: string) : string {
+	return p.split(path.sep).join(path.posix.sep)
+}
+
