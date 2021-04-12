@@ -91,7 +91,6 @@ class LedMatrix {
 		}
 		this.led[x][y].setAttribute("fill", color);
 	}
-
 }
 
 function resizeMatrix() {
