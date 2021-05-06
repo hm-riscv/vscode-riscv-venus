@@ -94,12 +94,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 	// a Mock runtime (or debugger)
 	private _runtime: VenusRuntime;
 	private _variableHandles = new Handles<string>();
-	//private _riscvAssemblyProvider = new riscvDisassemblyProvider();
-	private _providerDisposable: Disposable;
-	private _windowDisposable: Disposable;
-	private _assemblyViewEditor: TextEditor;
-	private _assemblyDocument: TextDocument;
-	private _openDisassemblyDisposable: Disposable;
 	private _configurationDone = new Subject();
 
 	private _cancelationTokens = new Map<number, boolean>();
@@ -121,9 +115,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.setDebuggerLinesStartAt1(true);
 		this.setDebuggerColumnsStartAt1(false);
 		this._runtime = new VenusRuntime();
-
-		this._openDisassemblyDisposable = commands.registerCommand('riscv-venus.openAssembly', () =>
-		this.openDisassemblyView());
 
 		workspace.onDidChangeConfiguration(e => {
 			if (e != null) {
@@ -263,14 +254,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		// wait until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(100);
-
-		let doOpen = workspace.getConfiguration('riscv-venus').get('autoOpenDisassembly');
-
-		if (doOpen) {
-			this.openDisassemblyView();
-		} else {
-			AssemblyView.getInstance().updateDisassemblyView(this._runtime, false)
-		}
 
 		args.openViews?.forEach(view => {
 			this.openView(view)
@@ -648,9 +631,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 	}
 	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {
 		AssemblyView.getInstance().close();
-		this._openDisassemblyDisposable?.dispose();
-		this._providerDisposable?.dispose();
-		this._windowDisposable?.dispose();
 		this.sendResponse(response)
 	}
 
@@ -660,31 +640,26 @@ export class VenusDebugSession extends LoggingDebugSession {
 		return new Source(basename(filePath), this.convertDebuggerPathToClient(filePath), undefined, undefined, 'venus-adapter-data');
 	}
 
-	private async openDisassemblyView() {
-		AssemblyView.getInstance().updateDisassemblyView(this._runtime, true)
-	}
-
 	private async resetViews() {
 		VenusLedMatrixUI.getInstance().resetLedMatrix();
 		MemoryUI.getInstance().resetMemory();
 		VenusRobotUI.getInstance().resetLedMatrix();
+		AssemblyView.getInstance().updateDisassemblyView(this._runtime, false)
 	}
 
+	/** Opens the view given in "view". The paremeter view maps to the view launch paramter in package.json
+	 * TODO: Make the ViewColumn an option.
+	*/
 	private async openView(view: string) {
 
-		if (this._windowDisposable != null) {
-			this._windowDisposable.dispose();
-		}
-
-		let viewColumn: ViewColumn | undefined;
-		viewColumn = this._assemblyViewEditor?.viewColumn
-
 		if (view == "LED Matrix")
-			VenusLedMatrixUI.getInstance().show(viewColumn);
+			VenusLedMatrixUI.getInstance().show(ViewColumn.Two);
 		else if (view == "Robot")
-			VenusRobotUI.getInstance().show(viewColumn);
+			VenusRobotUI.getInstance().show(ViewColumn.Two);
 		else if (view == "Seven Segment Board")
-			VenusSevenSegBoardUI.getInstance().show(viewColumn);
+			VenusSevenSegBoardUI.getInstance().show(ViewColumn.Two);
+		else if (view == "Assembly")
+			AssemblyView.getInstance().show(ViewColumn.Two)
 
 	}
 

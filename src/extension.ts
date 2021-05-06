@@ -17,6 +17,7 @@ import { VenusSevenSegBoardUI } from './sevensegboard/venusSevenSegBoardUI';
 import { MemoryUI } from './memoryui/memoryUI';
 import { venusTerminal } from './terminal/venusTerminal';
 import { VenusMenuProvider } from './menu/venusMenu';
+import { AssemblyView } from './assemblyView';
 
 /*
  * The compile time flag 'runMode' controls how the debug adapter is run.
@@ -57,6 +58,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openSevenSegBoardUI', async config => {
 		VenusSevenSegBoardUI.getInstance().show();
+	}));
+
+	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openAssembly', async config => {
+		AssemblyView.getInstance().show();
 	}));
 
 	context.subscriptions.push(vscode.commands.registerCommand('riscv-venus.openSettings', async config => {

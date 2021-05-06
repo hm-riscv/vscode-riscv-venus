@@ -88,10 +88,6 @@
 						"ascii"
 					]
 				},
-				"riscv-venus.autoOpenDisassembly": {
-					"type": "boolean",
-					"default": true
-				},
 				"riscv-venus.forceAlignedAddressing": {
 					"type": "boolean",
 					"default": false,
@@ -294,7 +290,8 @@
 									"enum": [
 										"Robot",
 										"LED Matrix",
-										"Seven Segment Board"
+										"Seven Segment Board",
+										"Assembly"
 									]
 								},
 								"uniqueItems": true

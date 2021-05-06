@@ -57,6 +57,7 @@ export class AssemblyView {
 	private _editor: vscode.TextEditor;
 	private subscriptions: vscode.Disposable[];
 	private _runtime: VenusRuntime
+	private _assemblyDocument: vscode.TextDocument;
 
 	public static getInstance(): AssemblyView {
         if (!AssemblyView.instance) {
@@ -78,15 +79,13 @@ export class AssemblyView {
 		// Opening the document doesn't show a window. Think of it like opening a file on the filesystem.
 		let assemblyUri = riscvDisassemblyProvider.createUri("assembly")
 		provider.setText(riscvDisassemblyProvider.decoratorLineInfoToString(this._runtime.getPcToAssemblyLine()), assemblyUri);
-		let _assemblyDocument = await vscode.workspace.openTextDocument(assemblyUri); // calls back into the provider
-		vscode.languages.setTextDocumentLanguage(_assemblyDocument, "riscv")
+		this._assemblyDocument = await vscode.workspace.openTextDocument(assemblyUri); // calls back into the provider
+		vscode.languages.setTextDocumentLanguage(this._assemblyDocument, "riscv")
 
 		if (openWindow) {
 			// If there is an assembly already open we try to get is viewcolumn and show the document in the same column.
 			// If there is already an editor open that one is shown. Otherwise a new one is created Beside
-			let viewColumn: vscode.ViewColumn | undefined;
-			viewColumn = this._editor?.viewColumn
-			this._editor = await vscode.window.showTextDocument(_assemblyDocument, { preview: false , viewColumn: viewColumn ? viewColumn : vscode.ViewColumn.Beside});
+			this.show()
 		}
 
 		/** If we have have the assembly editor in the background all it's decorators are destroyed.
@@ -103,6 +102,12 @@ export class AssemblyView {
 			}
 			})
 		);
+	}
+
+	public async show(column? : vscode.ViewColumn) {
+		vscode.languages.setTextDocumentLanguage(this._assemblyDocument, "riscv")
+		let viewColumn = column ? column : (this._editor?.viewColumn)
+		this._editor = await vscode.window.showTextDocument(this._assemblyDocument, { preview: false , viewColumn: viewColumn});
 	}
 
 	get isOpen() {
