@@ -425,8 +425,19 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	protected setVariableRequest(response: DebugProtocol.SetVariableResponse, args: DebugProtocol.SetVariableArguments, request?: DebugProtocol.Request): void {
 		if (args.name.startsWith("x")) {
-			if (Number.isInteger(parseInt(args.value))) {
-				this._runtime.setRegister(parseInt(args.name.replace(new RegExp("\s(.*)", "i"), "").replace("x", "")), parseInt(args.value));
+			let format = workspace.getConfiguration('riscv-venus').get('variableFormat');
+			var parsedInt = NaN
+
+			if (format == "binary") {
+				parsedInt = parseInt(args.value, 2)
+			} else if (format == "ascii") {
+				parsedInt = args.value.charCodeAt(0)
+			} else {
+				parsedInt = parseInt(args.value)
+			}
+
+			if (Number.isInteger(parsedInt)) {
+				this._runtime.setRegister(parseInt(args.name.replace(new RegExp("\s(.*)", "i"), "").replace("x", "")), parsedInt);
 			} else {
 				response.success = false;
 				response.message = "The specified value for register could not be interpreted as an integer"

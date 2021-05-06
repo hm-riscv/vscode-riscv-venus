@@ -227,12 +227,16 @@ export class VenusRuntime extends EventEmitter {
 	}
 
 	/**
-	 * Sets a int Register in the simulator
+	 * Sets an int Register in the simulator.
+	 * Automatically transforms value into an 32bit signed integer
+	 * If value is bigger then INT_MAXVALUE the value is wrapping around according to two-complement format.
 	 * @param reg The register with value
 	 */
 	public setRegister(id: number, value: number) {
 		if (Number.isInteger(id) && Number.isInteger(value)) {
-			simulator.driver.setRegister(id, value)
+			let pureInt = value
+			let twoComplementInt = ~~pureInt // ~~ "Trick" taken from https://stackoverflow.com/a/37022667
+			simulator.driver.setRegister(id, twoComplementInt)
 		}
 	}
 
