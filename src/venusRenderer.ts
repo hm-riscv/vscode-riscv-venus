@@ -61,13 +61,13 @@ export class VenusRenderer {
 
 	stdout(any: any) {
 		console.log(any.toString());
-		venusTerminal.appendLine(any.toString());
+		venusTerminal.appendText(any.toString());
 		vscode.debug.activeDebugConsole.appendLine(any.toString());
 	}
 
 	printConsole(any: any) {
 		console.log(any.toString());
-		venusTerminal.appendLine(any.toString());
+		venusTerminal.appendText(any.toString());
 		vscode.debug.activeDebugConsole.appendLine(any.toString());
 	}
 

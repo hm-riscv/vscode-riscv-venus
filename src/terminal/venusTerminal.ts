@@ -35,70 +35,95 @@ export class venusTerminal {
 			venusTerminal.terminal?.dispose();
 			venusTerminal.terminal = null;
 		},
-		handleInput: (data: string) => {
+		handleInput: async (data: string) => {
 			if (venusTerminal.isOpen && (venusTerminal.inputActivated || venusTerminal.isSystemMessage)) {
-				if (data.endsWith('\r')) { // Enter
-					venusTerminal.writeEmitter.fire(data + '\n');
-					if (venusTerminal.inputActivated) {
-						venusTerminal.inputBuffer = venusTerminal.currentline.replace("\r", "");
-						venusTerminal.deactivateInput();
-					}
-					venusTerminal.currentline = '';
-					venusTerminal.cursorPos = 0;
-					return;
-				}
-				if (data === '\x7f') { // Backspace
-					if (venusTerminal.currentline.length === 0) {
+				// First we process all newlines and split the data
+				var processedData = data.replace("\r\n", "\n").replace("\n\r", "\n").replace("\r", "\n").replace("\n", "\r\n"); // normalize newlines to \r\n
+				let stringLines = processedData.split("(/(?<=\r\n)/)") // splits string and keeps the delimiter. Taken from https://pineco.de/snippets/split-strings-and-keep-the-delimiter/
+				stringLines = stringLines.filter(function (el) {
+					return el != null; // filter all emtpy arrays created by splitting the string
+				});
+				for (let line of stringLines) {
+					if (venusTerminal.isSystemMessage) {
+						if (line.endsWith('\r\n')) {
+							venusTerminal.writeEmitter.fire(line);
+							venusTerminal.currentline = '';
+							venusTerminal.cursorPos = 0;
+						} else {
+							venusTerminal.writeEmitter.fire(line)
+							venusTerminal.currentline += line;
+							venusTerminal.cursorPos += line.length;
+						}
 						return;
 					}
-					venusTerminal.currentline = venusTerminal.removeByIndex(venusTerminal.currentline, venusTerminal.cursorPos - 1)
-					//venusTerminal.line = venusTerminal.line.substr(0, venusTerminal.line.length - 1);
-					// Move cursor backward
-					venusTerminal.writeEmitter.fire('\x1b[D');
-					// Delete character
-					venusTerminal.writeEmitter.fire('\x1b[P');
-					venusTerminal.cursorPos -= 1;
-					return;
-				}
-				if (data === '\x1b[D') { // Left
-					if (venusTerminal.currentline.length !== 0 && venusTerminal.cursorPos > 0) {
+					if (line.endsWith('\r\n')) { // Enter
+						venusTerminal.writeEmitter.fire(line);
+						if (venusTerminal.inputActivated) {
+							venusTerminal.inputBuffer = venusTerminal.currentline;
+							venusTerminal.deactivateInput();
+						}
+						venusTerminal.currentline = '';
+						venusTerminal.cursorPos = 0;
+						return;
+					}
+					if (line === '\x7f') { // Backspace
+						if (venusTerminal.currentline.length === 0) {
+							return;
+						}
+						venusTerminal.currentline = venusTerminal.removeByIndex(venusTerminal.currentline, venusTerminal.cursorPos - 1)
+						//venusTerminal.line = venusTerminal.line.substr(0, venusTerminal.line.length - 1);
+						// Move cursor backward
 						venusTerminal.writeEmitter.fire('\x1b[D');
-						venusTerminal.cursorPos -= 1;
-					}
-					return;
-				}
-				if (data === '\x1b[C') { // Right
-					if (venusTerminal.cursorPos < venusTerminal.currentline.length) {
-						venusTerminal.writeEmitter.fire('\x1b[C');
-						venusTerminal.cursorPos++;
-					}
-					return;
-				}
-				if (data === '\x1b[3~') { // Delete
-					if (venusTerminal.currentline.length !== 0 && venusTerminal.cursorPos < venusTerminal.currentline.length) {
-						venusTerminal.currentline = venusTerminal.removeByIndex(venusTerminal.currentline, venusTerminal.cursorPos);
+						// Delete character
 						venusTerminal.writeEmitter.fire('\x1b[P');
+						venusTerminal.cursorPos -= 1;
+						return;
 					}
-					return;
+					if (line === '\x1b[D') { // Left
+						if (venusTerminal.currentline.length !== 0 && venusTerminal.cursorPos > 0) {
+							venusTerminal.writeEmitter.fire('\x1b[D');
+							venusTerminal.cursorPos -= 1;
+						}
+						return;
+					}
+					if (line === '\x1b[C') { // Right
+						if (venusTerminal.cursorPos < venusTerminal.currentline.length) {
+							venusTerminal.writeEmitter.fire('\x1b[C');
+							venusTerminal.cursorPos++;
+						}
+						return;
+					}
+					if (line === '\x1b[3~') { // Delete
+						if (venusTerminal.currentline.length !== 0 && venusTerminal.cursorPos < venusTerminal.currentline.length) {
+							venusTerminal.currentline = venusTerminal.removeByIndex(venusTerminal.currentline, venusTerminal.cursorPos);
+							venusTerminal.writeEmitter.fire('\x1b[P');
+						}
+						return;
+					}
+					if (line === "\u0003") { // ctrl+c
+						venusTerminal.writeEmitter.fire('\u0003' + '\r\n');
+						venusTerminal.currentline = "";
+						venusTerminal.cursorPos = 0;
+						venusTerminal.deactivateInput();
+						return;
+					}
+					if (line.length == 1 && line != '\t') { // Tabs mess with other things currently so we dont support them
+						venusTerminal.currentline = venusTerminal.insertStringAt(venusTerminal.currentline, venusTerminal.cursorPos, line);
+						venusTerminal.writeEmitter.fire(line);
+						venusTerminal.cursorPos++;
+						return;
+					}
+					// This adds support for stuff like copy and paste. At the moment still buggy with stuff like key up and down though
+					// if (line.length > 1) {
+					// 	venusTerminal.currentline = venusTerminal.insertStringAt(venusTerminal.currentline, venusTerminal.cursorPos, line);
+					// 	venusTerminal.writeEmitter.fire(line);
+					// 	venusTerminal.cursorPos += line.length;
+					// 	return;
+					// }
 				}
-				if (data === "\u0003") { // ctrl+c
-					venusTerminal.writeEmitter.fire('\u0003' + '\r\n');
-					venusTerminal.currentline = "";
-					venusTerminal.cursorPos = 0;
-					venusTerminal.deactivateInput();
-					return;
-				}
-				if (data.length == 1 && data != '\t') { // Tabs mess with other things currently so we dont support them
-					venusTerminal.currentline = venusTerminal.setCharAt(venusTerminal.currentline, venusTerminal.cursorPos, data);
-					venusTerminal.writeEmitter.fire(data);
-					venusTerminal.cursorPos++;
-					return;
-				}
-
 			} else { // When the terminal is in backgroud we store what was written to the console in a buffer
 				venusTerminal.backgroundStringBuffer += data;
 			}
-
 		}
 	};
 
@@ -112,11 +137,11 @@ export class venusTerminal {
 		}
 	}
 
-	private static setCharAt(str: string ,index: number , chr: string) {
+	private static insertStringAt(str: string ,index: number , input: string) {
 		if (index > str.length-1) {
-			return str + chr;
+			return str + input;
 		}
-		return str.substring(0,index) + chr + str.substring(index+1);
+		return str.substring(0,index) + input + str.substring(index+input.length);
 	}
 
 	/**
@@ -146,6 +171,7 @@ export class venusTerminal {
 		venusTerminal.terminal = null;
 	}
 
+	/** This adds a string to the console. A new line is added at the end of input. */
 	public static appendLine(text: string,) {
 		if (text.length > 0) {
 			let formerState = venusTerminal.inputActivated
@@ -155,6 +181,19 @@ export class venusTerminal {
 			venusTerminal.currentline = '';
 			venusTerminal.cursorPos = 0;
 			venusTerminal.pty.handleInput!(text + '\r')
+			venusTerminal.isSystemMessage = false
+			venusTerminal.inputActivated = formerState
+			venusTerminal.show()
+		}
+	}
+
+	/** This adds a string to the console. No new line is added at the end of input. */
+	public static appendText(text: string,) {
+		if (text.length > 0) {
+			let formerState = venusTerminal.inputActivated
+			venusTerminal.inputActivated = false
+			venusTerminal.isSystemMessage = true
+			venusTerminal.pty.handleInput!(text)
 			venusTerminal.isSystemMessage = false
 			venusTerminal.inputActivated = formerState
 			venusTerminal.show()

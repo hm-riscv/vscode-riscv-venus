@@ -228,9 +228,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
 
-		venusTerminal.appendLine(`-------------------------------------------------------------------------------------------`)
-		venusTerminal.appendLine(`Starting program ${args.program}`)
-		venusTerminal.appendLine(` `)
+		venusTerminal.appendText('\n')
+		venusTerminal.appendText(`-------------------------------------------------------------------------------------------\n`)
+		venusTerminal.appendText(`Starting program ${args.program}\n`)
+		venusTerminal.appendText('\n')
 
 		// make sure to 'Stop' the buffered logging if 'trace' is not set
 		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
