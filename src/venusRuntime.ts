@@ -285,6 +285,10 @@ export class VenusRuntime extends EventEmitter {
 		do {
 			simulator.driver.step()
 			this.updateStack()
+			if (simulator.driver.isFinished()) {
+				this.sendEvent('end')
+				return
+			}
 		} while (stackDepth < this._functionStack.length);
 		this.updateMemory()
 		if (simulator.driver.isFinished()) {
