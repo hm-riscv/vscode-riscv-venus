@@ -128,9 +128,9 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 
 	context.subscriptions.push(vscode.debug.registerDebugAdapterDescriptorFactory('venus', factory));
-	if ('dispose' in factory) {
-		context.subscriptions.push(factory);
-	}
+	// if ('dispose' in factory) {
+	// 	context.subscriptions.push(factory);
+	// }
 
 	// override VS Code's default implementation of the debug hover
 	/*

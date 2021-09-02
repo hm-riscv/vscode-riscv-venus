@@ -1,18 +1,96 @@
 {
 	"version": "2.0.0",
 	"tasks": [
-		{
-			"type": "npm",
-			"script": "watch",
-			"problemMatcher": "$tsc-watch",
-			"isBackground": true,
-			"presentation": {
-				"reveal": "never"
-			},
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			}
-		}
-	]
+        {
+            "type": "npm",
+            "script": "watch",
+            "group": "build",
+            "isBackground": true,
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [
+                "$ts-webpack-watch",
+                "$tslint-webpack-watch"
+            ],
+            "runOptions": {
+                "runOn": "default" // change to folderOpen to auto-run 
+            }
+        },
+        {
+            "type": "npm",
+            "script": "watchVenus",
+            "group": "build",
+            "problemMatcher": [
+                {
+                    "owner": "gradle",
+                    "fileLocation": ["relative", "${workspaceFolder}"],
+                    "pattern": {
+                    "regexp": "^.*(FAILURE):\\s*(.*)$",
+                    "severity": 1,
+                    "message": 2
+                    },
+                    // Those don't seem to work right now 
+                    "background": {
+                        "activeOnStart": true,
+                        "beginsPattern": {
+                            "regexp": "Running"
+                        },
+                        "endsPattern": {
+                            "regexp": "BUILD SUCCESSFUL"
+                        },
+                    }
+                }
+            ],
+            "runOptions": {
+                "runOn": "default" // change to folderOpen to auto-run 
+            }
+        },
+        {
+            "type": "npm",
+            "script": "compileAll",
+            "group": "build",
+            "isBackground": false,
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "problemMatcher": [
+                "$ts-webpack-watch",
+                "$tslint-webpack-watch",
+                {
+                    "owner": "gradle",
+                    "fileLocation": ["relative", "${workspaceFolder}"],
+                    "pattern": {
+                    "regexp": "^.*(FAILURE):\\s*(.*)$",
+                    "severity": 1,
+                    "message": 2
+                    },
+                    // Those don't seem to work right now
+                }
+            ],
+        },
+         // Below is a problem matcher with custom begin and end patterns. Use this if patterns change, which they do often after updates.
+        // {
+        //     "base": "$ts-webpack",
+        //     "background": {
+        //         "activeOnStart": true,
+        //         "beginsPattern": {
+        //             "regexp": "Compilation starting"
+        //         },
+        //         "endsPattern": {
+        //             "regexp": "watching files for updates"
+        //         }
+        //     }
+        // },
+    ]
 }

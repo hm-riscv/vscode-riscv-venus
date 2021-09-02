@@ -14,23 +14,28 @@ module.exports = function(grunt) {
             build_venus: {
                 command: command,
                 cwd: 'src/runtime/venus',
+            },
+            watch_venus: {
+                command: command + " --continuous",
+                cwd: 'src/runtime/venus',
             }
         },
-        copy: {
-		  	venus: {
-			    files: [
-                    {
-                        expand: true,
-                        flatten: true,
-                        cwd: 'src/runtime/venus',
-                        src: 'build/kotlin-js-min/main/venus.js**',
-                        dest: 'src/runtime/venus',
-                    },
-                ]
-		  	}
-		}
+        // copy: {
+		//   	venus: {
+		// 	    files: [
+        //             {
+        //                 expand: true,
+        //                 flatten: true,
+        //                 cwd: 'src/runtime/venus',
+        //                 src: 'build/kotlin-js-min/main/venus.js**',
+        //                 dest: 'src/runtime/venus',
+        //             },
+        //         ]
+		//   	}
+		// }
     });
     grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-exec');
-    grunt.registerTask('buildvenus', ['exec:build_venus', 'copy:venus']);
+    grunt.registerTask('buildvenus', ['exec:build_venus']);
+    grunt.registerTask('watchvenus', ['exec:watch_venus']);
 };

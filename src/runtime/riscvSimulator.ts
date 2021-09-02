@@ -48,7 +48,7 @@ global["codeMirror"] = {
 	save: () => {},
 }
 
-const venus = require("./venus/venus")
+const venus = require("./venus/build/kotlin-js-min/main/venus")
 
 const venus_main = venus;
 const driver = venus_main.venus.Driver;

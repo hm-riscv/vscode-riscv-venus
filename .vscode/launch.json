@@ -2,7 +2,7 @@
 	"version": "0.2.0",
 	"configurations": [
 		{
-			"name": "Extension",
+			"name": "Extension with Rebuild",
 			"type": "extensionHost",
 			"request": "launch",
 			"runtimeExecutable": "${execPath}",
@@ -12,44 +12,51 @@
 			"outFiles": [
 				"${workspaceFolder}/dist/**/*.js"
 			],
-			"preLaunchTask": "npm: webpack"
+			"preLaunchTask": "npm: compileAll",
 		},
 		{
-			"name": "Server",
-			"type": "node",
+			"name": "Extension no Rebuild",
+			"type": "extensionHost",
 			"request": "launch",
-			"cwd": "${workspaceFolder}",
-			"program": "${workspaceFolder}/src/debugAdapter.ts",
+			"runtimeExecutable": "${execPath}",
 			"args": [
-				"--server=4711"
+				"--extensionDevelopmentPath=${workspaceFolder}"
 			],
 			"outFiles": [
 				"${workspaceFolder}/dist/**/*.js"
-			]
+			],
 		},
-
+		// {
+		// 	"name": "Server",
+		// 	"type": "node",
+		// 	"request": "launch",
+		// 	"cwd": "${workspaceFolder}",
+		// 	"program": "${workspaceFolder}/src/debugAdapter.ts",
+		// 	"args": [
+		// 		"--server=4711"
+		// 	],
+		// 	"outFiles": [
+		// 		"${workspaceFolder}/out/**/*.js"
+		// 	],
+		// 	"preLaunchTask": "npm: compile"
+		// },
 		{
 			"name": "Tests",
-			"type": "node",
+			"type": "extensionHost",
 			"request": "launch",
-			"cwd": "${workspaceFolder}",
-			"program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+			"cwd": "${execPath}",
 			"args": [
-				"-u", "tdd",
-				"--timeout", "999999",
-				"--colors",
-				"./out/tests/"
+				"--extensionDevelopmentPath=${workspaceFolder}",
+        		"--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
 			],
-			"outFiles": [
-				"${workspaceFolder}/out/**/*.js"
-			],
-			"internalConsoleOptions": "openOnSessionStart"
+			"outFiles": ["${workspaceFolder}/out/test/**/*.js"],
+			"preLaunchTask": "npm: compile"
 		},
 	],
-	"compounds": [
-		{
-			"name": "Extension + Server",
-			"configurations": [ "Extension", "Server" ]
-		}
-	]
+	// "compounds": [
+	// 	{
+	// 		"name": "Extension + Server",
+	// 		"configurations": [ "Extension", "Server" ]
+	// 	}
+	// ]
 }
