@@ -1,6 +1,5 @@
 // Place your settings in this file to overwrite default and user settings.FALSE
 {
 	"typescript.tsdk": "node_modules/typescript/lib",
-	"files.trimTrailingWhitespace": true,
-	"editor.insertSpaces": false
+	"typescript.tsc.autoDetect": "off"
 }
