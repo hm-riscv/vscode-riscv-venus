@@ -13,8 +13,8 @@ import { StackFrame } from 'vscode-debugadapter';
 import { resolve } from 'path';
 import { clearTimeout } from 'timers';
 import { pathToFileURL } from 'url';
-import * as path from 'path'
-import * as helpers from './venusHelpers'
+import * as path from 'path';
+import * as helpers from './venusHelpers';
 
 export interface VenusBreakpoint {
 	id: number;
@@ -60,7 +60,7 @@ export interface CallStackItem {
  */
 export class VenusRuntime extends EventEmitter {
 
-	// the initial (and one and only) file we are 'debugging'
+	// the initial file we are 'debugging'
 	private _sourceFile: string;
 	public get sourceFile() {
 		return this._sourceFile;
@@ -69,17 +69,12 @@ export class VenusRuntime extends EventEmitter {
 	// This stack keeps track of the functions we jumped from
 	private _functionStack = new Array<CallStackItem>();
 
-	// the contents (= lines) of the one and only file
-	private _sourceLines: string[];
-
 	// maps from sourceFile to array of Mock breakpoints
 	private _breakPoints = new Map<string, VenusBreakpoint[]>();
 
 	// since we want to send breakpoint events, we will assign an id to every event
 	// so that the frontend can match events with breakpoints.
 	private _breakpointId = 1;
-
-	private _breakAddresses = new Set<string>();
 
 	constructor() {
 		super();
@@ -105,9 +100,9 @@ export class VenusRuntime extends EventEmitter {
 
 	public assemble(fpath: string, fName: string, settings: VenusSettings) {
 		try {
-			this.applySettings(settings)
+			this.applySettings(settings);
 			let text: string = readFileSync(fpath).toString();
-			let posixPath = helpers.toPosixPath(fpath)
+			let posixPath = helpers.toPosixPath(fpath);
 			var[success, error, warnings] = simulator.driver.externalAssemble(text, posixPath, fName);
 			if (!success) {
 				VenusRenderer.getInstance().showErrorWithPopup(error);
@@ -121,27 +116,27 @@ export class VenusRuntime extends EventEmitter {
 			this.getAssemblyLines();
 		} catch (e: unknown) {
 			VenusRenderer.getInstance().showErrorWithPopup(e);
-			this.sendEvent('end')
+			this.sendEvent('end');
 		}
 	}
 
 	private applySettings(settings: VenusSettings) {
-		if (settings.alignedAddress != undefined) {
+		if (settings.alignedAddress !== undefined) {
 			simulator.driver.simSettings.alignedAddress = settings.alignedAddress;
 		}
-		if (settings.mutableText != undefined) {
+		if (settings.mutableText !== undefined) {
 			simulator.driver.simSettings.mutableText = settings.mutableText;
 		}
-		if (settings.ecallOnlyExit != undefined) {
+		if (settings.ecallOnlyExit !== undefined) {
 			simulator.driver.simSettings.ecallOnlyExit = settings.ecallOnlyExit;
 		}
-		if (settings.setRegesOnInit != undefined) {
+		if (settings.setRegesOnInit !== undefined) {
 			simulator.driver.simSettings.setRegesOnInit = settings.setRegesOnInit;
 		}
-		if (settings.maxSteps != undefined) {
+		if (settings.maxSteps !== undefined) {
 			simulator.driver.simSettings.maxSteps = settings.maxSteps;
 		}
-		if (settings.allowAccessBtnStackHeap != undefined) {
+		if (settings.allowAccessBtnStackHeap !== undefined) {
 			simulator.driver.simSettings.allowAccessBtnStackHeap = settings.allowAccessBtnStackHeap;
 		}
 	}
@@ -150,7 +145,7 @@ export class VenusRuntime extends EventEmitter {
 
 	private getAssemblyLines(){
 		this.pc_to_assemblyLine.clear();
-		this.sourceLine_to_pc.clear()
+		this.sourceLine_to_pc.clear();
 		let instructions = simulator.driver.getInstructions();
 
 		for (let i = 0; i < instructions.length; i++) {
@@ -172,14 +167,14 @@ export class VenusRuntime extends EventEmitter {
 	}
 
 	public getPcToAssemblyLine(): Map<number, AssemblyLine> {
-		return this.pc_to_assemblyLine
+		return this.pc_to_assemblyLine;
 	}
 
 	public getCurrentAssemlyLineNo(): number {
 		if (this.pc_to_assemblyLine.has(simulator.driver.sim.getPC())) {
-			return this.pc_to_assemblyLine.get(simulator.driver.sim.getPC())!.assemblyViewLine
+			return this.pc_to_assemblyLine.get(simulator.driver.sim.getPC())!.assemblyViewLine;
 		} else {
-			return 0
+			return 0;
 		}
 	}
 
@@ -196,15 +191,15 @@ export class VenusRuntime extends EventEmitter {
 			return {
 				id,
 				value: simulator.driver.getRegister(id)
-			}
-		})
+			};
+		});
 	}
 
 	public getRegister(id: number): Register {
 		return {
 			id,
 			value: simulator.driver.getRegister(id)
-		}
+		};
 	}
 
 	/**
@@ -215,15 +210,15 @@ export class VenusRuntime extends EventEmitter {
 			return {
 				id,
 				value: simulator.driver.getFRegister(id)
-			}
-		})
+			};
+		});
 	}
 
 	public getFRegister(id: number): Register {
 		return {
 			id,
 			value: simulator.driver.getFRegister(id)
-		}
+		};
 	}
 
 	/**
@@ -234,9 +229,9 @@ export class VenusRuntime extends EventEmitter {
 	 */
 	public setRegister(id: number, value: number) {
 		if (Number.isInteger(id) && Number.isInteger(value)) {
-			let pureInt = value
-			let twoComplementInt = ~~pureInt // ~~ "Trick" taken from https://stackoverflow.com/a/37022667
-			simulator.driver.setRegister(id, twoComplementInt)
+			let pureInt = value;
+			let twoComplementInt = ~~pureInt; // ~~ "Trick" taken from https://stackoverflow.com/a/37022667
+			simulator.driver.setRegister(id, twoComplementInt);
 		}
 	}
 
@@ -247,7 +242,7 @@ export class VenusRuntime extends EventEmitter {
 	 */
 	public setFRegister(id: number, value: number) {
 		if (Number.isInteger(id) && !Number.isInteger(value)) {
-			simulator.driver.setFRegister(id, value)
+			simulator.driver.setFRegister(id, value);
 		}
 	}
 
@@ -256,155 +251,160 @@ export class VenusRuntime extends EventEmitter {
 	 * @param value If true the runtime stops at Breakpoints
 	 */
 	public setStopAtBreakpoint(value: boolean) {
-		this._stopAtBreakpoint = value
+		this._stopAtBreakpoint = value;
 	}
-
-	// MOCK RUNTIME DEFINED METHODS
 
 
 	/**
-	 * Step to the next/previous non empty line.
+	 * Step to the next/previous non empty line. Also steps into functions
 	 */
 	public step(reverse = false) {
 		if (reverse) {
-			simulator.driver.undo()
+			simulator.driver.undo();
 		} else {
-			simulator.driver.step()
-			this.updateStack()
+			simulator.driver.step();
+			this.updateStack();
 		}
-		this.updateMemory()
+		this.updateMemory();
 		if (simulator.driver.isFinished()) {
-			this.sendEvent('end')
+			this.sendEvent('end');
 		} else {
-			this.sendEvent('stopOnStep')
+			this.sendEvent('stopOnStep');
 		}
 	}
 
+	/**
+	 * Steps to the next functions. Doesn't jump into functions
+	 */
 	public stepOver() {
 		const stackDepth = this._functionStack.length;
 		do {
-			simulator.driver.step()
-			this.updateStack()
+			simulator.driver.step();
+			this.updateStack();
 			if (simulator.driver.isFinished()) {
-				this.sendEvent('end')
-				return
+				this.sendEvent('end');
+				return;
 			}
 		} while (stackDepth < this._functionStack.length);
-		this.updateMemory()
+		this.updateMemory();
 		if (simulator.driver.isFinished()) {
-			this.sendEvent('end')
+			this.sendEvent('end');
 		} else {
-			this.sendEvent('stopOnStep')
+			this.sendEvent('stopOnStep');
 		}
 	}
 
+	/**
+	 * Step out of the current function
+	 */
 	public stepOut() {
 		const desiredStackDepth = this._functionStack.length - 1;
 		if (desiredStackDepth <= 0) {
-			this.run()
+			this.run();
 		} else {
 			while (desiredStackDepth < this._functionStack.length) {
-				simulator.driver.step()
-				this.updateStack()
+				simulator.driver.step();
+				this.updateStack();
 			}
-			this.updateMemory()
+			this.updateMemory();
 			if (simulator.driver.isFinished()) {
-				this.sendEvent('end')
+				this.sendEvent('end');
 			} else {
-				this.sendEvent('stopOnStep')
+				this.sendEvent('stopOnStep');
 			}
 		}
 	}
 
-	static readonly TIMEOUT_TIME = 10
-	static readonly TIMEOUT_CYCLES = 100
+	// In the following the run functions are declared
+	// The run operation is split into multiple functions because we can't block the Javascript event loop
+	// If we block the event loop the simulator can't respond
+
+	static readonly TIMEOUT_TIME = 10;
+	static readonly TIMEOUT_CYCLES = 100;
 
 	public run() {
-        if (simulator.driver.timer != null) {
-            this.runEnd()
+        if (simulator.driver.timer !== null) {
+            this.runEnd();
         } else {
             try {
-                //simulator.driver.Renderer.setRunButtonSpinning(true)
-                simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, this._stopAtBreakpoint)
-                this.runStep() // walk past breakpoint
+                simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, this._stopAtBreakpoint);
+                this.runStep(); // walk past breakpoint
             } catch (e) {
-                this.runEnd()
-                simulator.driver.handleError("RunStart", e)
+                this.runEnd();
+                simulator.driver.handleError("RunStart", e);
             }
         }
     }
 
 	private runStart(useBreakPoints: Boolean) {
         try {
-            var cycles = 0
+            var cycles = 0;
             while (cycles < VenusRuntime.TIMEOUT_CYCLES) {
                 if (simulator.driver.sim.isDone() || (simulator.driver.sim.atBreakpoint() && useBreakPoints)) {
-                    simulator.driver.exitcodecheck()
-                    this.runEnd()
-                    //simulator.driver.Renderer.updateAll()
-                    return
+                    simulator.driver.exitcodecheck();
+                    this.runEnd();
+                    return;
                 }
 
-                simulator.driver.handleNotExitOver()
-                this.runStep()
-                //Renderer.updateCache(Address(0, MemSize.WORD))
-                cycles++
+                simulator.driver.handleNotExitOver();
+                this.runStep();
+                cycles++;
             }
 
-            simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, useBreakPoints)
+            simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, useBreakPoints);
         } catch (e) {
-            this.runEnd()
-            simulator.driver.handleError("RunStart", e)
+            this.runEnd();
+            simulator.driver.handleError("RunStart", e);
         }
     }
 
     private runEnd() {
-        simulator.driver.handleNotExitOver()
-		clearTimeout(simulator.driver.timer)
+        simulator.driver.handleNotExitOver();
+		clearTimeout(simulator.driver.timer);
 
-		simulator.driver.timer = null
-		this.updateMemory()
+		simulator.driver.timer = null;
+		this.updateMemory();
 		if (simulator.driver.sim.isDone()) {
-			this.sendEvent('end')
+			this.sendEvent('end');
 		} else if (simulator.driver.sim.atBreakpoint()) {
-			this.sendEvent('stopOnBreakpoint')
+			this.sendEvent('stopOnBreakpoint');
 		} else {
-			this.sendEvent('stopOnStep')
+			this.sendEvent('stopOnStep');
 		}
 	}
 
 	private runStep() {
-		simulator.driver.sim.step()
-		this.updateStack()
+		simulator.driver.sim.step();
+		this.updateStack();
 	}
 
 	private updateStack() {
-		const jumpRegex = new RegExp("jalr?\\sx1")
+		const jumpRegex = new RegExp("jalr?\\sx1");
 
-		let instInfo = simulator.driver.getCurrentInstruction()
+		let instInfo = simulator.driver.getCurrentInstruction();
 
 		var assemblyLine: AssemblyLine = {pc: instInfo.pc, mCode: instInfo.mcode, basicCode: instInfo.basicCode, assemblyViewLine: 0, sourceLine: 0, sourcePath: "unkown"};
 
 		let pc = simulator.driver.sim.getPC();
 		let instruction = this.pc_to_assemblyLine.get(pc);
 		if (instruction != null) {
-			assemblyLine.assemblyViewLine = instruction.assemblyViewLine
-			assemblyLine.sourceLine = instruction.sourceLine
-			assemblyLine.sourcePath = instruction.sourcePath
+			assemblyLine.assemblyViewLine = instruction.assemblyViewLine;
+			assemblyLine.sourceLine = instruction.sourceLine;
+			assemblyLine.sourcePath = instruction.sourcePath;
 		}
 		const lineadditive = 0;
 
 
-		if (assemblyLine != null) {
-			const lineContent = assemblyLine.basicCode
+		if (assemblyLine !== null) {
+			const lineContent = assemblyLine.basicCode;
 
 			if (this._functionStack.length > 0 && this._functionStack[0].name.startsWith("jalr x0")) {
-				this._functionStack.shift()
-				this._functionStack.shift()
+				this._functionStack.shift();
+				this._functionStack.shift();
 			} else if (this._functionStack.length > 0 && jumpRegex.test(this._functionStack[0].name)) {
 				// if there is a jump we keep the jump on the stack
 			} else {
-				this._functionStack.shift()
+				this._functionStack.shift();
 			}
 
 			this._functionStack.unshift({
@@ -429,29 +429,6 @@ export class VenusRuntime extends EventEmitter {
 
 	}
 
-	/** TODO: This is used by the BreakPoint Location Request but we don't use that right now.
-	 * If we decide to use this fuction we need to rewrite it.
-	 */
-	public getBreakpoints(path: string, line: number): number[] {
-
-		const l = this._sourceLines[line];
-
-		let sawSpace = true;
-		const bps: number[] = [];
-		for (let i = 0; i < l.length; i++) {
-			if (l[i] !== ' ') {
-				if (sawSpace) {
-					bps.push(i);
-					sawSpace = false;
-				}
-			} else {
-				sawSpace = true;
-			}
-		}
-
-		return bps;
-	}
-
 	/*
 	 * Set breakpoint in file with given line.
 	 */
@@ -467,7 +444,7 @@ export class VenusRuntime extends EventEmitter {
 
 		this.verifyBreakpoints(path);
 
-		this.toggleBreakpoint(path, bp.line)
+		this.toggleBreakpoint(path, bp.line);
 
 		return bp;
 	}
@@ -499,32 +476,8 @@ export class VenusRuntime extends EventEmitter {
 		this._breakPoints.delete(path);
 	}
 
-	/*
-	 * Set data breakpoint.
-	 */
-	public setDataBreakpoint(address: string): boolean {
-		if (address) {
-			this._breakAddresses.add(address);
-			return true;
-		}
-		return false;
-	}
-
-	/*
-	 * Clear all data breakpoints.
-	 */
-	public clearAllDataBreakpoints(): void {
-		this._breakAddresses.clear();
-	}
 
 	// private methods
-
-	private loadSource(file: string) {
-		if (this._sourceFile !== file) {
-			this._sourceFile = file;
-			this._sourceLines = readFileSync(this._sourceFile).toString().split('\n');
-		}
-	}
 
 	private verifyBreakpoints(path: string) : void {
 		let bps = this._breakPoints.get(path);
@@ -535,7 +488,7 @@ export class VenusRuntime extends EventEmitter {
 					const srcLine = sourceLines[bp.line].trim();
 
 					let pc = this.sourceLine_to_pc.get(this.createSourcelineString(path, bp.line));
-					if (pc == null) {
+					if (pc === null) {
 						bp.verified = false;
 					} else {
 						bp.verified = true;
@@ -547,66 +500,9 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
-	/**
-	 * Fire events if line has a breakpoint or the word 'exception' is found.
-	 * Returns true is execution needs to stop.
-	 */
-	private fireEventsForLine(ln: number, stepEvent?: string): boolean {
-
-		const line = this._sourceLines[ln].trim();
-
-		// if 'log(...)' found in source -> send argument to debug console
-		const matches = /log\((.*)\)/.exec(line);
-		if (matches && matches.length === 2) {
-			this.sendEvent('output', matches[1], this._sourceFile, ln, matches.index)
-		}
-
-		// if a word in a line matches a data breakpoint, fire a 'dataBreakpoint' event
-		const words = line.split(" ");
-		for (let word of words) {
-			if (this._breakAddresses.has(word)) {
-				this.sendEvent('stopOnDataBreakpoint');
-				return true;
-			}
-		}
-
-		// if word 'exception' found in source -> throw exception
-		if (line.indexOf('exception') >= 0) {
-			this.sendEvent('stopOnException');
-			return true;
-		}
-
-		// is there a breakpoint?
-		const breakpoints = this._breakPoints.get(this._sourceFile);
-		if (breakpoints) {
-			const bps = breakpoints.filter(bp => bp.line === ln);
-			if (bps.length > 0) {
-
-				// send 'stopped' event
-				this.sendEvent('stopOnBreakpoint');
-
-				// the following shows the use of 'breakpoint' events to update properties of a breakpoint in the UI
-				// if breakpoint is not yet verified, verify it now and send a 'breakpoint' update event
-				if (!bps[0].verified) {
-					bps[0].verified = true;
-					this.sendEvent('breakpointValidated', bps[0]);
-				}
-				return true;
-			}
-		}
-
-		// non-empty line
-		if (stepEvent && line.length > 0) {
-			this.sendEvent(stepEvent);
-			return true;
-		}
-
-		// nothing interesting found -> continue
-		return false;
-	}
 
 	private toggleBreakpoint(path: string, line: number) {
-		let pc = this.sourceLine_to_pc.get(this.createSourcelineString(path, line))
+		let pc = this.sourceLine_to_pc.get(this.createSourcelineString(path, line));
 		if (pc != null) {
 			pc.forEach(progcounter => {
 				simulator.driver.toggleBreakpoint(progcounter);
@@ -625,7 +521,7 @@ export class VenusRuntime extends EventEmitter {
 	}
 
 	private updateMemory() {
-		MemoryUI.getInstance().update()
+		MemoryUI.getInstance().update();
 	}
 
 }

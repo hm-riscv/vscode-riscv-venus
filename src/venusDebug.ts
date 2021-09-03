@@ -122,6 +122,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 			}
 		});
 		// setup event handlers
+		// Can listen to this events with DebugAdapterTracker: https://code.visualstudio.com/api/references/vscode-api#DebugAdapterTracker
 		this._runtime.on('stopOnEntry', () => {
 			this.updateAssemblyViewDecorator();
 			this.sendEvent(new StoppedEvent('entry', VenusDebugSession.THREAD_ID));
@@ -167,6 +168,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 	/**
 	 * The 'initialize' request is the first request called by the frontend
 	 * to interrogate the features the debug adapter provides.
+	 * https://microsoft.github.io/debug-adapter-protocol/specification
 	 */
 	protected initializeRequest(response: DebugProtocol.InitializeResponse, args: DebugProtocol.InitializeRequestArguments): void {
 
@@ -202,7 +204,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		// make VS Code send the breakpointLocations request
 		response.body.supportsBreakpointLocationsRequest = false;
 
-		// TODO implement
+		// TODO Test if this works reliably now
 		response.body.supportsRestartRequest = false;
 		// Doesn't seem to be supported for now
 		// response.body.supportsDisassembleRequest = true;
@@ -239,6 +241,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		// Sometimes the Venus Options Menu is not shown.(Vscode Bug?) This makes sure it is shown at least when we start debug
 		commands.executeCommand('setContext', 'venus:showOptionsMenu', true);
 
+		// Here we send to programm to be assembled
 		this._runtime.assemble(args.program, basename(args.program), this.getSettings());
 		if (args.stopAtBreakpoints != null) {
 			this._runtime.setStopAtBreakpoint(args.stopAtBreakpoints);
@@ -250,8 +253,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		VenusRuntime.registerECallReceiver(this.receiveEcall);
 		this.resetViews();
-
-		// Add Instruction Information to Line
 
 		// wait until configuration has finished (and configurationDoneRequest has been called)
 		await this._configurationDone.wait(100);
@@ -289,26 +290,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 		response.body = {
 			breakpoints: actualBreakpoints
 		};
-		this.sendResponse(response);
-	}
-
-	protected breakpointLocationsRequest(response: DebugProtocol.BreakpointLocationsResponse, args: DebugProtocol.BreakpointLocationsArguments, request?: DebugProtocol.Request): void {
-
-		if (args.source.path) {
-			const bps = this._runtime.getBreakpoints(args.source.path, this.convertClientLineToDebugger(args.line));
-			response.body = {
-				breakpoints: bps.map(col => {
-					return {
-						line: args.line,
-						column: this.convertDebuggerColumnToClient(col)
-					};
-				})
-			};
-		} else {
-			response.body = {
-				breakpoints: []
-			};
-		}
 		this.sendResponse(response);
 	}
 
@@ -462,7 +443,9 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	/*
 		Not yet supported
-		see: https://gitlab.lrz.de/riscv/debugger/-/issues/9
+		see: https://gitlab.lrz.de/riscv/debugger/-/issues/9 Note: old issue
+		Supported by the backend but need to make sure that frotend and venusRuntime are compatible.
+		Also unclear if we actually need this feature.
 	*/
 	protected reverseContinueRequest(response: DebugProtocol.ReverseContinueResponse, args: DebugProtocol.ReverseContinueArguments) : void {
 		console.warn("ReverseContinue is not supported yet (=> Continue)");
@@ -470,16 +453,30 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
  	}
 
+	 /*
+	 	Called when clicking step over
+	 */
 	protected nextRequest(response: DebugProtocol.NextResponse, args: DebugProtocol.NextArguments): void {
 		this._runtime.stepOver();
 		this.sendResponse(response);
 	}
 
+	/*
+		Not yet supported
+		see: https://gitlab.lrz.de/riscv/debugger/-/issues/9 Note: old issue
+		Supported by the backend but need to make sure that frotend and venusRuntime are compatible.
+		Also unclear if we actually need this feature.
+	*/
 	protected stepBackRequest(response: DebugProtocol.StepBackResponse, args: DebugProtocol.StepBackArguments): void {
 		this._runtime.step(true);
 		this.sendResponse(response);
 	}
 
+	/**
+	 * Responsible for showing the value of a register if we hover over it in the editor.
+	 * Right now only supports registers.
+	 * TODO: Support label and memory addresses in the future
+	 */
 	protected evaluateRequest(response: DebugProtocol.EvaluateResponse, args: DebugProtocol.EvaluateArguments): void {
 
 		let reply: string | null = null;
@@ -517,6 +514,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
+	// Unused right now
 	private async progressSequence() {
 
 		const ID = '' + this._progressId++;
@@ -548,6 +546,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._cancelledProgressId = undefined;
 	}
 
+	// Unused right now
 	protected dataBreakpointInfoRequest(response: DebugProtocol.DataBreakpointInfoResponse, args: DebugProtocol.DataBreakpointInfoArguments): void {
 
 		response.body = {
@@ -570,26 +569,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this.sendResponse(response);
 	}
 
-	protected setDataBreakpointsRequest(response: DebugProtocol.SetDataBreakpointsResponse, args: DebugProtocol.SetDataBreakpointsArguments): void {
 
-		// clear all data breakpoints
-		this._runtime.clearAllDataBreakpoints();
-
-		response.body = {
-			breakpoints: []
-		};
-
-		for (let dbp of args.breakpoints) {
-			// assume that id is the "address" to break on
-			const ok = this._runtime.setDataBreakpoint(dbp.dataId);
-			response.body.breakpoints.push({
-				verified: ok
-			});
-		}
-
-		this.sendResponse(response);
-	}
-
+	// Unused right now
 	protected completionsRequest(response: DebugProtocol.CompletionsResponse, args: DebugProtocol.CompletionsArguments): void {
 
 		response.body = {
@@ -669,6 +650,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 		AssemblyView.getInstance().updateDecorators();
 	}
 
+	/**
+	 * Takes a (register) value as a number and formats it according to the specified variable Format.
+	 * @returns The formated value as string
+	 */
 	private getFormatFunction(): (para: number) => string{
 		let format = workspace.getConfiguration('riscv-venus').get('variableFormat');
 		let formatFunction: (para: number) => string;
@@ -715,6 +700,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 		return formatFunction;
 	}
 
+	/**
+	 * Takes a float (register) value as a number and formats it according to the specified variable Format.
+	 * @returns The formated float value as string
+	 */
 	private getFloatFormatFunction(): (decimal: any) => string{
 		let format = workspace.getConfiguration('riscv-venus').get('variableFormat');
 		let floatFormatFunction: (decimal: any) => string;
@@ -754,7 +743,14 @@ export class VenusDebugSession extends LoggingDebugSession {
 	}
 
 
-
+	/**
+	 * 
+	 * This function is called by the backend to handle the ecall.
+	 * When the ecalled is handled sends back a json with new values (optional) for registers a0 and a1.
+	 * 
+	 * @param json A json with information about the ecall
+	 * @returns A Json with values for registers a0 and a1
+	 */
 	private receiveEcall(json: string) : string {
 		let jString = json;
 		let jsonObj = JSON.parse(jString);
@@ -786,6 +782,12 @@ export class VenusDebugSession extends LoggingDebugSession {
 		return JSON.stringify(result);
 	}
 
+	/**
+	 * Reads the configuration of the extension settings and wraps it into a VenusSettings object.
+	 * Note: Reads the extension settings, not the launch attributes in launch.json.
+	 * 
+	 * @returns A initialized VenusSettings object
+	 */
 	private getSettings(): VenusSettings{
 		let simSettings: VenusSettings = new VenusSettings();
 
