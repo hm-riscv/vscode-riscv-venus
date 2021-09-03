@@ -15,7 +15,7 @@ import { VenusBreakpoint, VenusRuntime, VenusSettings } from './venusRuntime';
 import { workspace, languages, Disposable, window, ViewColumn, TextEditor, commands, Uri, TextDocument } from 'vscode';
 import { AssemblyView, riscvDisassemblyProvider } from './assemblyView';
 import { DisassemblyDecoratorProvider } from './assemblyDecorator';
-import * as helpers from './venusHelpers'
+import * as helpers from './venusHelpers';
 import { VenusRenderer } from './venusRenderer';
 import { VenusLedMatrixUI, Color, LedMatrix, UIState } from './ledmatrix/venusLedMatrixUI';
 import { VenusRobotUI } from './robot/venusRobotUI';
@@ -23,7 +23,7 @@ import { VenusSevenSegBoardUI } from './sevensegboard/venusSevenSegBoardUI';
 import { MemoryUI } from './memoryui/memoryUI';
 import { venusTerminal } from './terminal/venusTerminal';
 import { JsonObjectExpression } from 'typescript';
-const { Subject } = require('await-notify');
+import { Subject } from 'await-notify';
 
 const riscvAsmScheme = 'venus_asm';
 
@@ -117,10 +117,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._runtime = new VenusRuntime();
 
 		workspace.onDidChangeConfiguration(e => {
-			if (e != null) {
-				this.sendEvent(new StoppedEvent('settings changed', VenusDebugSession.THREAD_ID))
+			if (e !== null) {
+				this.sendEvent(new StoppedEvent('settings changed', VenusDebugSession.THREAD_ID));
 			}
-		})
+		});
 		// setup event handlers
 		this._runtime.on('stopOnEntry', () => {
 			this.updateAssemblyViewDecorator();
@@ -144,8 +144,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 			this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
 		});
 		this._runtime.on('continue', () => {
-			this.sendEvent(new ContinuedEvent(VenusDebugSession.THREAD_ID, true))
-		})
+			this.sendEvent(new ContinuedEvent(VenusDebugSession.THREAD_ID, true));
+		});
 		this._runtime.on('output', (text, filePath, line, column) => {
 			const e: DebugProtocol.OutputEvent = new OutputEvent(`${text}\n`);
 
@@ -228,10 +228,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 	protected async launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments) {
 
-		venusTerminal.appendText('\n')
-		venusTerminal.appendText(`-------------------------------------------------------------------------------------------\n`)
-		venusTerminal.appendText(`Starting program ${args.program}\n`)
-		venusTerminal.appendText('\n')
+		venusTerminal.appendText('\n');
+		venusTerminal.appendText(`-------------------------------------------------------------------------------------------\n`);
+		venusTerminal.appendText(`Starting program ${args.program}\n`);
+		venusTerminal.appendText('\n');
 
 		// make sure to 'Stop' the buffered logging if 'trace' is not set
 		logger.setup(args.trace ? Logger.LogLevel.Verbose : Logger.LogLevel.Stop, false);
@@ -244,8 +244,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 			this._runtime.setStopAtBreakpoint(args.stopAtBreakpoints);
 		}
 
-		if (args.ledMatrixSize != null) {
-			VenusLedMatrixUI.createNewInstance(undefined, new UIState(new LedMatrix(args.ledMatrixSize.x, args.ledMatrixSize.y)))
+		if (args.ledMatrixSize !== null) {
+			VenusLedMatrixUI.createNewInstance(undefined, new UIState(new LedMatrix(args.ledMatrixSize.x, args.ledMatrixSize.y)));
 		}
 
 		VenusRuntime.registerECallReceiver(this.receiveEcall);
@@ -257,14 +257,14 @@ export class VenusDebugSession extends LoggingDebugSession {
 		await this._configurationDone.wait(100);
 
 		args.openViews?.forEach(view => {
-			this.openView(view)
+			this.openView(view);
 		});
 
 		// start the program in the runtime
 		this._runtime.start(args.stopOnEntry ? args.stopOnEntry : false);
 
-		response.success = true
-		this.sendResponse(response)
+		response.success = true;
+		this.sendResponse(response);
 
 
 	}
@@ -301,7 +301,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 					return {
 						line: args.line,
 						column: this.convertDebuggerColumnToClient(col)
-					}
+					};
 				})
 			};
 		} else {
@@ -359,8 +359,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		const id = this._variableHandles.get(args.variablesReference);
 
-		if (id == "integer") {
-			const registers = this._runtime.getRegisters()
+		if (id === "integer") {
+			const registers = this._runtime.getRegisters();
 			registers.forEach(reg => {
 				variables.push({
 					name: "x" + reg.id.toString().padStart(2,'0') + (" (" + regNames.get(reg.id.toString()) + ")").padEnd(7, " "),
@@ -369,17 +369,17 @@ export class VenusDebugSession extends LoggingDebugSession {
 					variablesReference: 0,
 					indexedVariables: 0,
 					namedVariables: 0,
-				})
-			})
-		} else if (id == "float") {
+				});
+			});
+		} else if (id === "float") {
 
-			const f_registers = this._runtime.getFRegisters()
+			const fRegisters = this._runtime.getFRegisters();
 			var value;
-			f_registers.forEach(reg => {
+			fRegisters.forEach(reg => {
 				if (reg.value.isFloat) {
-					value = reg.value.float
+					value = reg.value.float;
 				} else {
-					value = reg.value.double
+					value = reg.value.double;
 				}
 				variables.push({
 					name: "f" + reg.id.toString().padStart(2,'0'),
@@ -388,9 +388,9 @@ export class VenusDebugSession extends LoggingDebugSession {
 					variablesReference: 0,
 					indexedVariables: 0,
 					namedVariables: 0,
-				})
-			})
-		} else if (id == "pc") {
+				});
+			});
+		} else if (id === "pc") {
 			variables.push({
 				name: "PC",
 				type: "hex",
@@ -398,7 +398,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 				variablesReference: 0,
 				indexedVariables: 0,
 				namedVariables: 0,
-			 })
+			 });
 		}
 
 		response.body = {
@@ -410,33 +410,33 @@ export class VenusDebugSession extends LoggingDebugSession {
 	protected setVariableRequest(response: DebugProtocol.SetVariableResponse, args: DebugProtocol.SetVariableArguments, request?: DebugProtocol.Request): void {
 		if (args.name.startsWith("x")) {
 			let format = workspace.getConfiguration('riscv-venus').get('variableFormat');
-			var parsedInt = NaN
+			var parsedInt = NaN;
 
-			if (format == "binary") {
-				parsedInt = parseInt(args.value, 2)
-			} else if (format == "ascii") {
-				parsedInt = args.value.charCodeAt(0)
+			if (format === "binary") {
+				parsedInt = parseInt(args.value, 2);
+			} else if (format === "ascii") {
+				parsedInt = args.value.charCodeAt(0);
 			} else {
-				parsedInt = parseInt(args.value)
+				parsedInt = parseInt(args.value);
 			}
 
 			if (Number.isInteger(parsedInt)) {
 				this._runtime.setRegister(parseInt(args.name.replace(new RegExp("\s(.*)", "i"), "").replace("x", "")), parsedInt);
 			} else {
 				response.success = false;
-				response.message = "The specified value for register could not be interpreted as an integer"
+				response.message = "The specified value for register could not be interpreted as an integer";
 			}
 		} else if (args.name.startsWith("f")) {
 			if (!isNaN(parseFloat(args.value))) {
 				this._runtime.setFRegister(parseInt(args.name.replace("f", "")), parseFloat(args.value));
 			} else {
 				response.success = false;
-				response.message = "The specified value for register could not be interpreted as an float"
+				response.message = "The specified value for register could not be interpreted as an float";
 			}
 		}
 		this.sendResponse(response);
 		if (response.success) {
-			this.sendEvent(new StoppedEvent('setVariable', VenusDebugSession.THREAD_ID))
+			this.sendEvent(new StoppedEvent('setVariable', VenusDebugSession.THREAD_ID));
 		}
 	}
 
@@ -465,7 +465,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		see: https://gitlab.lrz.de/riscv/debugger/-/issues/9
 	*/
 	protected reverseContinueRequest(response: DebugProtocol.ReverseContinueResponse, args: DebugProtocol.ReverseContinueArguments) : void {
-		console.warn("ReverseContinue is not supported yet (=> Continue)")
+		console.warn("ReverseContinue is not supported yet (=> Continue)");
 		this._runtime.run();
 		this.sendResponse(response);
  	}
@@ -485,27 +485,27 @@ export class VenusDebugSession extends LoggingDebugSession {
 		let reply: string | null = null;
 		let regId: number | null = null;
 
-		if (args.context == 'hover') {
+		if (args.context === 'hover') {
 			if (args.expression.startsWith('f')) { // float registers
 				if (!isNaN(parseInt(args.expression.replace("f", "")))) {
-					let formatFunction = this.getFloatFormatFunction()
+					let formatFunction = this.getFloatFormatFunction();
 					reply = formatFunction(this._runtime.getFRegister(parseInt(args.expression.replace("f", ""))).value);
 				}
 			} else if (args.expression.startsWith('x')) { // starting with x
 				if (!isNaN(parseInt(args.expression.replace("x", "")))) {
-					let formatFunction = this.getFormatFunction()
+					let formatFunction = this.getFormatFunction();
 					reply = formatFunction(this._runtime.getRegister(parseInt(args.expression.replace("x", ""))).value);
 				}
 			} else if (!args.expression.match(new RegExp('^\d'))) { // Alternative register labels
 				for (let [key, value] of regNames.entries()) {
 					if (value === args.expression) {
-						regId = parseInt(key)
-						break
+						regId = parseInt(key);
+						break;
 					}
 				}
-				if (regId != null) {
-					let formatFunction = this.getFormatFunction()
-					reply = formatFunction(this._runtime.getRegister(regId).value)
+				if (regId !== null) {
+					let formatFunction = this.getFormatFunction();
+					reply = formatFunction(this._runtime.getRegister(regId).value);
 				}
 			}
 		}
@@ -632,7 +632,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 	}
 	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {
 		AssemblyView.getInstance().close();
-		this.sendResponse(response)
+		this.sendResponse(response);
 	}
 
 	//---- helpers
@@ -645,7 +645,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		VenusLedMatrixUI.getInstance().resetLedMatrix();
 		MemoryUI.getInstance().resetMemory();
 		VenusRobotUI.getInstance().resetLedMatrix();
-		AssemblyView.getInstance().updateDisassemblyView(this._runtime, false)
+		AssemblyView.getInstance().updateDisassemblyView(this._runtime, false);
 	}
 
 	/** Opens the view given in "view". The paremeter view maps to the view launch paramter in package.json
@@ -653,20 +653,20 @@ export class VenusDebugSession extends LoggingDebugSession {
 	*/
 	private async openView(view: string) {
 
-		if (view == "LED Matrix")
-			VenusLedMatrixUI.getInstance().show(ViewColumn.Two);
-		else if (view == "Robot")
-			VenusRobotUI.getInstance().show(ViewColumn.Two);
-		else if (view == "Seven Segment Board")
-			VenusSevenSegBoardUI.getInstance().show(ViewColumn.Two);
-		else if (view == "Assembly")
-			AssemblyView.getInstance().show(ViewColumn.Two)
+		if (view === "LED Matrix")
+			{VenusLedMatrixUI.getInstance().show(ViewColumn.Two);}
+		else if (view === "Robot")
+			{VenusRobotUI.getInstance().show(ViewColumn.Two);}
+		else if (view === "Seven Segment Board")
+			{VenusSevenSegBoardUI.getInstance().show(ViewColumn.Two);}
+		else if (view === "Assembly")
+			{AssemblyView.getInstance().show(ViewColumn.Two);}
 
 	}
 
 	/** Updates the Decorators in Assemblyview. This means lines are marked, for example the current active line that is debugged. */
 	private updateAssemblyViewDecorator() {
-		AssemblyView.getInstance().updateDecorators()
+		AssemblyView.getInstance().updateDecorators();
 	}
 
 	private getFormatFunction(): (para: number) => string{
@@ -676,43 +676,43 @@ export class VenusDebugSession extends LoggingDebugSession {
 			case "hex": {
 				formatFunction = (para: number) => {
 					return "0x" + ((para >>> 0).toString(16).toUpperCase().padStart(8, '0'));
-				}
+				};
 				break;
 			}
 			case "binary": {
 				formatFunction = (para: number) => {
 					return ((para >>> 0).toString(2).padStart(32, '0'));
-				}
+				};
 				break;
 			}
 			case "decimal": {
 				formatFunction = (para: number) => {
-					return para.toString(10)
-				}
+					return para.toString(10);
+				};
 				break;
 			}
 			case "ascii": {
 				formatFunction = (para: number) => {
-					let binary = (para >>> 0).toString(2).padStart(32, '0')
+					let binary = (para >>> 0).toString(2).padStart(32, '0');
 					// Split string into
 					let asciiBin = binary.match(/.{8}/g);
-					if (asciiBin != null) {
+					if (asciiBin !== null) {
 						return String.fromCharCode(parseInt(asciiBin[0], 2)) + String.fromCharCode(parseInt(asciiBin[1], 2)) +
-							String.fromCharCode(parseInt(asciiBin[2], 2)) + String.fromCharCode(parseInt(asciiBin[3], 2))
+							String.fromCharCode(parseInt(asciiBin[2], 2)) + String.fromCharCode(parseInt(asciiBin[3], 2));
 					}
-					return ''
-				}
+					return '';
+				};
 				break;
 			}
 			default: {
 				formatFunction = (para: number) => {
 					return "0x" + (para >>> 0).toString(16);
-				}
+				};
 				break;
 			}
 		}
 
-		return formatFunction
+		return formatFunction;
 	}
 
 	private getFloatFormatFunction(): (decimal: any) => string{
@@ -722,68 +722,68 @@ export class VenusDebugSession extends LoggingDebugSession {
 			case "hex": {
 				floatFormatFunction = (decimal: any) => {
 					return decimal.toHex();
-				}
+				};
 				break;
 			}
 			case "binary": {
 				floatFormatFunction = (decimal: any) => {
 					return decimal.toHex();
-				}
+				};
 				break;
 			}
 			case "decimal": {
 				floatFormatFunction = (decimal: any) => {
 					return decimal.toDecimal();
-				}
+				};
 				break;
 			}
 			case "ascii": {
 				floatFormatFunction = (decimal: any) => {
 					return decimal.toAscii();
-				}
+				};
 				break;
 			}
 			default: {
 				floatFormatFunction = (decimal: any) => {
 					return decimal.toHex();
-				}
+				};
 				break;
 			}
 		}
-		return floatFormatFunction
+		return floatFormatFunction;
 	}
 
 
 
 	private receiveEcall(json: string) : string {
 		let jString = json;
-		let jsonObj = JSON.parse(jString)
-		let result = {}
+		let jsonObj = JSON.parse(jString);
+		let result = {};
 		if ((jsonObj.id >= 0x100) && (jsonObj.id <= 0x101)) {
-			result = VenusLedMatrixUI.getInstance().ecall(jsonObj.id, jsonObj.params)
+			result = VenusLedMatrixUI.getInstance().ecall(jsonObj.id, jsonObj.params);
 		} else if (jsonObj.id == 0x110) {
-			result = VenusRobotUI.getInstance().ecall(jsonObj.id, jsonObj.params)
+			result = VenusRobotUI.getInstance().ecall(jsonObj.id, jsonObj.params);
 		} else if ((jsonObj.id >= 0x120) && (jsonObj.id < 0x123)) {
 			result = VenusSevenSegBoardUI.getInstance().ecall(jsonObj.id, jsonObj.params);
 		} else if (jsonObj.id == 0x130) {
-			venusTerminal.activateInput()
-			venusTerminal.show()
+			venusTerminal.activateInput();
+			venusTerminal.show();
 		} else if (jsonObj.id == 0x131) {
-			let char = venusTerminal.consumeInputBuffer()
+			let char = venusTerminal.consumeInputBuffer();
 			if (char == null) {
 				if (venusTerminal.waitingForInput()) {
-					result = {"a0": 0x00000001}
+					result = {"a0": 0x00000001};
 				} else {
-					result = {"a0": 0x00000000}
+					result = {"a0": 0x00000000};
 				}
 			} else {
-				let charCode = char.charCodeAt(0) & 0x0FFFFFFF
+				let charCode = char.charCodeAt(0) & 0x0FFFFFFF;
 				result = {"a0": 0x00000002,
-						"a1": charCode | 0x00000000,}
+						"a1": charCode | 0x00000000,};
 			}
 		}
 
-		return JSON.stringify(result)
+		return JSON.stringify(result);
 	}
 
 	private getSettings(): VenusSettings{
@@ -796,6 +796,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 		simSettings.allowAccessBtnStackHeap = workspace.getConfiguration('riscv-venus').get('allowAccessBtnStackHeap');
 		simSettings.maxSteps = workspace.getConfiguration('riscv-venus').get('maxSteps');
 
-		return simSettings
+		return simSettings;
 	}
 }
