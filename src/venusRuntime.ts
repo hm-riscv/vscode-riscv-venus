@@ -55,6 +55,12 @@ export interface CallStackItem {
 	line: number;
 }
 
+enum EscapeCondidtion {
+	continue,
+	stepOver,
+	stepOut,
+}
+
 /**
  * This Runtime communicates between vscode and the venus Simulator
  */
@@ -274,46 +280,23 @@ export class VenusRuntime extends EventEmitter {
 	}
 
 	/**
-	 * Steps to the next functions. Doesn't jump into functions
+	 * Steps to the next instruction. Doesn't jump into functions
 	 */
-	public stepOver() {
-		const stackDepth = this._functionStack.length;
-		do {
-			simulator.driver.step();
-			this.updateStack();
-			if (simulator.driver.isFinished()) {
-				this.sendEvent('end');
-				return;
-			}
-		} while (stackDepth < this._functionStack.length);
-		this.updateMemory();
-		if (simulator.driver.isFinished()) {
-			this.sendEvent('end');
-		} else {
-			this.sendEvent('stopOnStep');
-		}
+	public stepOver() {		
+		this.initiateRun(EscapeCondidtion.stepOver);
 	}
 
 	/**
 	 * Step out of the current function
 	 */
 	public stepOut() {
-		const desiredStackDepth = this._functionStack.length - 1;
-		if (desiredStackDepth <= 0) {
-			this.run();
-		} else {
-			while (desiredStackDepth < this._functionStack.length) {
-				simulator.driver.step();
-				this.updateStack();
-			}
-			this.updateMemory();
-			if (simulator.driver.isFinished()) {
-				this.sendEvent('end');
-			} else {
-				this.sendEvent('stopOnStep');
-			}
-		}
+		this.initiateRun(EscapeCondidtion.stepOut);
 	}
+
+	/** Run until end or breakpoint */
+	public run() {
+        this.initiateRun(EscapeCondidtion.continue);
+    }
 
 	// In the following the run functions are declared
 	// The run operation is split into multiple functions because we can't block the Javascript event loop
@@ -322,28 +305,66 @@ export class VenusRuntime extends EventEmitter {
 	static readonly TIMEOUT_TIME = 10;
 	static readonly TIMEOUT_CYCLES = 100;
 
-	public run() {
+	/** This starts a long running code sequence, for example when clickling continue in the UI */
+	public initiateRun(escapeCondition: EscapeCondidtion) {
         if (simulator.driver.timer !== null) {
             this.runEnd();
         } else {
             try {
-                simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, this._stopAtBreakpoint);
-                this.runStep(); // walk past breakpoint
+				switch (escapeCondition) {
+					case EscapeCondidtion.continue:
+						this.runStep(); // walk past breakpoint
+                		simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, EscapeCondidtion.continue);
+						break;
+					case EscapeCondidtion.stepOver:
+						let desiredStackDepth = this._functionStack.length; // Need to set desired stack depth before stepping. Stack size can change when stepping
+						this.runStep(); // walk past breakpoint
+						simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, EscapeCondidtion.stepOver, desiredStackDepth);
+						break;
+					case EscapeCondidtion.stepOut:
+						let desStackDepth = this._functionStack.length - 1; // Need to set desired stack depth before stepping. Stack size can change when stepping
+						this.runStep(); // walk past breakpoint
+						if (desStackDepth <= 0) { // If we are in the main function we can't step out, we run with continue. TODO: Evaluate if this is the wanted behaviour
+							simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, EscapeCondidtion.continue);
+						} else {
+							simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, EscapeCondidtion.stepOut, desStackDepth);
+						}
+						break;
+				}
             } catch (e) {
                 this.runEnd();
-                simulator.driver.handleError("RunStart", e);
+                simulator.driver.handleError("initiateRun", e);
             }
         }
     }
 
-	private runStart(useBreakPoints: Boolean) {
+	/** Runs a long running code sequence. Timeouts from time to time to not block the event loop */
+	private runStart(escapeCondition: EscapeCondidtion, wantedStackDepth?: number) {
         try {
             var cycles = 0;
             while (cycles < VenusRuntime.TIMEOUT_CYCLES) {
-                if (simulator.driver.sim.isDone() || (simulator.driver.sim.atBreakpoint() && useBreakPoints)) {
-                    simulator.driver.exitcodecheck();
-                    this.runEnd();
-                    return;
+                switch (escapeCondition) {
+					case EscapeCondidtion.continue:
+						if (simulator.driver.sim.isDone() || (simulator.driver.sim.atBreakpoint() && this._stopAtBreakpoint)) {
+							simulator.driver.exitcodecheck();
+							this.runEnd();
+							return;
+						}
+						break;
+					case EscapeCondidtion.stepOver:
+						if (simulator.driver.isFinished() || (this._functionStack.length <= wantedStackDepth!)) {
+							simulator.driver.exitcodecheck();
+							this.runEnd();
+							return;
+						}
+						break;
+					case EscapeCondidtion.stepOut:
+						if (simulator.driver.isFinished() || (this._functionStack.length <= wantedStackDepth!)) {
+							simulator.driver.exitcodecheck();
+							this.runEnd();
+							return;
+						}
+						break;
                 }
 
                 simulator.driver.handleNotExitOver();
@@ -351,13 +372,14 @@ export class VenusRuntime extends EventEmitter {
                 cycles++;
             }
 
-            simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, useBreakPoints);
+            simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, escapeCondition, wantedStackDepth);
         } catch (e) {
             this.runEnd();
             simulator.driver.handleError("RunStart", e);
         }
     }
 
+	/** Ends a long running code sequence*/
     private runEnd() {
         simulator.driver.handleNotExitOver();
 		clearTimeout(simulator.driver.timer);
@@ -373,6 +395,7 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
+	/** A wrapper for the simulator step function. Everything that should be updated when stepping is additionally called here. */
 	private runStep() {
 		simulator.driver.sim.step();
 		this.updateStack();
