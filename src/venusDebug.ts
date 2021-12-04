@@ -247,7 +247,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 			this._runtime.setStopAtBreakpoint(args.stopAtBreakpoints);
 		}
 
-		if (args.ledMatrixSize !== null) {
+		if (args.ledMatrixSize && args.ledMatrixSize.x && args.ledMatrixSize.y) {
 			VenusLedMatrixUI.createNewInstance(undefined, new UIState(new LedMatrix(args.ledMatrixSize.x, args.ledMatrixSize.y)));
 		}
 
