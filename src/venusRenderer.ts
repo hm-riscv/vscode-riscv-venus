@@ -1,4 +1,4 @@
-import * as vscode from 'vscode'
+import * as vscode from 'vscode';
 import simulator = require('./runtime/riscvSimulator');
 import EventEmitter = require('events');
 import { MemoryUI } from './memoryui/memoryUI';
@@ -14,11 +14,11 @@ export class VenusRenderer {
 	private constructor() {
 		this.memoryUI = MemoryUI.getInstance();
 		var emitter: EventEmitter.EventEmitter = simulator.venus.venus.Renderer.setEmitter(new EventEmitter.EventEmitter());
-		emitter.on("assembler_error", (e) => {this.showErrorWithPopup(e)});
-		emitter.on("warning", (str) => {this.printWarning(str)});
-		emitter.on("error", (e) => {this.printError(e)});
-		emitter.on("stdout", (any) => {this.stdout(any)});
-		emitter.on("printConsole", (any) => {this.printConsole(any)});
+		emitter.on("assembler_error", (e) => {this.showErrorWithPopup(e);});
+		emitter.on("warning", (str) => {this.printWarning(str);});
+		emitter.on("error", (e) => {this.printError(e);});
+		emitter.on("stdout", (any) => {this.stdout(any);});
+		emitter.on("printConsole", (any) => {this.printConsole(any);});
 	}
 
 	public static getInstance(): VenusRenderer {
