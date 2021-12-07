@@ -117,7 +117,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._runtime = new VenusRuntime();
 
 		workspace.onDidChangeConfiguration(e => {
-			if (e !== null) {
+			if (e != null) {
 				this.sendEvent(new StoppedEvent('settings changed', VenusDebugSession._threadId));
 			}
 		});
@@ -500,7 +500,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 						break;
 					}
 				}
-				if (regId !== null) {
+				if (regId != null) {
 					let formatFunction = this.getFormatFunction();
 					reply = formatFunction(this._runtime.getRegister(regId).value);
 				}
@@ -681,7 +681,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 					let binary = (para >>> 0).toString(2).padStart(32, '0');
 					// Split string into
 					let asciiBin = binary.match(/.{8}/g);
-					if (asciiBin !== null) {
+					if (asciiBin != null) {
 						return String.fromCharCode(parseInt(asciiBin[0], 2)) + String.fromCharCode(parseInt(asciiBin[1], 2)) +
 							String.fromCharCode(parseInt(asciiBin[2], 2)) + String.fromCharCode(parseInt(asciiBin[3], 2));
 					}

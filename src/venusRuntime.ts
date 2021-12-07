@@ -307,7 +307,7 @@ export class VenusRuntime extends EventEmitter {
 
 	/** This starts a long running code sequence, for example when clickling continue in the UI */
 	public initiateRun(escapeCondition: EscapeCondidtion) {
-        if (simulator.driver.timer !== null) {
+        if (simulator.driver.timer != null) {
             this.runEnd();
         } else {
             try {
