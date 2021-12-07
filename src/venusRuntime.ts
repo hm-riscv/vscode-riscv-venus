@@ -16,6 +16,8 @@ import { pathToFileURL } from 'url';
 import * as path from 'path';
 import * as helpers from './venusHelpers';
 
+import SortedSet from 'js-sorted-set';
+
 export interface VenusBreakpoint {
 	id: number;
 	line: number;
@@ -35,6 +37,7 @@ export class VenusSettings {
     setRegesOnInit: boolean | undefined;
     maxSteps: number | undefined;
     allowAccessBtnStackHeap: boolean | undefined;
+	onlyShowUsedRegs: boolean | undefined;
 }
 /**
  * This interface holds the data that a AssemblyLine contains
@@ -82,8 +85,13 @@ export class VenusRuntime extends EventEmitter {
 	// so that the frontend can match events with breakpoints.
 	private _breakpointId = 1;
 
+	private _onlyShowUsedRegs = false;
+
+	private _usedRegisters = new SortedSet();
+
 	constructor() {
 		super();
+		VenusRenderer.getInstance().setRuntime(this);
 	}
 
 	private _stopAtBreakpoint = true;
@@ -145,6 +153,10 @@ export class VenusRuntime extends EventEmitter {
 		if (settings.allowAccessBtnStackHeap !== undefined) {
 			simulator.driver.simSettings.allowAccessBtnStackHeap = settings.allowAccessBtnStackHeap;
 		}
+
+		if (settings.onlyShowUsedRegs !== undefined) {
+			this._onlyShowUsedRegs = settings.onlyShowUsedRegs;
+		}
 	}
 
 
@@ -188,17 +200,32 @@ export class VenusRuntime extends EventEmitter {
 		return simulator.driver.sim.getPC();
 	}
 
+	public useRegister(id: number) {
+		if (!this._usedRegisters.contains(id)) {
+			this._usedRegisters.insert(id);
+		}
+	}
+
 	/**
 	 * Returns the common registers
 	 * No float registeres included
 	 */
 	public getRegisters(): Register[] {
-		return range(0,32).map(id => {
-			return {
-				id,
-				value: simulator.driver.getRegister(id)
-			};
-		});
+		if (this._onlyShowUsedRegs) {
+			return this._usedRegisters.map(id => {
+				return {
+					id,
+					value: simulator.driver.getRegister(id)
+				};
+			});				
+		} else {
+			return range(0,32).map(id => {
+				return {
+					id,
+					value: simulator.driver.getRegister(id)
+				};
+			});	
+		}
 	}
 
 	public getRegister(id: number): Register {
