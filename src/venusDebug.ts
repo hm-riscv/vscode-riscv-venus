@@ -797,6 +797,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		simSettings.setRegesOnInit = workspace.getConfiguration('riscv-venus').get('setRegesOnInit');
 		simSettings.allowAccessBtnStackHeap = workspace.getConfiguration('riscv-venus').get('allowAccessBtnStackHeap');
 		simSettings.maxSteps = workspace.getConfiguration('riscv-venus').get('maxSteps');
+		simSettings.onlyShowUsedRegs = workspace.getConfiguration('riscv-venus').get('onlyShowUsedRegs');
 
 		return simSettings;
 	}
