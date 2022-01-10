@@ -324,6 +324,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		response.body = {
 			scopes: [
 				new Scope("PC", this._variableHandles.create("pc"), false),
+				new Scope("CSR", this._variableHandles.create("csr"), false),
 				new Scope("Integer", this._variableHandles.create("integer"), false),
 				new Scope("Float", this._variableHandles.create("float"), false)
 			]
@@ -380,6 +381,19 @@ export class VenusDebugSession extends LoggingDebugSession {
 				indexedVariables: 0,
 				namedVariables: 0,
 			 });
+		} 
+		else if (id === "csr") {
+			 const registers = this._runtime.getCsrRegisters();
+			 registers.forEach(reg => {
+				 variables.push({
+					 name: reg.name.padEnd(8, " "),
+					 type: "hex",
+					 value: formatFunction(reg.value),
+					 variablesReference: 0,
+					 indexedVariables: 0,
+					 namedVariables: 0,
+				 });
+			 });			 
 		}
 
 		response.body = {
@@ -413,6 +427,27 @@ export class VenusDebugSession extends LoggingDebugSession {
 			} else {
 				response.success = false;
 				response.message = "The specified value for register could not be interpreted as an float";
+			}
+		} else if (args.name.startsWith("m")) {
+			let format = workspace.getConfiguration('riscv-venus').get('variableFormat');
+			var parsedInt = NaN;
+
+			if (format === "binary") {
+				parsedInt = parseInt(args.value, 2);
+			} else if (format === "ascii") {
+				parsedInt = args.value.charCodeAt(0);
+			} else {
+				parsedInt = parseInt(args.value);
+			}
+
+			if (Number.isInteger(parsedInt)) {
+				let name = args.name.split(/ /)
+				if (name != null) {
+					this._runtime.setCsrRegisterByName(name[0], parsedInt);					
+				}				
+			} else {
+				response.success = false;
+				response.message = "The specified value for register could not be interpreted as an integer";
 			}
 		}
 		this.sendResponse(response);
@@ -482,7 +517,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		let reply: string | null = null;
 		let regId: number | null = null;
 
-		if (args.context === 'hover') {
+		if (args.context === 'hover') {	
 			if (args.expression.startsWith('f')) { // float registers
 				if (!isNaN(parseInt(args.expression.replace("f", "")))) {
 					let formatFunction = this.getFloatFormatFunction();
@@ -492,6 +527,15 @@ export class VenusDebugSession extends LoggingDebugSession {
 				if (!isNaN(parseInt(args.expression.replace("x", "")))) {
 					let formatFunction = this.getFormatFunction();
 					reply = formatFunction(this._runtime.getRegister(parseInt(args.expression.replace("x", ""))).value);
+				}
+			} else if (args.expression.startsWith("m")) {
+				let name = args.expression.split(/ /)
+				if (name != null) {
+					if(this._runtime.getCsrRegisterIdByName(name[0]) != -1 ) {
+						// now we really have a valid CSR (e.g. avoid showing stuff on all labels starting with 'm')
+						let formatFunction = this.getFormatFunction();
+						reply = formatFunction(this._runtime.getCsrRegisterByName(name[0]));
+					}
 				}
 			} else if (!args.expression.match(new RegExp('^\d'))) { // Alternative register labels
 				for (let [key, value] of regNames.entries()) {
