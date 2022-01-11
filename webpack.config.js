@@ -30,6 +30,14 @@ const config = {
   module: {
     rules: [
       {
+        test: /\.js$/,
+        include: [
+          path.resolve(__dirname, "src/runtime/venus/build")
+        ],
+        enforce: "pre",
+        use: ["source-map-loader"],
+      },
+      {
         test: /\.ts$/,
         exclude: /node_modules/,
         use: [
@@ -37,7 +45,7 @@ const config = {
             loader: 'ts-loader'
           }
         ]
-	  },
+	    },
     ]
   }
 };

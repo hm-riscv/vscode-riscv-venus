@@ -3,7 +3,7 @@ module.exports = function(grunt) {
     // If permission denied run in terminal (for MacOS): chmod 755 gradlew
     let command;
     if (process.platform === "win32") {
-        command = 'gradlew build';
+        command = 'gradlew build --stacktrace';
     } else if (process.platform === "linux") {
         command = './gradlew build'
     } else if (process.platform === "darwin") {
