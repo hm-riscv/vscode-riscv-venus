@@ -1,5 +1,5 @@
 class LedMatrix {
-	static offColor  = `rgb(0, 0, 0)`
+	static offColor  = `rgb(0, 0, 0)`;
 	/**
 	 *
 	 * @param {number} xCount x amount of leds
@@ -24,7 +24,7 @@ class LedMatrix {
 
 		var stepWidth = this.size * 2 + this.margin;
 
-		this.svg.setAttribute("width", `100%`)
+		this.svg.setAttribute("width", `100%`);
 		this.svg.setAttribute("viewBox", `0 0 ${stepWidth * (this.xCount + 1)} ${stepWidth * (this.yCount + 1)}`);
 
 		for (let x = 0; x < this.xCount; x++) {
@@ -50,7 +50,7 @@ class LedMatrix {
 	}
 
 	clear() {
-		var parentElement = this.svg.parentElement
+		var parentElement = this.svg.parentElement;
 		var emptySvg = this.svg.cloneNode(false);
 		parentElement.removeChild(this.svg);
 		parentElement.appendChild(emptySvg);
@@ -60,7 +60,7 @@ class LedMatrix {
 	drawFromState(uiState) {
 		let matrix = uiState.ledMatrix;
 		let reset = false;
-		if (this.xCount != matrix.xCount || this.yCount != matrix.yCount) {
+		if (this.xCount !== matrix.xCount || this.yCount !== matrix.yCount) {
 			reset = true;
 		}
 		this.xCount = matrix.xCount;
@@ -68,14 +68,14 @@ class LedMatrix {
 		let ledState = matrix.ledState;
 
 		if (reset) {
-			this.clear()
+			this.clear();
 			this.createMatrix();
 		}
 
 		for (let x = 0; x < this.xCount; x++) {
 			for (let y = 0; y < this.yCount; y++) {
-				let color = ledState[x + y * this.xCount]
-				this.setLed(x, y, `rgb(${color.red}, ${color.green}, ${color.blue})`)
+				let color = ledState[x + y * this.xCount];
+				this.setLed(x, y, `rgb(${color.red}, ${color.green}, ${color.blue})`);
 			}
 		}
 	}
@@ -87,25 +87,25 @@ class LedMatrix {
 	 */
 	setLed(x, y, color) {
 		if (x >= this.xCount || y >= this.yCount) {
-			return
+			return;
 		}
 		this.led[x][y].setAttribute("fill", color);
 	}
 }
 
 function resizeMatrix() {
-	ledDiv.style.width = `${ledSlider.value}%`
-	ledDiv.style.height = `${ledSlider.value}%`
+	ledDiv.style.width = `${ledSlider.value}%`;
+	ledDiv.style.height = `${ledSlider.value}%`;
 };
 
 var svg_element = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
-var ledDiv = document.getElementById("led_div")
-ledDiv.appendChild(svg_element)
-let ledMatrix = new LedMatrix(10, 10, 1, 0.1, 0.1, svg_element)
+var ledDiv = document.getElementById("led_div");
+ledDiv.appendChild(svg_element);
+let ledMatrix = new LedMatrix(10, 10, 1, 0.1, 0.1, svg_element);
 
-var ledSlider = document.getElementById("led_size_slider")
-ledSlider.oninput = resizeMatrix
+var ledSlider = document.getElementById("led_size_slider");
+ledSlider.oninput = resizeMatrix;
 
 // Handle the message inside the webview
 window.addEventListener('message', event => {

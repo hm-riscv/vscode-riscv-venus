@@ -16,6 +16,8 @@ import { pathToFileURL } from 'url';
 import * as path from 'path';
 import * as helpers from './venusHelpers';
 
+import SortedSet from 'js-sorted-set';
+
 export interface VenusBreakpoint {
 	id: number;
 	line: number;
@@ -35,6 +37,7 @@ export class VenusSettings {
     setRegesOnInit: boolean | undefined;
     maxSteps: number | undefined;
     allowAccessBtnStackHeap: boolean | undefined;
+	onlyShowUsedRegs: boolean | undefined;
 }
 /**
  * This interface holds the data that a AssemblyLine contains
@@ -82,14 +85,19 @@ export class VenusRuntime extends EventEmitter {
 	// so that the frontend can match events with breakpoints.
 	private _breakpointId = 1;
 
+	private _onlyShowUsedRegs = false;
+
+	private _usedRegisters = new SortedSet();
+
 	constructor() {
 		super();
+		VenusRenderer.getInstance().setRuntime(this);
 	}
 
 	private _stopAtBreakpoint = true;
 
-	private sourceLine_to_pc: Map<string, number[]> = new Map<string, number[]>();
-	private pc_to_assemblyLine: Map<number, AssemblyLine> = new Map<number, AssemblyLine>();
+	private sourceLineToPc: Map<string, number[]> = new Map<string, number[]>();
+	private pcToAssemblyLine: Map<number, AssemblyLine> = new Map<number, AssemblyLine>();
 
 	/**
 	 * Start executing the given program.
@@ -148,23 +156,27 @@ export class VenusRuntime extends EventEmitter {
 		if (settings.allowAccessBtnStackHeap !== undefined) {
 			simulator.driver.simSettings.allowAccessBtnStackHeap = settings.allowAccessBtnStackHeap;
 		}
+
+		if (settings.onlyShowUsedRegs !== undefined) {
+			this._onlyShowUsedRegs = settings.onlyShowUsedRegs;
+		}
 	}
 
 
 
 	private getAssemblyLines(){
-		this.pc_to_assemblyLine.clear();
-		this.sourceLine_to_pc.clear();
+		this.pcToAssemblyLine.clear();
+		this.sourceLineToPc.clear();
 		let instructions = simulator.driver.getInstructions();
 
 		for (let i = 0; i < instructions.length; i++) {
 			let assemblyLine: AssemblyLine = {pc: instructions[i].pc, mCode: instructions[i].mcode, basicCode: instructions[i].basicCode, assemblyViewLine: 0, sourceLine: instructions[i].line, sourcePath: instructions[i].sourceFile};
-			this.pc_to_assemblyLine.set(instructions[i].pc, assemblyLine);
+			this.pcToAssemblyLine.set(instructions[i].pc, assemblyLine);
 			let sourceIdent = this.createSourcelineString(instructions[i].sourceFile, instructions[i].line);
-			if (this.sourceLine_to_pc.has(sourceIdent)) {
-				this.sourceLine_to_pc.get(sourceIdent)!.push(instructions[i].pc);
+			if (this.sourceLineToPc.has(sourceIdent)) {
+				this.sourceLineToPc.get(sourceIdent)!.push(instructions[i].pc);
 			} else {
-				this.sourceLine_to_pc.set(sourceIdent, [instructions[i].pc]);
+				this.sourceLineToPc.set(sourceIdent, [instructions[i].pc]);
 			}
 		}
 
@@ -176,12 +188,12 @@ export class VenusRuntime extends EventEmitter {
 	}
 
 	public getPcToAssemblyLine(): Map<number, AssemblyLine> {
-		return this.pc_to_assemblyLine;
+		return this.pcToAssemblyLine;
 	}
 
 	public getCurrentAssemlyLineNo(): number {
-		if (this.pc_to_assemblyLine.has(simulator.driver.sim.getPC())) {
-			return this.pc_to_assemblyLine.get(simulator.driver.sim.getPC())!.assemblyViewLine;
+		if (this.pcToAssemblyLine.has(simulator.driver.sim.getPC())) {
+			return this.pcToAssemblyLine.get(simulator.driver.sim.getPC())!.assemblyViewLine;
 		} else {
 			return 0;
 		}
@@ -191,17 +203,32 @@ export class VenusRuntime extends EventEmitter {
 		return simulator.driver.sim.getPC();
 	}
 
+	public useRegister(id: number) {
+		if (!this._usedRegisters.contains(id)) {
+			this._usedRegisters.insert(id);
+		}
+	}
+
 	/**
 	 * Returns the common registers
 	 * No float registeres included
 	 */
 	public getRegisters(): Register[] {
-		return range(0,32).map(id => {
-			return {
-				id,
-				value: simulator.driver.getRegister(id)
-			};
-		});
+		if (this._onlyShowUsedRegs) {
+			return this._usedRegisters.map(id => {
+				return {
+					id,
+					value: simulator.driver.getRegister(id)
+				};
+			});				
+		} else {
+			return range(0,32).map(id => {
+				return {
+					id,
+					value: simulator.driver.getRegister(id)
+				};
+			});	
+		}
 	}
 
 	public getRegister(id: number): Register {
@@ -305,32 +332,32 @@ export class VenusRuntime extends EventEmitter {
 	// The run operation is split into multiple functions because we can't block the Javascript event loop
 	// If we block the event loop the simulator can't respond
 
-	static readonly TIMEOUT_TIME = 10;
-	static readonly TIMEOUT_CYCLES = 100;
+	static readonly _timeoutTime = 10;
+	static readonly _timeoutCycles = 100;
 
 	/** This starts a long running code sequence, for example when clickling continue in the UI */
 	public initiateRun(escapeCondition: EscapeCondidtion) {
-        if (simulator.driver.timer !== null) {
+        if (simulator.driver.timer != null) {
             this.runEnd();
         } else {
             try {
 				switch (escapeCondition) {
 					case EscapeCondidtion.continue:
 						this.runStep(); // walk past breakpoint
-                		simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, EscapeCondidtion.continue);
+                		simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime._timeoutTime, EscapeCondidtion.continue);
 						break;
 					case EscapeCondidtion.stepOver:
 						let desiredStackDepth = this._functionStack.length; // Need to set desired stack depth before stepping. Stack size can change when stepping
 						this.runStep(); // walk past breakpoint
-						simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, EscapeCondidtion.stepOver, desiredStackDepth);
+						simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime._timeoutTime, EscapeCondidtion.stepOver, desiredStackDepth);
 						break;
 					case EscapeCondidtion.stepOut:
 						let desStackDepth = this._functionStack.length - 1; // Need to set desired stack depth before stepping. Stack size can change when stepping
 						this.runStep(); // walk past breakpoint
 						if (desStackDepth <= 0) { // If we are in the main function we can't step out, we run with continue. TODO: Evaluate if this is the wanted behaviour
-							simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, EscapeCondidtion.continue);
+							simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime._timeoutTime, EscapeCondidtion.continue);
 						} else {
-							simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, EscapeCondidtion.stepOut, desStackDepth);
+							simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime._timeoutTime, EscapeCondidtion.stepOut, desStackDepth);
 						}
 						break;
 				}
@@ -345,7 +372,7 @@ export class VenusRuntime extends EventEmitter {
 	private runStart(escapeCondition: EscapeCondidtion, wantedStackDepth?: number) {
         try {
             var cycles = 0;
-            while (cycles < VenusRuntime.TIMEOUT_CYCLES) {
+            while (cycles < VenusRuntime._timeoutCycles) {
                 switch (escapeCondition) {
 					case EscapeCondidtion.continue:
 						if (simulator.driver.sim.isDone() || (simulator.driver.sim.atBreakpoint() && this._stopAtBreakpoint)) {
@@ -375,7 +402,7 @@ export class VenusRuntime extends EventEmitter {
                 cycles++;
             }
 
-            simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime.TIMEOUT_TIME, escapeCondition, wantedStackDepth);
+            simulator.driver.timer = setTimeout(this.runStart.bind(this), VenusRuntime._timeoutTime, escapeCondition, wantedStackDepth);
         } catch (e) {
             this.runEnd();
             simulator.driver.handleError("RunStart", e);
@@ -412,8 +439,8 @@ export class VenusRuntime extends EventEmitter {
 		var assemblyLine: AssemblyLine = {pc: instInfo.pc, mCode: instInfo.mcode, basicCode: instInfo.basicCode, assemblyViewLine: 0, sourceLine: 0, sourcePath: "unkown"};
 
 		let pc = simulator.driver.sim.getPC();
-		let instruction = this.pc_to_assemblyLine.get(pc);
-		if (instruction != null) {
+		let instruction = this.pcToAssemblyLine.get(pc);
+		if (instruction) {
 			assemblyLine.assemblyViewLine = instruction.assemblyViewLine;
 			assemblyLine.sourceLine = instruction.sourceLine;
 			assemblyLine.sourcePath = instruction.sourcePath;
@@ -421,7 +448,7 @@ export class VenusRuntime extends EventEmitter {
 		const lineadditive = 0;
 
 
-		if (assemblyLine !== null) {
+		if (assemblyLine) {
 			const lineContent = assemblyLine.basicCode;
 
 			if (this._functionStack.length > 0 && this._functionStack[0].name.startsWith("jalr x0")) {
@@ -513,7 +540,7 @@ export class VenusRuntime extends EventEmitter {
 				if (!bp.verified && bp.line < sourceLines.length) {
 					const srcLine = sourceLines[bp.line].trim();
 
-					let pc = this.sourceLine_to_pc.get(this.createSourcelineString(path, bp.line));
+					let pc = this.sourceLineToPc.get(this.createSourcelineString(path, bp.line));
 					if (pc === null) {
 						bp.verified = false;
 					} else {
@@ -528,8 +555,8 @@ export class VenusRuntime extends EventEmitter {
 
 
 	private toggleBreakpoint(path: string, line: number) {
-		let pc = this.sourceLine_to_pc.get(this.createSourcelineString(path, line));
-		if (pc != null) {
+		let pc = this.sourceLineToPc.get(this.createSourcelineString(path, line));
+		if (pc) {
 			pc.forEach(progcounter => {
 				simulator.driver.toggleBreakpoint(progcounter);
 			});

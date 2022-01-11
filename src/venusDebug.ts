@@ -90,7 +90,7 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 export class VenusDebugSession extends LoggingDebugSession {
 
 	// we don't support multiple threads, so we can use a hardcoded ID for the default thread
-	private static THREAD_ID = 1;
+	private static _threadId = 1;
 	// a Mock runtime (or debugger)
 	private _runtime: VenusRuntime;
 	private _variableHandles = new Handles<string>();
@@ -117,35 +117,35 @@ export class VenusDebugSession extends LoggingDebugSession {
 		this._runtime = new VenusRuntime();
 
 		workspace.onDidChangeConfiguration(e => {
-			if (e !== null) {
-				this.sendEvent(new StoppedEvent('settings changed', VenusDebugSession.THREAD_ID));
+			if (e != null) {
+				this.sendEvent(new StoppedEvent('settings changed', VenusDebugSession._threadId));
 			}
 		});
 		// setup event handlers
 		// Can listen to this events with DebugAdapterTracker: https://code.visualstudio.com/api/references/vscode-api#DebugAdapterTracker
 		this._runtime.on('stopOnEntry', () => {
 			this.updateAssemblyViewDecorator();
-			this.sendEvent(new StoppedEvent('entry', VenusDebugSession.THREAD_ID));
+			this.sendEvent(new StoppedEvent('entry', VenusDebugSession._threadId));
 		});
 		this._runtime.on('stopOnStep', () => {
 			this.updateAssemblyViewDecorator();
-			this.sendEvent(new StoppedEvent('step', VenusDebugSession.THREAD_ID));
+			this.sendEvent(new StoppedEvent('step', VenusDebugSession._threadId));
 		});
 		this._runtime.on('stopOnBreakpoint', () => {
 			this.updateAssemblyViewDecorator();
-			this.sendEvent(new StoppedEvent('breakpoint', VenusDebugSession.THREAD_ID));
+			this.sendEvent(new StoppedEvent('breakpoint', VenusDebugSession._threadId));
 		});
 		this._runtime.on('stopOnDataBreakpoint', () => {
-			this.sendEvent(new StoppedEvent('data breakpoint', VenusDebugSession.THREAD_ID));
+			this.sendEvent(new StoppedEvent('data breakpoint', VenusDebugSession._threadId));
 		});
 		this._runtime.on('stopOnException', () => {
-			this.sendEvent(new StoppedEvent('exception', VenusDebugSession.THREAD_ID));
+			this.sendEvent(new StoppedEvent('exception', VenusDebugSession._threadId));
 		});
 		this._runtime.on('breakpointValidated', (bp: VenusBreakpoint) => {
 			this.sendEvent(new BreakpointEvent('changed', <DebugProtocol.Breakpoint>{ verified: bp.verified, id: bp.id }));
 		});
 		this._runtime.on('continue', () => {
-			this.sendEvent(new ContinuedEvent(VenusDebugSession.THREAD_ID, true));
+			this.sendEvent(new ContinuedEvent(VenusDebugSession._threadId, true));
 		});
 		this._runtime.on('output', (text, filePath, line, column) => {
 			const e: DebugProtocol.OutputEvent = new OutputEvent(`${text}\n`);
@@ -243,11 +243,11 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 		// Here we send to programm to be assembled
 		this._runtime.assemble(args.program, basename(args.program), this.getSettings());
-		if (args.stopAtBreakpoints != null) {
+		if (args.stopAtBreakpoints) {
 			this._runtime.setStopAtBreakpoint(args.stopAtBreakpoints);
 		}
 
-		if (args.ledMatrixSize !== null) {
+		if (args.ledMatrixSize && args.ledMatrixSize.x && args.ledMatrixSize.y) {
 			VenusLedMatrixUI.createNewInstance(undefined, new UIState(new LedMatrix(args.ledMatrixSize.x, args.ledMatrixSize.y)));
 		}
 
@@ -298,7 +298,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		// runtime supports no threads so just return a default thread.
 		response.body = {
 			threads: [
-				new Thread(VenusDebugSession.THREAD_ID, "thread 1")
+				new Thread(VenusDebugSession._threadId, "thread 1")
 			]
 		};
 		this.sendResponse(response);
@@ -417,7 +417,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		}
 		this.sendResponse(response);
 		if (response.success) {
-			this.sendEvent(new StoppedEvent('setVariable', VenusDebugSession.THREAD_ID));
+			this.sendEvent(new StoppedEvent('setVariable', VenusDebugSession._threadId));
 		}
 	}
 
@@ -500,7 +500,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 						break;
 					}
 				}
-				if (regId !== null) {
+				if (regId != null) {
 					let formatFunction = this.getFormatFunction();
 					reply = formatFunction(this._runtime.getRegister(regId).value);
 				}
@@ -681,7 +681,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 					let binary = (para >>> 0).toString(2).padStart(32, '0');
 					// Split string into
 					let asciiBin = binary.match(/.{8}/g);
-					if (asciiBin !== null) {
+					if (asciiBin != null) {
 						return String.fromCharCode(parseInt(asciiBin[0], 2)) + String.fromCharCode(parseInt(asciiBin[1], 2)) +
 							String.fromCharCode(parseInt(asciiBin[2], 2)) + String.fromCharCode(parseInt(asciiBin[3], 2));
 					}
@@ -757,16 +757,16 @@ export class VenusDebugSession extends LoggingDebugSession {
 		let result = {};
 		if ((jsonObj.id >= 0x100) && (jsonObj.id <= 0x101)) {
 			result = VenusLedMatrixUI.getInstance().ecall(jsonObj.id, jsonObj.params);
-		} else if (jsonObj.id == 0x110) {
+		} else if (jsonObj.id === 0x110) {
 			result = VenusRobotUI.getInstance().ecall(jsonObj.id, jsonObj.params);
 		} else if ((jsonObj.id >= 0x120) && (jsonObj.id < 0x123)) {
 			result = VenusSevenSegBoardUI.getInstance().ecall(jsonObj.id, jsonObj.params);
-		} else if (jsonObj.id == 0x130) {
+		} else if (jsonObj.id === 0x130) {
 			venusTerminal.activateInput();
 			venusTerminal.show();
-		} else if (jsonObj.id == 0x131) {
+		} else if (jsonObj.id === 0x131) {
 			let char = venusTerminal.consumeInputBuffer();
-			if (char == null) {
+			if (char === null) {
 				if (venusTerminal.waitingForInput()) {
 					result = {"a0": 0x00000001};
 				} else {
@@ -797,6 +797,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		simSettings.setRegesOnInit = workspace.getConfiguration('riscv-venus').get('setRegesOnInit');
 		simSettings.allowAccessBtnStackHeap = workspace.getConfiguration('riscv-venus').get('allowAccessBtnStackHeap');
 		simSettings.maxSteps = workspace.getConfiguration('riscv-venus').get('maxSteps');
+		simSettings.onlyShowUsedRegs = workspace.getConfiguration('riscv-venus').get('onlyShowUsedRegs');
 
 		return simSettings;
 	}
