@@ -325,6 +325,16 @@ export class VenusRuntime extends EventEmitter {
         this.initiateRun(EscapeCondidtion.continue);
     }
 
+	/**
+	 * Stop execution
+	 */
+	public stop() {
+        simulator.driver.handleNotExitOver();
+		clearTimeout(simulator.driver.timer);
+		simulator.driver.timer = null;
+		this.sendEvent('end');
+	}
+
 	// In the following the run functions are declared
 	// The run operation is split into multiple functions because we can't block the Javascript event loop
 	// If we block the event loop the simulator can't respond

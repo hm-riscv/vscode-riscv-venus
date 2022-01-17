@@ -209,9 +209,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 		// Doesn't seem to be supported for now
 		// response.body.supportsDisassembleRequest = true;
 
-		
-		response.body.supportsTerminateRequest = true;
-
 		this.sendResponse(response);
 
 		// since this debug adapter can accept configuration requests like 'setBreakpoint' at any time,
@@ -272,17 +269,6 @@ export class VenusDebugSession extends LoggingDebugSession {
 
 
 	}
-	protected async terminateRequest(response: DebugProtocol.TerminateResponse, args: DebugProtocol.TerminateArguments) {
-
-		venusTerminal.appendText('\n');
-		venusTerminal.appendText(`Terminating program\n`);
-		venusTerminal.appendText(`-------------------------------------------------------------------------------------------\n`);		
-		venusTerminal.appendText('\n');
-
-		response.success = true;
-		this.sendResponse(response);
-	}
-
 
 	protected setBreakPointsRequest(response: DebugProtocol.SetBreakpointsResponse, args: DebugProtocol.SetBreakpointsArguments): void {
 
@@ -626,7 +612,16 @@ export class VenusDebugSession extends LoggingDebugSession {
 		}
 	}
 	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {
-		AssemblyView.getInstance().close();
+		
+		this._runtime.stop(); // stops current run => stops execution!
+
+		AssemblyView.getInstance().close();		
+		
+		venusTerminal.appendText('\n');
+		venusTerminal.appendText(`Stop program execution!\n`);
+		venusTerminal.appendText(`-------------------------------------------------------------------------------------------\n`);		
+		venusTerminal.appendText('\n');		
+		
 		this.sendResponse(response);
 	}
 
