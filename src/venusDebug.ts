@@ -85,6 +85,8 @@ interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArguments {
 	openViews?: string[];
 	/** The ledMatrix Size as an Json Object in the format {"x": 10, "y": 10} */
 	ledMatrixSize?;
+	/** The path to the optional bios */
+	bios?: string;
 }
 
 export class VenusDebugSession extends LoggingDebugSession {
@@ -242,7 +244,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		commands.executeCommand('setContext', 'venus:showOptionsMenu', true);
 
 		// Here we send to programm to be assembled
-		this._runtime.assemble(args.program, basename(args.program), this.getSettings());
+		this._runtime.assemble(args.program, basename(args.program), this.getSettings(), args.bios);
 		if (args.stopAtBreakpoints) {
 			this._runtime.setStopAtBreakpoint(args.stopAtBreakpoints);
 		}

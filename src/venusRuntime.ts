@@ -112,14 +112,17 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
-	public assemble(fpath: string, fName: string, settings: VenusSettings) {
+	public assemble(fpath: string, fName: string, settings: VenusSettings, biosPath?: string) {
 		try {
 			this.applySettings(settings);
 			let text = readFileSync(fpath).toString();
 			let posixPath = helpers.toPosixPath(fpath);
-
-			let biosText = readFileSync("c:/Users/Mathi/Documents/vscodeExtension/ressources/Bios/bios.S").toString();
-			let biosPath = "c:/Users/Mathi/Documents/vscodeExtension/ressources/Bios/bios.S";
+			
+			let biosText: string | null  = null;
+			if (biosPath) {
+				biosText = readFileSync(biosPath).toString();
+				biosPath = helpers.toPosixPath(biosPath);
+			}
 			var[success, error, warnings] = simulator.driver.externalAssemble(text, posixPath, fName, biosText, biosPath);
 			if (!success) {
 				VenusRenderer.getInstance().showErrorWithPopup(error);

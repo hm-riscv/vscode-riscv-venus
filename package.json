@@ -291,6 +291,11 @@
 								"description": "Absolute path to a text file.",
 								"default": "${workspaceFolder}/${command:AskForProgramName}"
 							},
+							"bios": {
+								"type": "string",
+								"description": "Absolute path to the bios text file.",
+								"default": "${workspaceFolder}/${command:AskForProgramName}"
+							},
 							"stopOnEntry": {
 								"type": "boolean",
 								"description": "Automatically stop after launch.",

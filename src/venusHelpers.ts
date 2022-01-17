@@ -7,6 +7,6 @@ import * as path from 'path';
  * @returns the path formatted with posix seperator /
  */
 export function toPosixPath(p: string) : string {
-	return p.split(path.sep).join(path.posix.sep);
+	return p.charAt(0).toLowerCase() + p.slice(1).split(path.sep).join(path.posix.sep);
 }
 
