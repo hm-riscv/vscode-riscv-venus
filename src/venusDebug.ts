@@ -810,13 +810,17 @@ export class VenusDebugSession extends LoggingDebugSession {
 		let result = {};
 		if ((jsonObj.id >= 0x100) && (jsonObj.id <= 0x101)) {
 			result = VenusLedMatrixUI.getInstance().ecall(jsonObj.id, jsonObj.params);
+			result["handlerFound"] = true
 		} else if (jsonObj.id === 0x110) {
 			result = VenusRobotUI.getInstance().ecall(jsonObj.id, jsonObj.params);
+			result["handlerFound"] = true
 		} else if ((jsonObj.id >= 0x120) && (jsonObj.id < 0x123)) {
 			result = VenusSevenSegBoardUI.getInstance().ecall(jsonObj.id, jsonObj.params);
+			result["handlerFound"] = true
 		} else if (jsonObj.id === 0x130) {
 			venusTerminal.activateInput();
 			venusTerminal.show();
+			result["handlerFound"] = true
 		} else if (jsonObj.id === 0x131) {
 			let char = venusTerminal.consumeInputBuffer();
 			if (char === null) {
@@ -830,6 +834,10 @@ export class VenusDebugSession extends LoggingDebugSession {
 				result = {"a0": 0x00000002,
 						"a1": charCode | 0x00000000,};
 			}
+			result["handlerFound"] = true
+		}
+		else {
+			result["handlerFound"] = false
 		}
 
 		return JSON.stringify(result);
