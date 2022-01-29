@@ -58,7 +58,12 @@ _enter:
 
     mret # start user main program
 
-
+	# dummy code never reached to show that mepc 
+	# is being used properly
+	nop
+	nop
+	nop
+	
 # ########################################
 # start user program here main()
 main:
