@@ -37,6 +37,7 @@ export class VenusSettings {
     setRegesOnInit: boolean | undefined;
     maxSteps: number | undefined;
     allowAccessBtnStackHeap: boolean | undefined;
+	supportMemoryMappedIO: boolean | undefined;
 	onlyShowUsedRegs: boolean | undefined;
 }
 /**
@@ -152,6 +153,9 @@ export class VenusRuntime extends EventEmitter {
 		}
 		if (settings.allowAccessBtnStackHeap !== undefined) {
 			simulator.driver.simSettings.allowAccessBtnStackHeap = settings.allowAccessBtnStackHeap;
+		}
+		if (settings.supportMemoryMappedIO !== undefined) {
+			simulator.driver.simSettings.supportMemoryMappedIO = settings.supportMemoryMappedIO;
 		}
 
 		if (settings.onlyShowUsedRegs !== undefined) {

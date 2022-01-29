@@ -127,6 +127,11 @@
 					"default": false,
 					"description": "Allow Access Between Stack and Heap?"
 				},
+				"riscv-venus.supportMemoryMappedIO": {
+					"type": "boolean",
+					"default": false,
+					"description": "Support Memory Mapped I/O?"
+				},
 				"riscv-venus.maxSteps": {
 					"type": "integer",
 					"default": -1,
