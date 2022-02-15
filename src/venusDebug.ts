@@ -324,6 +324,7 @@ export class VenusDebugSession extends LoggingDebugSession {
 		response.body = {
 			scopes: [
 				new Scope("PC", this._variableHandles.create("pc"), false),
+				new Scope("PRIV", this._variableHandles.create("priv"), false),
 				new Scope("CSR", this._variableHandles.create("csr"), false),
 				new Scope("Integer", this._variableHandles.create("integer"), false),
 				new Scope("Float", this._variableHandles.create("float"), false)
@@ -381,6 +382,15 @@ export class VenusDebugSession extends LoggingDebugSession {
 				indexedVariables: 0,
 				namedVariables: 0,
 			 });
+		} else if (id === "priv") {
+			variables.push({
+				name: "PRIV",
+				type: "hex",
+				value: "0x" + this._runtime.getPRIV().toString(),
+				variablesReference: 0,
+				indexedVariables: 0,
+				namedVariables: 0,
+			});
 		} 
 		else if (id === "csr") {
 			 const registers = this._runtime.getCsrRegisters();

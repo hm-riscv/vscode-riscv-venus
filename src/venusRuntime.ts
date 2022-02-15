@@ -201,6 +201,10 @@ export class VenusRuntime extends EventEmitter {
 		return simulator.driver.sim.getPC();
 	}
 
+	public getPRIV(): number {
+		return simulator.driver.sim.getPRIV();
+	}
+
 	public useRegister(id: number) {
 		if (!this._usedRegisters.contains(id)) {
 			this._usedRegisters.insert(id);
