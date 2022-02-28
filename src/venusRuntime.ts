@@ -123,8 +123,8 @@ export class VenusRuntime extends EventEmitter {
 				this.sendEvent("end");
 				return;
 			}
-			for (let warn in warnings.toArray()) {
-				VenusRenderer.getInstance().printWarning(warn);
+			for (let warn of warnings.toArray()) {
+				VenusRenderer.getInstance().printWarning(warn.toString());
 			}
 
 			this.getAssemblyLines();
