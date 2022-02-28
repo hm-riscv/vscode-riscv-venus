@@ -17,6 +17,7 @@ import * as path from 'path';
 import * as helpers from './venusHelpers';
 
 import SortedSet from 'js-sorted-set';
+import { isStringLiteral } from 'typescript';
 
 export interface VenusBreakpoint {
 	id: number;
@@ -200,6 +201,10 @@ export class VenusRuntime extends EventEmitter {
 		return simulator.driver.sim.getPC();
 	}
 
+	public getPRIV(): number {
+		return simulator.driver.sim.getPRIV();
+	}
+
 	public useRegister(id: number) {
 		if (!this._usedRegisters.contains(id)) {
 			this._usedRegisters.insert(id);
@@ -228,6 +233,7 @@ export class VenusRuntime extends EventEmitter {
 		}
 	}
 
+
 	public getRegister(id: number): Register {
 		return {
 			id,
@@ -255,6 +261,60 @@ export class VenusRuntime extends EventEmitter {
 	}
 
 	/**
+	 * Returns all the CSR registers
+	 */
+	public getCsrRegisters() {
+		var csrRegs = simulator.driver.getCsrRegisterNames()
+		return csrRegs.map(name => {
+			return {
+				name: name,
+				value: simulator.driver.getCsrRegisterByName(name)
+			};
+		});
+		simulator.driver.getCsrRegisterNames();
+	}
+
+	/**
+	 * Get a CSR Register from the simulator.
+	 * 
+	 * @param id The CSR register id (addr)
+	 */
+	// public getCsrRegister(id: number): Register {
+	// 	return {
+	// 		id,
+	// 		value: simulator.driver.getCsrRegister(id)
+	// 	};
+	// }
+
+	/**
+	 * Get a CSR Register value by Name.
+	 * 
+	 * @param name The CSR register name
+	 */
+	 public getCsrRegisterByName(name: string): number {
+		return simulator.driver.getCsrRegisterByName(name);
+	}
+	
+	/**
+	 * Get a CSR Register id (addr) by Name.
+	 * 
+	 * @param id The CSR register id (name)
+	 */
+	public getCsrRegisterIdByName(name: string): number {
+		return simulator.driver.getCsrRegisterIdByName(name);
+	}
+	
+	
+	/**
+	 * Get a CSR Register names.
+	 * 
+	 * @param id The CSR register id (name)
+	 */
+	//  public getCsrRegisterNames(): Array<String> {
+	// 	return simulator.driver.getCsrRegisterNames();
+	// }
+
+	/**
 	 * Sets an int Register in the simulator.
 	 * Automatically transforms value into an 32bit signed integer
 	 * If value is bigger then INT_MAXVALUE the value is wrapping around according to two-complement format.
@@ -277,6 +337,32 @@ export class VenusRuntime extends EventEmitter {
 		if (Number.isInteger(id) && !Number.isInteger(value)) {
 			simulator.driver.setFRegister(id, value);
 		}
+	}
+
+	/**
+	 * Sets an CSR Register in the simulator.
+	 * Automatically transforms value into an 32bit signed integer
+	 * If value is bigger then INT_MAXVALUE the value is wrapping around according to two-complement format.
+	 * @param reg The register with value
+	 */
+	//  public setCsrRegister(id: number, value: number) {
+	// 	if (Number.isInteger(id) && Number.isInteger(value)) {
+	// 		let pureInt = value;
+	// 		let twoComplementInt = ~~pureInt; // ~~ "Trick" taken from https://stackoverflow.com/a/37022667
+	// 		simulator.driver.setCsrRegister(id, twoComplementInt);
+	// 	}
+	// }	
+
+	/**
+	 * Sets an CSR Register by Name in the simulator.
+	 * Automatically transforms value into an 32bit signed integer
+	 * If value is bigger then INT_MAXVALUE the value is wrapping around according to two-complement format.
+	 * @param reg The register with value
+	 */
+	 public setCsrRegisterByName(name: string, value: number) {
+		let pureInt = value;
+		let twoComplementInt = ~~pureInt; // ~~ "Trick" taken from https://stackoverflow.com/a/37022667
+		simulator.driver.setCsrRegisterByName(name, twoComplementInt);
 	}
 
 	/**
