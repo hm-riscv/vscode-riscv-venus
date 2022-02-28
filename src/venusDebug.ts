@@ -612,7 +612,16 @@ export class VenusDebugSession extends LoggingDebugSession {
 		}
 	}
 	protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments) {
-		AssemblyView.getInstance().close();
+		
+		this._runtime.stop(); // stops current run => stops execution!
+
+		AssemblyView.getInstance().close();		
+		
+		venusTerminal.appendText('\n');
+		venusTerminal.appendText(`Stop program execution!\n`);
+		venusTerminal.appendText(`-------------------------------------------------------------------------------------------\n`);		
+		venusTerminal.appendText('\n');		
+		
 		this.sendResponse(response);
 	}
 
