@@ -4,10 +4,8 @@ module.exports = function(grunt) {
     let command;
     if (process.platform === "win32") {
         command = 'gradlew build';
-    } else if (process.platform === "linux") {
+    } else if (process.platform === "linux" || process.platform === "darwin") {
         command = './gradlew build'
-    } else if (process.platform === "darwin") {
-        command = '.\\gradlew build'
     }
     grunt.initConfig({
         exec: {

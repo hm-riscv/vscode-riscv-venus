@@ -9,7 +9,7 @@ import range from 'lodash/range';
 import { VenusRenderer } from './venusRenderer';
 import { MemoryUI } from './memoryui/memoryUI';
 import { AssemblyLineInfo } from './assemblyView';
-import { StackFrame } from 'vscode-debugadapter';
+import { StackFrame } from '@vscode/debugadapter';
 import { resolve } from 'path';
 import { clearTimeout } from 'timers';
 import { pathToFileURL } from 'url';
@@ -182,6 +182,8 @@ export class VenusRuntime extends EventEmitter {
 
 	/** Creates a sourceLine identifier for debugging: C://exampledir/example.file:5 5 == linenumber */
 	private createSourcelineString(path: string, line: number): string {
+		const firstChar = path.charAt(0);
+		path = (firstChar.toLowerCase() === firstChar.toUpperCase()) ? path : firstChar.toUpperCase() + path.slice(1);
 		return path + ':' + Math.round(line).toString();
 	}
 
