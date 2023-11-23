@@ -72,7 +72,7 @@
 		"grunt-cli": "^1.4.3",
 		"grunt-contrib-copy": "^1.0.0",
 		"grunt-exec": "^3.0.0",
-		"mocha": "^8.4.0",
+		"mocha": "^10.2.0",
 		"node-loader": "^1.0.3",
 		"source-map-loader": "^3.0.0",
 		"ts-loader": "^8.3.0",
