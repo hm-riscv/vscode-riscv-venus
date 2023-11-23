@@ -8,16 +8,10 @@ import simulator = require('./runtime/riscvSimulator');
 import range from 'lodash/range';
 import { VenusRenderer } from './venusRenderer';
 import { MemoryUI } from './memoryui/memoryUI';
-import { AssemblyLineInfo } from './assemblyView';
-import { StackFrame } from '@vscode/debugadapter';
-import { resolve } from 'path';
 import { clearTimeout } from 'timers';
-import { pathToFileURL } from 'url';
-import * as path from 'path';
 import * as helpers from './venusHelpers';
 
 import SortedSet from 'js-sorted-set';
-import { isStringLiteral } from 'typescript';
 
 export interface VenusBreakpoint {
 	id: number;
@@ -89,6 +83,8 @@ export class VenusRuntime extends EventEmitter {
 	private _onlyShowUsedRegs = false;
 
 	private _usedRegisters = new SortedSet();
+
+	private _maximumLineNumber = new Map<string, number>();
 
 	constructor() {
 		super();
@@ -168,6 +164,10 @@ export class VenusRuntime extends EventEmitter {
 		let instructions = simulator.driver.getInstructions();
 
 		for (let i = 0; i < instructions.length; i++) {
+			const currentMaximumLine = this._maximumLineNumber.get(instructions[i].sourceFile);
+			if(!currentMaximumLine || currentMaximumLine < instructions[i].line) {
+				this._maximumLineNumber.set(instructions[i].sourceFile ,instructions[i].line);
+			}
 			let assemblyLine: AssemblyLine = {pc: instructions[i].pc, mCode: instructions[i].mcode, basicCode: instructions[i].basicCode, assemblyViewLine: 0, sourceLine: instructions[i].line, sourcePath: instructions[i].sourceFile};
 			this.pcToAssemblyLine.set(instructions[i].pc, assemblyLine);
 			let sourceIdent = this.createSourcelineString(instructions[i].sourceFile, instructions[i].line);
@@ -177,8 +177,8 @@ export class VenusRuntime extends EventEmitter {
 				this.sourceLineToPc.set(sourceIdent, [instructions[i].pc]);
 			}
 		}
-
 	}
+
 
 	/** Creates a sourceLine identifier for debugging: C://exampledir/example.file:5 5 == linenumber */
 	private createSourcelineString(path: string, line: number): string {
@@ -266,14 +266,13 @@ export class VenusRuntime extends EventEmitter {
 	 * Returns all the CSR registers
 	 */
 	public getCsrRegisters() {
-		var csrRegs = simulator.driver.getCsrRegisterNames()
+		var csrRegs = simulator.driver.getCsrRegisterNames();
 		return csrRegs.map(name => {
 			return {
 				name: name,
 				value: simulator.driver.getCsrRegisterByName(name)
 			};
 		});
-		simulator.driver.getCsrRegisterNames();
 	}
 
 	/**
@@ -651,6 +650,14 @@ export class VenusRuntime extends EventEmitter {
 
 	private toggleBreakpoint(path: string, line: number) {
 		let pc = this.sourceLineToPc.get(this.createSourcelineString(path, line));
+		const maximumLineNumber = this._maximumLineNumber.get(path);
+		if(!pc && maximumLineNumber) {
+			let realLine = line + 1;
+			while (!pc && realLine < maximumLineNumber) {
+				pc = this.sourceLineToPc.get(this.createSourcelineString(path, realLine));
+				realLine++;
+			}
+		}
 		if (pc) {
 			pc.forEach(progcounter => {
 				simulator.driver.toggleBreakpoint(progcounter);
