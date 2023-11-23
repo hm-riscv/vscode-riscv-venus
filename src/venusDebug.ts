@@ -8,8 +8,8 @@ import {
 	InitializedEvent, TerminatedEvent, StoppedEvent, BreakpointEvent, OutputEvent,
 	ProgressStartEvent, ProgressUpdateEvent, ProgressEndEvent,
 	Thread, StackFrame, Scope, Source, Handles, Breakpoint, Variable, ContinuedEvent
-} from 'vscode-debugadapter';
-import { DebugProtocol } from 'vscode-debugprotocol';
+} from '@vscode/debugadapter';
+import { DebugProtocol } from '@vscode/debugprotocol';
 import path, { basename } from 'path';
 import { VenusBreakpoint, VenusRuntime, VenusSettings } from './venusRuntime';
 import { workspace, languages, Disposable, window, ViewColumn, TextEditor, commands, Uri, TextDocument } from 'vscode';
