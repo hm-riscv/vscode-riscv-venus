@@ -36,6 +36,7 @@ jobs:
           prerelease: false
           files: ./**.vsix
       - name: Vscode release plugin
+        if: contains(github.ref.contains, '-')
         env:
           PUBLISHER_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
         run: |
