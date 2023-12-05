@@ -24,11 +24,11 @@ jobs:
         run: npm run compile
       - name: Package extension
         run: npm run package
-      - name: Create release name
+      - name: prepare version string
+        id: prep_version
         run: |
-          REFNAME=${{ github.ref_name }}
-          RELEASENAME="${REFNAME//v/}"
-          echo $RELEASENAME
+          export test_version=$(echo ${{ github.ref_name }} |  sed 's/v//g')
+          echo ::set-output name=version::$test_version
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
@@ -36,7 +36,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          name: Release ${{ env.RELEASENAME }}
+          name: Release ${{ steps.prep_version.outputs.version }}
           draft: false
           prerelease: contains(github.ref, '-')
           files: ./**.vsix
