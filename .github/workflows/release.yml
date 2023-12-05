@@ -33,7 +33,7 @@ jobs:
           tag_name: ${{ github.ref }}
           name: Release ${{ github.ref_name }}
           draft: false
-          prerelease: contains(github.ref.contains, '-')
+          prerelease: contains(github.ref, '-')
           files: ./**.vsix
       - name: Vscode release plugin
         if: contains(github.ref.contains, '-')
