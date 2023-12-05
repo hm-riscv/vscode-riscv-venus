@@ -41,8 +41,13 @@ jobs:
           prerelease: contains(github.ref, '-')
           files: ./**.vsix
       - name: Vscode release plugin
-        if: contains(github.ref.contains, '-')
+        if: contains(github.ref_name, '-')
         env:
           PUBLISHER_TOKEN: ${{ secrets.PUBLISHER_TOKEN }}
         run: |
           npm run publish -- -p "$env:PUBLISHER_TOKEN"
+      - name: Publish to Open VSX Registry
+        if: contains(github.ref_name, '-')
+        uses: HaaLeo/publish-vscode-extension@v1
+        with:
+          pat: ${{ secrets.OPEN_VSX_TOKEN }}
