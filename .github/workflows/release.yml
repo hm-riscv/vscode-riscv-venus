@@ -28,7 +28,9 @@ jobs:
         id: prep_version
         run: |
           export test_version=$(echo ${{ github.ref_name }} |  sed 's/v//g')
+          export is_prerelease=$(if [[ $test_version == *"-"* ]]; then echo "true"; else echo "false"; fi)
           echo ::set-output name=version::$test_version
+          echo ::set-output name=is_prerelease::$is_prerelease
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
@@ -38,6 +40,7 @@ jobs:
           tag_name: ${{ github.ref }}
           name: Release ${{ steps.prep_version.outputs.version }}
           draft: false
+          prerelease: ${{ steps.prep_version.outputs.is_prerelease }}
           files: ./**.vsix
       - name: Vscode release plugin
         if: !contains(github.ref_name, '-')
