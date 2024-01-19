@@ -1,5 +1,5 @@
-import * as vscode from 'vscode'
-import fs from 'fs'
+import * as vscode from 'vscode';
+import fs from 'fs';
 import simulator = require('../runtime/riscvSimulator');
 import range from 'lodash/range';
 
@@ -8,32 +8,33 @@ import range from 'lodash/range';
  */
 export class MemoryUI {
 	/**
-	 * Track the currently panel. Only allow a single panel to exist at a time.
+	 * Track the current panel. Only allow a single panel to exist at a time.
 	 */
 	public static instance: MemoryUI | undefined;
 
 	public static readonly viewType = 'venusUI';
 	private _panel: vscode.WebviewPanel;
-	private _extensionUri: vscode.Uri;
+	private static _extensionUri: vscode.Uri;
 	private _disposables: vscode.Disposable[] = [];
 	private _uiState: UIState;
 
 	public static getInstance(): MemoryUI {
 		if (MemoryUI.instance) {
-			return MemoryUI.instance
+			return MemoryUI.instance;
 		} else {
-			MemoryUI.instance = new MemoryUI()
-			return MemoryUI.instance
+			MemoryUI.instance = new MemoryUI();
+			return MemoryUI.instance;
 		}
 	}
 
 	/** Closes the old instance if available and opens a new one */
-	public static createNewInstance(): MemoryUI {
+	public static createNewInstance(extensionUri: vscode.Uri): MemoryUI {
 		if (MemoryUI.instance) {
 			MemoryUI.instance.dispose();
 		}
-		MemoryUI.instance = new MemoryUI()
-		return MemoryUI.instance
+		MemoryUI.instance = new MemoryUI();
+		MemoryUI._extensionUri = extensionUri;
+		return MemoryUI.instance;
 	}
 
 	private constructor() {
@@ -55,24 +56,24 @@ export class MemoryUI {
 		}
 	}
 
-	public show(extensionUri: vscode.Uri) {
+	public show(column? : vscode.ViewColumn) {
 		// If we already have a panel, show it.
 		if (MemoryUI.instance?._panel) {
 			MemoryUI.instance._panel.reveal();
 		} else {
-			this._addPanel(extensionUri);
+			this._addPanel(column);
 		}
 	}
 
 	public update() {
 		if (this._panel && this._panel.visible && this._panel.webview) {
-			this._uiState.update()
-			const lines = this._uiState.getMemoryInDisplayFormat()
+			this._uiState.update();
+			const lines = this._uiState.getMemoryInDisplayFormat();
 
 			this._panel.webview.postMessage({
 				command: "updateMemory",
 				lines: lines
-			})
+			});
 		}
 	}
 
@@ -80,24 +81,23 @@ export class MemoryUI {
 
 	}
 
-	private _addPanel(extensionUri: vscode.Uri) {
+	private _addPanel(column? : vscode.ViewColumn) {
 
 		// Otherwise, create a new panel.
 		const panel = vscode.window.createWebviewPanel(
 			MemoryUI.viewType,
 			'Memory',
-			vscode.ViewColumn.Beside,
+			column ? column : vscode.ViewColumn.Beside,
 			{
 				// Enable javascript in the webview
 				enableScripts: true,
 
 				// And restrict the webview to only loading content from our extension's `src/memoryui` directory.
-				localResourceRoots: [vscode.Uri.joinPath(extensionUri, 'src', 'memoryui')]
+				localResourceRoots: [vscode.Uri.joinPath(MemoryUI._extensionUri, 'src', 'memoryui')]
 			}
 		);
 
 		this._panel = panel;
-		this._extensionUri = extensionUri;
 
 		const webview = this._panel.webview;
 		this._panel.webview.html = this._getHtmlForWebview(webview);
@@ -121,38 +121,38 @@ export class MemoryUI {
 		);
 
 		const moveMemoryBy = (rows: number) => {
-			const bytes = 4 * rows
-			if (this._uiState.activeMemoryAddress + bytes < 0) return
-			this._uiState.activeMemoryAddress += bytes
-			this.update()
-		}
+			const bytes = 4 * rows;
+			if (this._uiState.activeMemoryAddress + bytes < 0) { return; }
+			this._uiState.activeMemoryAddress += bytes;
+			this.update();
+		};
 
 		// Handle messages from the webview
 		this._panel.webview.onDidReceiveMessage(
 			message => {
 				switch (message.command) {
 					case 'moveMemoryJump':
-						const segment = message.segment as MemorySegmentOption
-						const address = MemorySegmentAdresses.get(segment) || MemorySegments.TEXT_BEGIN
-						this._uiState.activeMemoryAddress = address
-						this.update()
+						const segment = message.segment as MemorySegmentOption;
+						const address = MemorySegmentAdresses.get(segment) || MemorySegments.TEXT_BEGIN;
+						this._uiState.activeMemoryAddress = address;
+						this.update();
 						return;
 					case 'moveMemoryLocation':
-						let {memAddress} = message
-						memAddress = parseInt(memAddress, 16) // TODO parse with utils.kt's userStringToInt()
-						this._uiState.activeMemoryAddress = memAddress
-						this.update()
+						let {memAddress} = message;
+						memAddress = parseInt(memAddress, 16); // TODO parse with utils.kt's userStringToInt()
+						this._uiState.activeMemoryAddress = memAddress;
+						this.update();
 						return;
 					case 'moveMemoryUp':
-						moveMemoryBy(+this._uiState.MEMORY_CONTEXT)
+						moveMemoryBy(+this._uiState.MEMORY_CONTEXT);
 						return;
 					case 'moveMemoryDown':
-						moveMemoryBy(-this._uiState.MEMORY_CONTEXT)
+						moveMemoryBy(-this._uiState.MEMORY_CONTEXT);
 						return;
 					case 'updateDisplayType':
-						const {displayType} = message
-						this._uiState.setDisplayType(displayType)
-						this.update()
+						const {displayType} = message;
+						this._uiState.setDisplayType(displayType);
+						this.update();
 				}
 			},
 			null,
@@ -162,15 +162,15 @@ export class MemoryUI {
 
 	private _getHtmlForWebview(webview: vscode.Webview, ) {
 
-		const htmlPathOnDisk = vscode.Uri.joinPath(this._extensionUri, '/src/memoryui/memoryUI.html');
+		const htmlPathOnDisk = vscode.Uri.joinPath(MemoryUI._extensionUri, '/src/memoryui/memoryUI.html');
 		var htmlpath = htmlPathOnDisk.fsPath;
 		var html = fs.readFileSync(htmlpath).toString();
 
-		const onDiskPath = vscode.Uri.joinPath(this._extensionUri, '/src/memoryui/memoryUI.js');
+		const onDiskPath = vscode.Uri.joinPath(MemoryUI._extensionUri, '/src/memoryui/memoryUI.js');
 		const scriptSrc = webview.asWebviewUri(onDiskPath);
 		html = html.replace('${scriptSrc}', scriptSrc.toString());
 
-		const stylePath = vscode.Uri.joinPath(this._extensionUri, '/src/memoryui/memoryUI.css');
+		const stylePath = vscode.Uri.joinPath(MemoryUI._extensionUri, '/src/memoryui/memoryUI.css');
 		const styleSrc = webview.asWebviewUri(stylePath);
 		html = html.replace('${styleSrc}', styleSrc.toString());
 
@@ -180,51 +180,51 @@ export class MemoryUI {
 }
 
 class UIState {
-	public activeMemoryAddress = 0
-	private displayType = DisplayType.HEX
-	public memory: Array<MemoryLine>
-	public readonly MEMORY_CONTEXT = 6
+	public activeMemoryAddress = 0;
+	private displayType = DisplayType.HEX;
+	public memory: Array<MemoryLine>;
+	public readonly MEMORY_CONTEXT = 6;
 
 	constructor() {
-		this.memory = []
+		this.memory = [];
 	}
 
 	public getMemoryInDisplayFormat(): Array<MemoryLine> {
-		const toHex = (decimal) => (decimal >>> 0).toString(16).toUpperCase().padStart(2, "0")
-		const toDecimal = (decimal) => Int8Array.of(decimal)[0].toString(10)
-		const toUnsigned = (decimal) => (decimal >>> 0).toString(10)
+		const toHex = (decimal) => (decimal >>> 0).toString(16).toUpperCase().padStart(2, "0");
+		const toDecimal = (decimal) => Int8Array.of(decimal)[0].toString(10);
+		const toUnsigned = (decimal) => (decimal >>> 0).toString(10);
 		const toAscii = (decimal) => {
 			if (decimal < 32 || 126 < decimal) {
-				return "0x" + toHex(decimal)
+				return "0x" + toHex(decimal);
 			}
-			return String.fromCharCode(decimal >>> 0)
-		}
+			return String.fromCharCode(decimal >>> 0);
+		};
 
-		let formatter: (decimal: number) => string
+		let formatter: (decimal: number) => string;
 		switch (this.displayType) {
 			case DisplayType.HEX:
-				formatter = toHex
-				break
+				formatter = toHex;
+				break;
 			case DisplayType.DECIMAL:
-				formatter = toDecimal
-				break
+				formatter = toDecimal;
+				break;
 			case DisplayType.UNSIGNED:
-				formatter = toUnsigned
-				break
+				formatter = toUnsigned;
+				break;
 			case DisplayType.ASCII:
-				formatter = toAscii
-				break
+				formatter = toAscii;
+				break;
 		}
 		return this.memory.map(line => Object.assign(
 				{},
 				line,
 				{bytes: line.bytes.map(byte => formatter(byte))}
-			))
+			));
 	}
 
 	public setDisplayType(displayType: DisplayType) {
 		if (Object.values(DisplayType).includes(displayType)) {
-			this.displayType = displayType
+			this.displayType = displayType;
 		}
 	}
 
@@ -234,13 +234,13 @@ class UIState {
 	 * and on how much words around the AMA should be displayed (Memory Context)
 	 */
 	public update() {
-		this.activeMemoryAddress = this.activeMemoryAddress >>> 2 << 2
-		this.memory = []
+		this.activeMemoryAddress = this.activeMemoryAddress >>> 2 << 2;
+		this.memory = [];
 		for (const rowIdx of range(-this.MEMORY_CONTEXT, this.MEMORY_CONTEXT + 1)) {
-			const rowAddr = this.activeMemoryAddress + 4 * rowIdx
+			const rowAddr = this.activeMemoryAddress + 4 * rowIdx;
 			const bytes = range(0,4)
-				.map(i => simulator.driver.loadByte(rowAddr + i))
-			this.memory.push({rowIdx, rowAddr, bytes})
+				.map(i => simulator.driver.loadByte(rowAddr + i));
+			this.memory.push({rowIdx, rowAddr, bytes});
 		}
 	}
 }

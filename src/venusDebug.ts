@@ -705,7 +705,8 @@ export class VenusDebugSession extends LoggingDebugSession {
 			{VenusSevenSegBoardUI.getInstance().show(ViewColumn.Two);}
 		else if (view === "Assembly")
 			{AssemblyView.getInstance().show(ViewColumn.Two);}
-
+		else if (view === "Memory")
+			{MemoryUI.getInstance().show();}
 	}
 
 	/** Updates the Decorators in Assemblyview. This means lines are marked, for example the current active line that is debugged. */
