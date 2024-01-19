@@ -275,4 +275,4 @@ const MemorySegmentAdresses = new Map<string, number>([
 	[MemorySegmentOption.DATA, MemorySegments.STATIC_BEGIN],
 	[MemorySegmentOption.HEAP, MemorySegments.HEAP_BEGIN],
 	[MemorySegmentOption.STACK, MemorySegments.STACK_BEGIN],
-])
+]);
