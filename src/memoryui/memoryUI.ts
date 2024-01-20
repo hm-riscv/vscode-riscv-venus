@@ -89,11 +89,12 @@ export class MemoryUI {
 			'Memory',
 			column ? column : vscode.ViewColumn.Beside,
 			{
-				// Enable javascript in the webview
+				// Enable JavaScript in the webview
 				enableScripts: true,
-
-				// And restrict the webview to only loading content from our extension's `src/memoryui` directory.
-				localResourceRoots: [vscode.Uri.joinPath(MemoryUI._extensionUri, 'src', 'memoryui')]
+				// Restrict the webview to only loading content from our extension's `src/memoryui` directory.
+				localResourceRoots: [vscode.Uri.joinPath(MemoryUI._extensionUri, 'src', 'memoryui')],
+				// Make sure that select box state is kept while another tab is shown
+				retainContextWhenHidden: true
 			}
 		);
 
