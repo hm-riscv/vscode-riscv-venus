@@ -5,10 +5,10 @@
  * They might be useful for future development, though.
  */
 (function removeLegacyHTMLElements() {
-	document.getElementById('register-tab-view').remove()
-	document.getElementById('cache-tab-view').remove()
-	document.getElementById('navigation-bar').remove()
-})()
+	document.getElementById('register-tab-view').remove();
+	document.getElementById('cache-tab-view').remove();
+	document.getElementById('navigation-bar').remove();
+})();
 
 const vscode = acquireVsCodeApi();
 
@@ -17,24 +17,24 @@ const vscode = acquireVsCodeApi();
  */
 window.driver = {
 	moveMemoryJump: () => {
-		const jumpSelect = document.getElementById('address-jump')
-		const memorySegment = jumpSelect.value
-		jumpSelect.selectedIndex = 0
+		const jumpSelect = document.getElementById('address-jump');
+		const memorySegment = jumpSelect.value;
+		jumpSelect.selectedIndex = 0;
 		vscode.postMessage({
 			command: 'moveMemoryJump',
 			segment: memorySegment
-		})
+		});
 	},
 	moveMemoryLocation: (memAddress) => {
 		vscode.postMessage({
 			command: 'moveMemoryLocation',
 			memAddress
-		})
+		});
 	},
 	moveMemoryUp: () => vscode.postMessage({command: 'moveMemoryUp'}),
 	moveMemoryDown: () => vscode.postMessage({command: 'moveMemoryDown'}),
 	updateRegMemDisplay: (displayType) => vscode.postMessage({command: 'updateDisplayType', displayType}),
-}
+};
 
 
 /**
@@ -47,12 +47,12 @@ window.addEventListener('message', event => {
 	switch (message.command) {
 		case 'loadState':
 			let state = message.uiState;
-			console.log('Loading inital state')
+			console.log('Loading inital state');
 			break;
 		case 'updateMemory':
-			const { lines } = message
+			const { lines } = message;
 			for (const {rowIdx, rowAddr, bytes} of lines) {
-				renderMemoryRow(rowIdx,rowAddr, bytes)
+				renderMemoryRow(rowIdx,rowAddr, bytes);
 			}
 			break;
 	}
@@ -64,14 +64,14 @@ window.addEventListener('message', event => {
 function cleanTableRow(row) {
 	for (const n of row.childNodes) {
 		if (!(n instanceof HTMLTableCellElement)) {
-			row.removeChild(n)
+			row.removeChild(n);
 		}
 	}
-	return row
+	return row;
 }
 
 function getDisplayType() {
-	return document.getElementById('display-settings').value
+	return document.getElementById('display-settings').value;
 }
 
 /**
@@ -82,21 +82,21 @@ function getDisplayType() {
  * @param {Array<string>} bytes in hex, dec, ascii or unsigned encoding
  */
 function renderMemoryRow(rowIdx,rowAddr, bytes) {
-	let row = document.getElementById("mem-row-" + rowIdx)
-	row = cleanTableRow(row)
-	const tdAddress = row.childNodes[0]
+	let row = document.getElementById("mem-row-" + rowIdx);
+	row = cleanTableRow(row);
+	const tdAddress = row.childNodes[0];
 	if (rowAddr >= 0) {
-		tdAddress.innerText = "0x" + rowAddr.toString(16).toUpperCase().padStart(8, "0")
+		tdAddress.innerText = "0x" + rowAddr.toString(16).toUpperCase().padStart(8, "0");
 		for (let i = 0; i < 4; i++) {
-			const byte = bytes[i]
-			const tdByte = row.childNodes[i + 1]
-			tdByte.innerText = byte
+			const byte = bytes[i];
+			const tdByte = row.childNodes[i + 1];
+			tdByte.innerText = byte;
 		}
 	} else {
-		tdAddress.innerText = "----------"
+		tdAddress.innerText = "----------";
 		for (i = 0; i < 4; i++) {
-			const tdByte = row.childNodes[i + 1]
-			tdByte.innerText = "--"
+			const tdByte = row.childNodes[i + 1];
+			tdByte.innerText = "--";
 		}
 	}
 }

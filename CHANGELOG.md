@@ -1,3 +1,11 @@
+## 1.8.1
+* Fix and improve settings descriptions
+* Reduce number of linter warnings
+
+## 1.8.0
+* Allow MemoryUI to be opened using launch.json
+* Jump to address also when user confirms his entry by pressing return key
+
 ## 1.7.3
 * Debugger now also uses breakpoints on labels
 

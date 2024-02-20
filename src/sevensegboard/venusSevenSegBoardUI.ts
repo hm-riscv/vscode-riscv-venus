@@ -36,12 +36,13 @@ export class VenusSevenSegBoardUI {
 	}
 
 	private constructor(extensionUri?: vscode.Uri, uiState?: UIState) {
-		if (extensionUri)
-			VenusSevenSegBoardUI._extensionUri = extensionUri
+		if (extensionUri) { 
+			VenusSevenSegBoardUI._extensionUri = extensionUri;
+		}	
 		if (uiState) {
 			VenusSevenSegBoardUI._uiState = uiState;
 		} else {
-			VenusSevenSegBoardUI._uiState = new UIState()
+			VenusSevenSegBoardUI._uiState = new UIState();
 		}
 	}
 
@@ -65,7 +66,7 @@ export class VenusSevenSegBoardUI {
 		if (VenusSevenSegBoardUI.instance?._panel) {
 			VenusSevenSegBoardUI.instance._panel.reveal();
 		} else {
-			this._addPanel();
+			this._addPanel(column);
 		}
 	}
 

@@ -1,7 +1,7 @@
 {
 	"name": "riscv-venus",
 	"displayName": "RISC-V Venus Simulator",
-	"version": "1.7.6",
+	"version": "1.8.1",
 	"publisher": "hm",
 	"description": "RISC-V Venus Simulator embedded in VS Code",
 	"author": {
@@ -105,32 +105,32 @@
 				"riscv-venus.forceAlignedAddressing": {
 					"type": "boolean",
 					"default": false,
-					"description": "Force Aligned Addressing?"
+					"description": "Force aligned addressing?"
 				},
 				"riscv-venus.mutableText": {
 					"type": "boolean",
 					"default": true,
-					"description": "Mutable Text? Can't write into text segment if true."
+					"description": "Allow write into text segment?"
 				},
 				"riscv-venus.ecallOnlyExit": {
 					"type": "boolean",
 					"default": false,
-					"description": "Can Exit only with ecall (10)?"
+					"description": "Can exit only with ecall (10)?"
 				},
 				"riscv-venus.setRegesOnInit": {
 					"type": "boolean",
 					"default": true,
-					"description": "Initialize Registers with default Values?"
+					"description": "Initialize registers with default values?"
 				},
 				"riscv-venus.allowAccessBtnStackHeap": {
 					"type": "boolean",
 					"default": false,
-					"description": "Allow Access Between Stack and Heap?"
+					"description": "Allow access between stack and heap?"
 				},
 				"riscv-venus.maxSteps": {
 					"type": "integer",
 					"default": -1,
-					"description": "Max number of steps: (Negative means ignored)"
+					"description": "Max number of steps (negative removes limit):"
 				},
 				"riscv-venus.onlyShowUsedRegs": {
 					"type": "boolean",
@@ -297,7 +297,7 @@
 							},
 							"stopAtBreakpoints": {
 								"type": "boolean",
-								"description": "If execution should stop at Breakpoints. If this is false execution runs until the program execution finishes.",
+								"description": "If execution should stop at breakpoints. If this is false, execution runs until the program execution finishes.",
 								"default": true
 							},
 							"openViews": {
@@ -310,7 +310,7 @@
 										"Robot",
 										"LED Matrix",
 										"Seven Segment Board",
-										"Assembly"
+										"Memory"
 									]
 								},
 								"uniqueItems": true
@@ -321,7 +321,7 @@
 									"x": 10,
 									"y": 10
 								},
-								"description": "The wanted Size of the Led Matrix. The parameter must be in the format: {\"x\": 10, \"y\": 10}"
+								"description": "The wanted size of the Led Matrix. The parameter must be in the format: {\"x\": 10, \"y\": 10}"
 							}
 						}
 					}
@@ -337,7 +337,8 @@
 						"openViews": [
 							"Robot",
 							"LED Matrix",
-							"Seven Segment Board"
+							"Seven Segment Board",
+							"Memory"
 						],
 						"ledMatrixSize": {
 							"x": 10,
@@ -360,7 +361,7 @@
 					},
 					{
 						"label": "Venus Debug: Launch current file",
-						"description": "Currently not properly working if there are Breakpoints across files.",
+						"description": "Currently not properly working if there are breakpoints across files.",
 						"body": {
 							"type": "venus",
 							"request": "launch",
@@ -384,7 +385,7 @@
 					},
 					{
 						"label": "Venus Debug: All Options",
-						"description": "This config list all the options available. You can delete the options you dont't need. This config debugs the current file",
+						"description": "This config list all the options available. You can delete the options you don't need. This config debugs the current file",
 						"body": {
 							"type": "venus",
 							"request": "launch",
@@ -395,7 +396,8 @@
 							"openViews": [
 								"Robot",
 								"LED Matrix",
-								"Seven Segment Board"
+								"Seven Segment Board",
+								"Memory"
 							],
 							"ledMatrixSize": {
 								"x": 10,
