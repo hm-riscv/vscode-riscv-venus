@@ -89,7 +89,7 @@ export class MemoryUI {
 			'Memory',
 			column ? column : vscode.ViewColumn.Beside,
 			{
-				// Enable JavaScript in the webview
+				// Enable javascript in the webview
 				enableScripts: true,
 				// Restrict the webview to only loading content from our extension's `src/memoryui` directory.
 				localResourceRoots: [vscode.Uri.joinPath(MemoryUI._extensionUri, 'src', 'memoryui')],
@@ -122,7 +122,7 @@ export class MemoryUI {
 		);
 
 		const moveMemoryBy = (rows: number) => {
-			const bytes = 4 * rows;
+			const bytes = this._uiState.displayBytesPerRow * rows;
 			if (this._uiState.activeMemoryAddress + bytes < 0) { return; }
 			this._uiState.activeMemoryAddress += bytes;
 			this.update();
@@ -154,6 +154,12 @@ export class MemoryUI {
 						const {displayType} = message;
 						this._uiState.setDisplayType(displayType);
 						this.update();
+						return;
+					case 'updateBytesPerRow':
+						const {bytesPerRow} = message;
+						this._uiState.displayBytesPerRow = bytesPerRow;
+						this.update();
+						return;
 				}
 			},
 			null,
@@ -183,6 +189,7 @@ export class MemoryUI {
 class UIState {
 	public activeMemoryAddress = 0;
 	private displayType = DisplayType.HEX;
+	public displayBytesPerRow = 4;
 	public memory: Array<MemoryLine>;
 	public readonly MEMORY_CONTEXT = 6;
 
@@ -192,6 +199,7 @@ class UIState {
 
 	public getMemoryInDisplayFormat(): Array<MemoryLine> {
 		const toHex = (decimal) => (decimal >>> 0).toString(16).toUpperCase().padStart(2, "0");
+		const toBinary = (decimal) => (decimal >>> 0).toString(2).padStart(8, "0");
 		const toDecimal = (decimal) => Int8Array.of(decimal)[0].toString(10);
 		const toUnsigned = (decimal) => (decimal >>> 0).toString(10);
 		const toAscii = (decimal) => {
@@ -205,6 +213,9 @@ class UIState {
 		switch (this.displayType) {
 			case DisplayType.HEX:
 				formatter = toHex;
+				break;
+			case DisplayType.BINARY:
+				formatter = toBinary;
 				break;
 			case DisplayType.DECIMAL:
 				formatter = toDecimal;
@@ -238,8 +249,8 @@ class UIState {
 		this.activeMemoryAddress = this.activeMemoryAddress >>> 2 << 2;
 		this.memory = [];
 		for (const rowIdx of range(-this.MEMORY_CONTEXT, this.MEMORY_CONTEXT + 1)) {
-			const rowAddr = this.activeMemoryAddress + 4 * rowIdx;
-			const bytes = range(0,4)
+			const rowAddr = this.activeMemoryAddress + this.displayBytesPerRow * rowIdx;
+			const bytes = range(0, this.displayBytesPerRow)
 				.map(i => simulator.driver.loadByte(rowAddr + i));
 			this.memory.push({rowIdx, rowAddr, bytes});
 		}
@@ -247,7 +258,7 @@ class UIState {
 }
 
 enum DisplayType {
-	HEX = "Hex", DECIMAL = "Decimal", UNSIGNED = "Unsigned", ASCII = "ASCII"
+	HEX = "Hex", BINARY = "Binary", DECIMAL = "Decimal", UNSIGNED = "Unsigned", ASCII = "ASCII"
 }
 
 interface MemoryLine {

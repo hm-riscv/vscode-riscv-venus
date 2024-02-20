@@ -1,3 +1,11 @@
+## 1.9.1
+* Add binary format to memory view
+* Add option for selecting number of columns in memory
+
+## 1.9.0
+* Better align controls in memory view
+* Simplify CSS of memory view using flex layout
+
 ## 1.8.1
 * Fix and improve settings descriptions
 * Reduce number of linter warnings
