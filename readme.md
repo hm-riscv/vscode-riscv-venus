@@ -20,8 +20,7 @@ Alternatively, you can install it via VS Code Quick Open (`CTRL+P`):
 
 ## Getting Started
 
-You can debug any assembler file you are editing. We recommend using the [RISC-V
-Support](https://marketplace.visualstudio.com/items?itemName=zhwu95.riscv)
+You can debug any assembler file you are editing. We recommend using the [RISC-V](https://marketplace.visualstudio.com/items?itemName=sunshaoce.RISC-V)
 extension for syntax highlighting.
 
 Just start debugging with "Run and Debug" to debug the current file:
